@@ -3,17 +3,13 @@ import { PaginationResults } from 'src/app/conn/conntypes';
 import { CustomAppError } from 'src/app/context/app.error';
 import { DatabaseService } from 'src/db/database.provider';
 import { Systemrole } from 'src/entity/core/systemroles.entity';
-import { EventsGateway } from 'src/events/event.gateway';
 import { EntityModel } from 'src/model/entity.model';
 import { Not } from 'typeorm';
 
 @Injectable()
 export class SystemRolesService extends EntityModel<Systemrole> {
-  constructor(
-    @Inject(EventsGateway) eventsGateway: EventsGateway,
-    @Inject('data_source') model: DatabaseService,
-  ) {
-    super(Systemrole, eventsGateway, model);
+  constructor(@Inject('data_source') model: DatabaseService) {
+    super(Systemrole, model);
   }
   async ViewSystemroles(): Promise<PaginationResults<Systemrole>> {
     try {

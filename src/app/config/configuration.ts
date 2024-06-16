@@ -12,9 +12,11 @@ export const envconfig = () => ({
   },
   mail: {
     host: process.env.EMAIL_HOST,
-    user: process.env.EMAIL_USER,
-    password: process.env.EMAIL_PASSWORD,
-    port: process.env.EMAIL_PORT,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+    port: parseInt(process.env.EMAIL_PORT),
   },
   jwt: {
     secret: process.env.JWT_SECRET,

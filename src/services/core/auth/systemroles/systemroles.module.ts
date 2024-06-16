@@ -5,5 +5,6 @@ import { SystemRolesController } from './systemroles.controller';
 @Module({
   providers: [SystemRolesService],
   controllers: [SystemRolesController],
+  exports: [SystemRolesService],
 })
 export class SystemRolesModule {}

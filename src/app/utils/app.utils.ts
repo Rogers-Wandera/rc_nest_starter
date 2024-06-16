@@ -1,28 +1,11 @@
 import { format, isBefore, parse } from 'date-fns';
 import { CustomAppError } from '../context/app.error';
 import CryptoJs from 'crypto-js';
-import { readFileSync } from 'fs';
-import ejs from 'ejs';
-import { sendEmail } from '../mailer/mailer';
-import * as path from 'path';
-import { Server } from 'socket.io';
-import { EventsGateway } from 'src/events/event.gateway';
-import { Inject, Injectable } from '@nestjs/common';
-
-const directory = path.join(__dirname, '..', 'templates', 'mailtemp.ejs');
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class Utilities {
-  protected socket: Server;
-  constructor(
-    @Inject(EventsGateway) private readonly eventsGateway: EventsGateway,
-  ) {
-    this.socket = this.eventsGateway.server;
-  }
-
-  public emit(event: string, data: unknown) {
-    this.socket.emit(event, data);
-  }
+  constructor() {}
   public encryptData(input: string): string {
     try {
       const secretKey = process.env.ENCRYPTION_KEY;
@@ -55,19 +38,4 @@ export class Utilities {
       throw new CustomAppError(error.message, 400);
     }
   }
-
-  public SendEmailLink = async (
-    email: string,
-    subject: string,
-    emailData: object,
-  ) => {
-    try {
-      const template = readFileSync(directory, 'utf-8');
-      const emailHtml = ejs.render(template, emailData);
-      const response = await sendEmail(email, subject, emailHtml);
-      return response;
-    } catch (error) {
-      throw new Error(error.message);
-    }
-  };
 }

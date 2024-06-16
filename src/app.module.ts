@@ -1,7 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { CatsController } from './cats.controller';
 import { ConfigModule } from '@nestjs/config';
 import { envconfig } from './app/config/configuration';
 import { EventsMoule } from './events/events.module';
@@ -11,6 +8,7 @@ import { DatabaseModule } from './db/database.module';
 import { CoreModules } from './services/core/core.service.module';
 import { APP_FILTER } from '@nestjs/core';
 import { AllExceptionsFilter } from './app/context/exceptions/http-exception.filter';
+import { EmailModule } from './app/mailer/mailer.module';
 
 @Module({
   imports: [
@@ -25,10 +23,9 @@ import { AllExceptionsFilter } from './app/context/exceptions/http-exception.fil
     AppContextsModule,
     DatabaseModule,
     CoreModules,
+    EmailModule,
   ],
-  controllers: [AppController, CatsController],
   providers: [
-    AppService,
     {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,

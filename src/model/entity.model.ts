@@ -5,7 +5,6 @@ import { customquerypaginateprops, paginateprops } from '../app/conn/conntypes';
 import { CustomAppError } from '../app/context/app.error';
 import { Utilities } from '../app/utils/app.utils';
 import { DatabaseService } from '../db/database.provider';
-import { EventsGateway } from 'src/events/event.gateway';
 import { ModelClass } from 'src/app/decorators/model.decorators';
 
 @ModelClass()
@@ -13,14 +12,13 @@ export class EntityModel<T extends ObjectLiteral> extends Utilities {
   protected model: Model;
   protected repository: CustomRepository<T>;
   public pagination: paginateprops<T>;
-  protected entity: T;
-  protected custompagination: customquerypaginateprops<T>;
+  public entity: T;
+  public custompagination: customquerypaginateprops<T>;
   constructor(
     entity: EntityTarget<T>,
-    eventsGateway: EventsGateway,
     private readonly modelservice: DatabaseService,
   ) {
-    super(eventsGateway);
+    super();
     this.model = this.modelservice.getModel(this);
     this.entity = this.entityInstance(entity);
     this.repository = this.model.getRepository(entity);

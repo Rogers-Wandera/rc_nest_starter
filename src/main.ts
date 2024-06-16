@@ -12,6 +12,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     abortOnError: false,
   });
+  app.setGlobalPrefix('/api/v1');
   app.use(new LoggingMiddleware().use);
   app.use(new ServerLogger().use);
   await app.listen(app.get(ConfigService<EnvConfig>).get('port'), async () => {

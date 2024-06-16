@@ -13,7 +13,6 @@ import { ObjectSchema } from 'joi';
 import { paginateprops } from '../../conn/conntypes';
 import { CustomAppError } from '../../context/app.error';
 import { Request } from 'express';
-import { catchError, throwError } from 'rxjs';
 
 type schema<R> = ObjectSchema<R>;
 type paginateFactory<T> = (itemSchema: {
@@ -47,6 +46,27 @@ export class JoiPaginateValidation<T> implements NestInterceptor {
       throw new BadRequestException(errorMessage);
     }
     request.query = parsedValue;
+    return next.handle();
+  }
+}
+
+@Injectable({ scope: Scope.REQUEST })
+export class JoiValidator<T> implements NestInterceptor {
+  constructor(
+    private schema: schema<T>,
+    private type: Paramtype,
+  ) {}
+  intercept(context: ExecutionContext, next: CallHandler) {
+    const request: Request = context.switchToHttp().getRequest();
+    const data: T = request[this.type];
+    const { error, value: parsedValue } = this.schema.validate(data);
+    if (error) {
+      const errorMessage = error.details
+        .map((detail) => detail.message)
+        .join('; ');
+      throw new BadRequestException(errorMessage);
+    }
+    request[this.type] = parsedValue;
     return next.handle();
   }
 }

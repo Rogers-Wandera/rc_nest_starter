@@ -1,7 +1,11 @@
 import { Module } from '@nestjs/common';
-import { SystemRolesModule } from './auth/systemroles/systemroles.module';
-
+import { AuthModule } from './auth/auth.module';
+import { PositionModule } from './positions/positions.module';
 @Module({
-  imports: [SystemRolesModule],
+  imports: [
+    AuthModule,
+    PositionModule,
+  ],
+  exports: [AuthModule, PositionModule],
 })
 export class CoreModules {}
