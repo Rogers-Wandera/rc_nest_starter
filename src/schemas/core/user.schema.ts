@@ -1,5 +1,8 @@
 import Joi from 'joi';
-import { registertype } from 'src/services/core/auth/users/users.types';
+import {
+  addrolestype,
+  registertype,
+} from 'src/services/core/auth/users/users.types';
 
 const prefixes = ['+256', '+254', '+255'];
 export const nameRegex = /^[a-zA-Z\s]+$/;
@@ -109,4 +112,15 @@ const LoginSchema = Joi.object<registertype>({
     }),
 });
 
-export { UserRegisterSchema, LoginSchema };
+const AddRoleSchema = Joi.object<addrolestype>({
+  roleId: Joi.number().positive().required().messages({
+    'string.empty': 'Role is required',
+    'any.required': 'Role is required',
+  }),
+  userId: Joi.string().required().messages({
+    'string.empty': 'User id is required',
+    'any.required': 'User id is required',
+  }),
+});
+
+export { UserRegisterSchema, LoginSchema, AddRoleSchema };

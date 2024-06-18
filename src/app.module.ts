@@ -9,6 +9,7 @@ import { CoreModules } from './services/core/core.service.module';
 import { APP_FILTER } from '@nestjs/core';
 import { AllExceptionsFilter } from './app/context/exceptions/http-exception.filter';
 import { EmailModule } from './app/mailer/mailer.module';
+import { SystemDefaultRolesModule } from './services/core/defaults/roles/roles.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { EmailModule } from './app/mailer/mailer.module';
     DatabaseModule,
     CoreModules,
     EmailModule,
+    SystemDefaultRolesModule,
   ],
   providers: [
     {

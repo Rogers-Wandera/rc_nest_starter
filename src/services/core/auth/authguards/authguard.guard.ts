@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   UnauthorizedException,
   Injectable,
+  Inject,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
@@ -10,9 +11,17 @@ import { TokenUser } from '../users/users.types';
 
 import { RefreshTokenService } from '../refreshtokens/refreshtokens.service';
 import { UserService } from '../users/users.service';
+import { Reflector } from '@nestjs/core';
+import {
+  Roles,
+  SYSTEM_ROLES,
+  rolestype,
+} from 'src/app/decorators/roles.decorator';
+import { SystemDefaultRoles } from '../../defaults/roles/roles.service';
+import { logEvent } from 'src/middlewares/logger.middleware';
 
 @Injectable()
-export class VerifyJwtGuard implements CanActivate {
+export class JwtGuard implements CanActivate {
   constructor(private readonly jwtService: JwtService) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: Request = context.switchToHttp().getRequest();
@@ -38,15 +47,17 @@ export class VerifyJwtGuard implements CanActivate {
 }
 
 @Injectable()
-export class VerifyRefreshTokenGuard implements CanActivate {
+export class RefreshTokenGuard implements CanActivate {
   constructor(
-    private readonly jwtService: JwtService,
-    private readonly refreshtoken: RefreshTokenService,
+    private jwtService: JwtService,
+    @Inject(RefreshTokenService)
+    private refreshtoken: RefreshTokenService,
   ) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: Request = context.switchToHttp().getRequest();
-    console.log(this.refreshtoken.entity);
-    const token = await this.refreshtoken.ViewSingleRefreshtoken();
+    const token = await this.refreshtoken.ViewSingleRefreshtoken(
+      request.user.id,
+    );
     if (!token) {
       throw new UnauthorizedException('No token provided');
     }
@@ -65,7 +76,7 @@ export class VerifyRefreshTokenGuard implements CanActivate {
 }
 
 @Injectable()
-export class VerifyEMailGuard implements CanActivate {
+export class EMailGuard implements CanActivate {
   constructor(private readonly userservice: UserService) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: Request = context.switchToHttp().getRequest();
@@ -82,5 +93,73 @@ export class VerifyEMailGuard implements CanActivate {
       );
     }
     return true;
+  }
+}
+
+@Injectable()
+export class RolesGuard implements CanActivate {
+  constructor(
+    private reflector: Reflector,
+    private systemroles: SystemDefaultRoles,
+  ) {}
+  async canActivate(context: ExecutionContext) {
+    const roles = this.reflector.get(Roles, context.getHandler());
+    if (!roles) {
+      throw new UnauthorizedException(
+        'This is a protected route, contact admin',
+      );
+    }
+    const request: Request = context.switchToHttp().getRequest();
+    const userroles = request.user.roles;
+    if (!userroles) {
+      throw new UnauthorizedException(
+        'This is a protected route, contact admin',
+      );
+    }
+    const systemroles = await this.systemroles.getRoles();
+    if (Object.keys(systemroles).length <= 0) {
+      throw new UnauthorizedException(
+        'Please no roles specified contact admin',
+      );
+    }
+    const response = await this.matchRoles(context);
+    await this.LogAccessEvent(request);
+    return response;
+  }
+
+  async matchRoles(context: ExecutionContext): Promise<boolean> {
+    const roles = this.reflector.get(Roles, context.getHandler());
+    if (!roles) {
+      throw new UnauthorizedException(
+        'This is a protected route, contact admin',
+      );
+    }
+    const request: Request = context.switchToHttp().getRequest();
+    const userroles = request.user.roles;
+    if (!userroles) {
+      throw new UnauthorizedException(
+        'This is a protected route, contact admin',
+      );
+    }
+    const systemroles = await this.systemroles.getRoles();
+    if (Object.keys(systemroles).length <= 0) {
+      throw new UnauthorizedException(
+        'Please no roles specified contact admin',
+      );
+    }
+    const actualroles = roles.map((role) => systemroles[role]);
+    const results = userroles.map((role) => actualroles.includes(role));
+    const checkResults = results.find((val) => val === true);
+    if (!checkResults) {
+      throw new UnauthorizedException('Your not authorized to view this route');
+    }
+    return checkResults;
+  }
+
+  async LogAccessEvent(req: Request) {
+    const urlpath = `${req.baseUrl}${req.route.path}`;
+    const usercred = `Name: ${req.user.displayName}, Id: ${req.user.id} `;
+    const accessroute = ` Method: ${req.method}, Route: ${urlpath}`;
+    await logEvent(usercred + accessroute, 'accesslog.md');
   }
 }

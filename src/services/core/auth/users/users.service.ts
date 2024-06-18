@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 import { DatabaseService } from 'src/db/database.provider';
 import { User } from 'src/entity/core/users.entity';
-import { EventsGateway } from 'src/events/event.gateway';
 import { EntityModel } from 'src/model/entity.model';
 import { v4 as uuid } from 'uuid';
 import { addrolestype, registertype } from './users.types';

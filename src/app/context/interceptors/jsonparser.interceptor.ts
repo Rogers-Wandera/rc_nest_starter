@@ -8,8 +8,6 @@ import {
   Scope,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { catchError, throwError } from 'rxjs';
-import { CustomAppError } from '../app.error';
 
 @Injectable({ scope: Scope.REQUEST })
 export class TransformJson<T> implements NestInterceptor {

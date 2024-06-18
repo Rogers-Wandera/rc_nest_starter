@@ -10,7 +10,6 @@ export class EmailService {
     link: string,
     additionalhtml: string | string[] = '',
   ) {
-    // console.log(this.mailService.verifyAllTransporters())
     const emailData = {
       recipientName: user.firstname + ' ' + user.lastname,
       serverData: 'Please confirm registration',

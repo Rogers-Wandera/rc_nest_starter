@@ -20,11 +20,11 @@ export class RefreshTokenService extends EntityModel<RefreshToken> {
   ) {
     super(RefreshToken, model);
   }
-  async ViewSingleRefreshtoken(): Promise<RefreshToken> {
-    console.log(this.entity.user);
+  async ViewSingleRefreshtoken(userId: string): Promise<RefreshToken> {
     const token = await this.repository.findOneBy({
-      user: { id: this.entity.user.id },
+      user: { id: userId },
     });
+    this.entity = token;
     if (!token) {
       throw new UnauthorizedException('No token found for this account');
     }
@@ -56,7 +56,7 @@ export class RefreshTokenService extends EntityModel<RefreshToken> {
       where: { userId: user.id },
     });
     const roles = dbroles.map((r) => r.role);
-    const token = this.user.getToken(user, roles);
+    const token = await this.user.getToken(user, roles);
     return { token };
   };
 }
