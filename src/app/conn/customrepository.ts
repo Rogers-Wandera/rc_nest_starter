@@ -11,11 +11,11 @@ import {
 } from 'typeorm';
 import { DataUtility } from './datautility';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+import { Request } from 'express';
+import { UnauthorizedException } from '@nestjs/common';
 
-type deletedProps = {
-  deletedBy: string;
-};
 export class CustomRepository<T> extends Repository<T> {
+  public request: Request;
   constructor(
     target: EntityTarget<T>,
     manager: EntityManager,
@@ -74,15 +74,17 @@ export class CustomRepository<T> extends Repository<T> {
     }
   }
 
-  async FindOneAndUpdate(
+  FindOneAndUpdate = async (
     conditions: FindOptionsWhere<T>,
     data: QueryDeepPartialEntity<T>,
-  ) {
+  ) => {
     try {
       const exists = await this.findOneBy(conditions);
       if (!exists) {
         throw new Error(`No ${this.metadata.tableName} found`);
       }
+      const updatedBy = this.request.user.id;
+      data['updatedBy'] = updatedBy;
       const response = await this.update(conditions, data);
       if (response) {
         return true;
@@ -91,40 +93,37 @@ export class CustomRepository<T> extends Repository<T> {
     } catch (error) {
       throw error;
     }
-  }
+  };
 
-  async softDataDelete(
+  softDataDelete = async (
     criteria: FindOptionsWhere<T>,
-    data: deletedProps,
-  ): Promise<UpdateResult> {
+  ): Promise<UpdateResult> => {
     try {
+      if (!this.request.user) {
+        throw new UnauthorizedException('No user found at soft delete');
+      }
       const datautility = new DataUtility(this.manager);
       const exists: T | undefined = await this.findOneBy(criteria);
       if (!exists) {
         throw new Error(`No ${this.metadata.tableName} found`);
       }
       const id: string = (exists as unknown as ObjectLiteral).id;
-      if (!data.deletedBy) {
-        throw new Error(
-          `Deleted by should be provided for ${this.metadata.tableName}`,
-        );
-      }
       const updateCriteria: QueryDeepPartialEntity<ObjectLiteral> = {
         deletedAt: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
         isActive: 0,
-        deletedBy: data.deletedBy,
+        deletedBy: this.request.user.id,
       };
       await datautility.saveRecycleBin(
         this.metadata.tableName,
         id,
-        data.deletedBy,
+        this.request.user.id,
       );
       const response = await this.update(criteria, updateCriteria);
       return response;
     } catch (error) {
       throw error;
     }
-  }
+  };
 
   async restoreDelete(criteria: FindOptionsWhere<T>): Promise<UpdateResult> {
     try {
@@ -223,8 +222,10 @@ export class CustomRepository<T> extends Repository<T> {
 export const repositoryextender = <T extends ObjectLiteral>(
   entity: EntityTarget<T>,
   manager: EntityManager,
+  request: Request,
 ) => {
   const extender = new CustomRepository<T>(entity, manager);
+  extender.request = request;
   return {
     getEntityTotalDocs: extender.getEntityTotalDocs,
     getEntityColumns: extender.getEntityColumns,

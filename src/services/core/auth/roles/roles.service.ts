@@ -1,14 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { DatabaseService } from 'src/db/database.provider';
 import { Role } from 'src/entity/core/roles.entity';
 import { UserRolesView } from 'src/entity/coreviews/userroles.view';
 import { EntityModel } from 'src/model/entity.model';
 import { addrolestype } from '../users/users.types';
+import { EntityDataSource } from 'src/model/enity.data.model';
 
 @Injectable()
 export class RoleService extends EntityModel<Role> {
-  constructor(@Inject('data_source') model: DatabaseService) {
-    super(Role, model);
+  constructor(@Inject(EntityDataSource) source: EntityDataSource) {
+    super(Role, source);
   }
 
   async createRoles() {
@@ -41,14 +41,11 @@ export class RoleService extends EntityModel<Role> {
       if (exists.rolename === 'User') {
         throw new Error(`User role cannot be deleted`);
       }
-      const results = await this.repository.softDataDelete(
-        {
-          id: exists.id,
-          user: { id: exists.userId },
-          systemRole: { id: exists.roleId },
-        },
-        { deletedBy: this.entity.deletedBy },
-      );
+      const results = await this.repository.softDataDelete({
+        id: exists.id,
+        user: { id: exists.userId },
+        systemRole: { id: exists.roleId },
+      });
       return results.affected === 1;
     } catch (error) {
       throw new Error(error.message);

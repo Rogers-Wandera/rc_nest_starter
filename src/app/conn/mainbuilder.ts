@@ -7,8 +7,10 @@ import {
 } from 'typeorm';
 import { CustomRepository, repositoryextender } from './customrepository';
 import { CustomAppError } from '../context/app.error';
+import { Request } from 'express';
 
 export class MainDBBuilder extends DataSource {
+  protected request: Request = undefined;
   constructor(options: DataSourceOptions) {
     super(options);
   }
@@ -16,9 +18,16 @@ export class MainDBBuilder extends DataSource {
   getRepository<T extends ObjectLiteral>(
     entity: EntityTarget<T>,
   ): CustomRepository<T> {
-    return super.getRepository(entity).extend({
-      ...repositoryextender(entity, this.manager),
-    });
+    const baseRepository = super.getRepository(entity);
+    const extendedRepository = repositoryextender(
+      entity,
+      this.manager,
+      this.request,
+    );
+    return Object.assign(
+      baseRepository,
+      extendedRepository,
+    ) as CustomRepository<T>;
   }
   async getColumns<T extends ObjectLiteral>(
     query: string,

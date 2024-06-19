@@ -1,8 +1,8 @@
 import {
-  ArgumentMetadata,
   BadRequestException,
   CallHandler,
   ExecutionContext,
+  Inject,
   Injectable,
   NestInterceptor,
   Paramtype,
@@ -13,15 +13,16 @@ import { ObjectSchema } from 'joi';
 import { paginateprops } from '../../conn/conntypes';
 import { CustomAppError } from '../../context/app.error';
 import { Request } from 'express';
+import { INQUIRER, Reflector } from '@nestjs/core';
+import { PAGINATE_KEY } from 'src/app/decorators/pagination.decorator';
+import { PaginationSchema } from 'src/schemas/core/paginate.schema';
+import { ControllerInterface } from 'src/controllers/controller.interface';
 
 type schema<R> = ObjectSchema<R>;
-type paginateFactory<T> = (itemSchema: {
-  [key: string]: any;
-}) => ObjectSchema<paginateprops<T>>;
 
 export class JoiValidationPipe<T> implements PipeTransform {
   constructor(private schema: schema<T>) {}
-  transform(value: any, metadata: ArgumentMetadata) {
+  transform(value: any) {
     try {
       const parsed = this.schema.validate(value);
       return parsed;
@@ -33,19 +34,29 @@ export class JoiValidationPipe<T> implements PipeTransform {
 
 @Injectable({ scope: Scope.REQUEST })
 export class JoiPaginateValidation<T> implements NestInterceptor {
-  constructor(private schemaFactory: paginateFactory<T>) {}
+  constructor(
+    private reflector: Reflector,
+    @Inject(INQUIRER) private parentClass: ControllerInterface,
+  ) {}
   intercept(context: ExecutionContext, next: CallHandler) {
-    const request: Request = context.switchToHttp().getRequest();
-    const query = request.query;
-    const schema = this.schemaFactory(query);
-    const { error, value: parsedValue } = schema.validate(query);
-    if (error) {
-      const errorMessage = error.details
-        .map((detail) => detail.message)
-        .join('; ');
-      throw new BadRequestException(errorMessage);
+    const paginate = this.reflector.getAllAndOverride<string>(PAGINATE_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (paginate) {
+      const request: Request = context.switchToHttp().getRequest();
+      const query = request.query;
+      const schema = PaginationSchema<T>(query);
+      const { error, value: parsedValue } = schema.validate(query);
+      if (error) {
+        const errorMessage = error.details
+          .map((detail) => detail.message)
+          .join('; ');
+        throw new BadRequestException(errorMessage);
+      }
+      request.query = parsedValue;
+      this.parentClass.model.pagination = parsedValue as paginateprops<unknown>;
     }
-    request.query = parsedValue;
     return next.handle();
   }
 }

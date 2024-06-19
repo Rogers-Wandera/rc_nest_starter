@@ -4,10 +4,14 @@ import {
   PaginationResults,
   customquerypaginateprops,
 } from '../app/conn/conntypes';
+import { Request } from 'express';
 
 export class Model extends DataExtenderBuilder {
   constructor(options: DataSourceOptions) {
     super(options);
+  }
+  public setRequest(request: Request) {
+    this.request = request;
   }
   public async __viewCustomPaginateData<T extends ObjectLiteral>(
     paginateprops: customquerypaginateprops<T>,

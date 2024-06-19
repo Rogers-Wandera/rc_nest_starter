@@ -6,29 +6,31 @@ import {
   NotFoundException,
   forwardRef,
 } from '@nestjs/common';
-import { DatabaseService } from 'src/db/database.provider';
 import { User } from 'src/entity/core/users.entity';
 import { EntityModel } from 'src/model/entity.model';
 import { v4 as uuid } from 'uuid';
 import { addrolestype, registertype } from './users.types';
-import { TokenService } from '../../tokens/tokens.service';
+import { TokenService } from '../../system/tokens/tokens.service';
 import { addHours, format } from 'date-fns';
 import bcrptjs from 'bcryptjs';
 import crypto from 'crypto';
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PositionService } from '../../positions/positions.service';
+import { PositionService } from '../../system/positions/positions.service';
 import { RoleService } from '../roles/roles.service';
 import { SystemRolesService } from '../systemroles/systemroles.service';
 import { RefreshTokenService } from '../refreshtokens/refreshtokens.service';
 import { UserDataView } from 'src/entity/coreviews/userdata.view';
 import { UserRolesView } from 'src/entity/coreviews/userroles.view';
+import { REQUEST } from '@nestjs/core';
+import { Request } from 'express';
+import { EntityDataSource } from 'src/model/enity.data.model';
 
 @Injectable()
 export class UserService extends EntityModel<User> {
   public positionId: number;
   constructor(
-    @Inject('data_source') model: DatabaseService,
+    @Inject(EntityDataSource) source: EntityDataSource,
     private readonly tokens: TokenService,
     private readonly jwtService: JwtService,
     private readonly positions: PositionService,
@@ -36,8 +38,9 @@ export class UserService extends EntityModel<User> {
     private readonly systemroles: SystemRolesService,
     @Inject(forwardRef(() => RefreshTokenService))
     private readonly refreshtoken: RefreshTokenService,
+    @Inject(REQUEST) protected request: Request,
   ) {
-    super(User, model);
+    super(User, source);
     this.positionId = null;
   }
 
@@ -219,7 +222,6 @@ export class UserService extends EntityModel<User> {
 
   async RemoveRole(data: addrolestype) {
     try {
-      this.roles.entity.deletedBy = this.entity.deletedBy;
       const response = await this.roles.RemoveRole(data);
       return response;
     } catch (error) {

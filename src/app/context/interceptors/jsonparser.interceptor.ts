@@ -7,7 +7,9 @@ import {
   Paramtype,
   Scope,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
+import { PAGINATE_KEY } from 'src/app/decorators/pagination.decorator';
 
 @Injectable({ scope: Scope.REQUEST })
 export class TransformJson<T> implements NestInterceptor {
@@ -33,6 +35,39 @@ export class TransformJson<T> implements NestInterceptor {
         request[this.type][this.key] = data;
       } else {
         throw new BadRequestException(`Invalid JSON in ${String(this.key)}`);
+      }
+    }
+    return next.handle();
+  }
+}
+
+@Injectable({ scope: Scope.REQUEST })
+export class TransformPainateQuery implements NestInterceptor {
+  constructor(private reflector: Reflector) {}
+  intercept(context: ExecutionContext, next: CallHandler) {
+    const paginate = this.reflector.getAllAndOverride<string>(PAGINATE_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (paginate) {
+      const request: Request = context.switchToHttp().getRequest();
+      if (request.query) {
+        if (request.query['sortBy']) {
+          request.query['sortBy'] = JSON.parse(
+            request.query['sortBy'] as string,
+          );
+        }
+        if (request.query['filters']) {
+          request.query['filters'] = JSON.parse(
+            request.query['filters'] as string,
+          );
+        }
+
+        if (request.query['conditions']) {
+          request.query['conditions'] = JSON.parse(
+            request.query['conditions'] as string,
+          );
+        }
       }
     }
     return next.handle();

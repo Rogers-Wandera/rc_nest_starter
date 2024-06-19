@@ -4,8 +4,8 @@ import { CustomRepository } from '../app/conn/customrepository';
 import { customquerypaginateprops, paginateprops } from '../app/conn/conntypes';
 import { CustomAppError } from '../app/context/app.error';
 import { Utilities } from '../app/utils/app.utils';
-import { DatabaseService } from '../db/database.provider';
 import { ModelClass } from 'src/app/decorators/model.decorators';
+import { EntityDataSource } from './enity.data.model';
 
 @ModelClass()
 export class EntityModel<T extends ObjectLiteral> extends Utilities {
@@ -16,10 +16,11 @@ export class EntityModel<T extends ObjectLiteral> extends Utilities {
   public custompagination: customquerypaginateprops<T>;
   constructor(
     entity: EntityTarget<T>,
-    private readonly modelservice: DatabaseService,
+    private readonly datasource: EntityDataSource,
   ) {
     super();
-    this.model = this.modelservice.getModel(this);
+    this.model = this.datasource.model.getModel(this);
+    this.model.setRequest(this.datasource.request);
     this.entity = this.entityInstance(entity);
     this.repository = this.model.getRepository(entity);
     this.pagination = {} as paginateprops<T>;

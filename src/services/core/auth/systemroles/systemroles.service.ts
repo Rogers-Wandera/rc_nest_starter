@@ -1,15 +1,15 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PaginationResults } from 'src/app/conn/conntypes';
 import { CustomAppError } from 'src/app/context/app.error';
-import { DatabaseService } from 'src/db/database.provider';
 import { Systemrole } from 'src/entity/core/systemroles.entity';
+import { EntityDataSource } from 'src/model/enity.data.model';
 import { EntityModel } from 'src/model/entity.model';
 import { Not } from 'typeorm';
 
 @Injectable()
 export class SystemRolesService extends EntityModel<Systemrole> {
-  constructor(@Inject('data_source') model: DatabaseService) {
-    super(Systemrole, model);
+  constructor(@Inject(EntityDataSource) source: EntityDataSource) {
+    super(Systemrole, source);
   }
   async ViewSystemroles(): Promise<PaginationResults<Systemrole>> {
     try {
@@ -89,12 +89,9 @@ export class SystemRolesService extends EntityModel<Systemrole> {
         throw new Error(`User role cannot be deleted`);
       }
       exists.deletedBy = this.entity.deletedBy;
-      const results = await this.repository.softDataDelete(
-        { id: this.entity.id },
-        {
-          deletedBy: this.entity.deletedBy,
-        },
-      );
+      const results = await this.repository.softDataDelete({
+        id: this.entity.id,
+      });
       return results.affected === 1;
     } catch (error) {
       throw new CustomAppError(error.message, 400);

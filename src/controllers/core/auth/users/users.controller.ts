@@ -12,14 +12,17 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { AllExceptionsFilter } from 'src/app/context/exceptions/http-exception.filter';
-import { UserService } from './users.service';
+import { UserService } from '../../../../services/core/auth/users/users.service';
 import { JoiValidator } from 'src/app/context/interceptors/joi.interceptor';
 import {
   AddRoleSchema,
   LoginSchema,
   UserRegisterSchema,
 } from 'src/schemas/core/user.schema';
-import { addrolestype, registertype } from './users.types';
+import {
+  addrolestype,
+  registertype,
+} from '../../../../services/core/auth/users/users.types';
 import { Request, Response } from 'express';
 import { format } from 'date-fns';
 import { EmailService } from 'src/app/mailer/mailer.service';
@@ -29,8 +32,8 @@ import {
   JwtGuard,
   RefreshTokenGuard,
   RolesGuard,
-} from '../authguards/authguard.guard';
-import { Roles } from 'src/app/decorators/roles.decorator';
+} from '../../../../services/core/auth/authguards/authguard.guard';
+import { Role, Roles } from 'src/app/decorators/roles.decorator';
 
 @Controller('/core/auth/user')
 @UseFilters(new AllExceptionsFilter())
@@ -99,7 +102,7 @@ export class UsersController {
   @UseGuards(JwtGuard, EMailGuard, RolesGuard)
   @Post('/roles')
   @UseInterceptors(new JoiValidator(AddRoleSchema, 'body'))
-  @Roles(['ADMIN'])
+  @Roles(Role.ADMIN)
   async AddRoles(
     @Body() body: addrolestype,
     @Res() res: Response,
@@ -118,7 +121,7 @@ export class UsersController {
   @UseGuards(JwtGuard, EMailGuard, RolesGuard)
   @Delete('/roles')
   @UseInterceptors(new JoiValidator(AddRoleSchema, 'body'))
-  @Roles(['ADMIN'])
+  @Roles(Role.ADMIN)
   async RemoveRoles(
     @Body() body: addrolestype,
     @Res() res: Response,

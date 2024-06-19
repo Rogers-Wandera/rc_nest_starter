@@ -1,7 +1,9 @@
+import { Injectable, Scope } from '@nestjs/common';
 import { ModelService } from '../app/context/model.context';
 import { Model } from '../model/model';
 import { ConfigOptions } from './configs';
 
+@Injectable({ scope: Scope.REQUEST })
 export class DatabaseService {
   private modelServiceInstance: ModelService;
   constructor() {

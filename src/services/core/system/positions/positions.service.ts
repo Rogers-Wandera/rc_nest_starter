@@ -1,13 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PaginationResults } from 'src/app/conn/conntypes';
-import { DatabaseService } from 'src/db/database.provider';
 import { Position } from 'src/entity/core/positions.entity';
+import { EntityDataSource } from 'src/model/enity.data.model';
 import { EntityModel } from 'src/model/entity.model';
 
 @Injectable()
 export class PositionService extends EntityModel<Position> {
-  constructor(@Inject('data_source') model: DatabaseService) {
-    super(Position, model);
+  constructor(@Inject(EntityDataSource) source: EntityDataSource) {
+    super(Position, source);
   }
 
   async ViewPositions(): Promise<PaginationResults<Position>> {
@@ -30,7 +30,7 @@ export class PositionService extends EntityModel<Position> {
     }
   }
 
-  async findPositionByName(active = 1) {
+  private async findPositionByName(active = 1) {
     try {
       const exists = await this.repository.findOneWithValue(
         'position',
@@ -43,7 +43,7 @@ export class PositionService extends EntityModel<Position> {
     }
   }
 
-  async restoreDeletedPosition() {
+  private async restoreDeletedPosition() {
     try {
       const exists = await this.findPositionByName(0);
       if (exists) {
@@ -80,7 +80,7 @@ export class PositionService extends EntityModel<Position> {
     }
   }
 
-  async UpdatePositions() {
+  async UpdatePosition() {
     try {
       const results = await this.repository.FindOneAndUpdate(
         { id: this.entity.id },
@@ -92,15 +92,13 @@ export class PositionService extends EntityModel<Position> {
     }
   }
   //   delete function
-  async DeletePositions() {
+  async DeletePosition() {
     try {
       const exists = await this.repository.findOneBy({ id: this.entity.id });
       if (!exists) {
         throw new Error(`No position found`);
       }
-      const results = await this.repository.softDataDelete(exists, {
-        deletedBy: this.entity.deletedBy,
-      });
+      const results = await this.repository.softDataDelete({ id: exists.id });
       return results.affected === 1;
     } catch (error) {
       throw new Error(error.message);

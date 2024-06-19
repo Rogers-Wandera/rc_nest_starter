@@ -13,9 +13,9 @@ import { RefreshTokenService } from '../refreshtokens/refreshtokens.service';
 import { UserService } from '../users/users.service';
 import { Reflector } from '@nestjs/core';
 import {
-  Roles,
+  ROLES_KEY,
+  Role,
   SYSTEM_ROLES,
-  rolestype,
 } from 'src/app/decorators/roles.decorator';
 import { SystemDefaultRoles } from '../../defaults/roles/roles.service';
 import { logEvent } from 'src/middlewares/logger.middleware';
@@ -103,7 +103,10 @@ export class RolesGuard implements CanActivate {
     private systemroles: SystemDefaultRoles,
   ) {}
   async canActivate(context: ExecutionContext) {
-    const roles = this.reflector.get(Roles, context.getHandler());
+    const roles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
     if (!roles) {
       throw new UnauthorizedException(
         'This is a protected route, contact admin',
@@ -122,32 +125,21 @@ export class RolesGuard implements CanActivate {
         'Please no roles specified contact admin',
       );
     }
-    const response = await this.matchRoles(context);
+    const response = await this.matchRoles(context, systemroles, roles);
     await this.LogAccessEvent(request);
     return response;
   }
 
-  async matchRoles(context: ExecutionContext): Promise<boolean> {
-    const roles = this.reflector.get(Roles, context.getHandler());
-    if (!roles) {
-      throw new UnauthorizedException(
-        'This is a protected route, contact admin',
-      );
-    }
+  async matchRoles(
+    context: ExecutionContext,
+    systemroles: SYSTEM_ROLES,
+    roles: Role[],
+  ): Promise<boolean> {
     const request: Request = context.switchToHttp().getRequest();
     const userroles = request.user.roles;
-    if (!userroles) {
-      throw new UnauthorizedException(
-        'This is a protected route, contact admin',
-      );
-    }
-    const systemroles = await this.systemroles.getRoles();
-    if (Object.keys(systemroles).length <= 0) {
-      throw new UnauthorizedException(
-        'Please no roles specified contact admin',
-      );
-    }
-    const actualroles = roles.map((role) => systemroles[role]);
+    const actualroles = roles.map((role) => {
+      return Object.values(systemroles).find((val) => val === role);
+    });
     const results = userroles.map((role) => actualroles.includes(role));
     const checkResults = results.find((val) => val === true);
     if (!checkResults) {

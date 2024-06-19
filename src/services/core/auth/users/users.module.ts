@@ -1,18 +1,18 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { UserService } from './users.service';
-import { UsersController } from './users.controller';
-import { TokenModule } from '../../tokens/tokens.module';
-import { PositionModule } from '../../positions/positions.module';
+import { TokenModule } from '../../system/tokens/tokens.module';
+import { PositionModule } from '../../system/positions/positions.module';
 import { RoleModule } from '../roles/roles.module';
 import { SystemRolesModule } from '../systemroles/systemroles.module';
 import { RefreshTokenModule } from '../refreshtokens/refreshtokens.module';
+import { UsersController } from 'src/controllers/core/auth/users/users.controller';
 
 @Module({
   imports: [
     TokenModule,
-    PositionModule,
+    forwardRef(() => PositionModule),
     RoleModule,
-    SystemRolesModule,
+    forwardRef(() => SystemRolesModule),
     forwardRef(() => RefreshTokenModule),
   ],
   providers: [UserService],

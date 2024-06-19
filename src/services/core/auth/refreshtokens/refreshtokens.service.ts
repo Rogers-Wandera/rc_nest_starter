@@ -10,15 +10,16 @@ import { EntityModel } from 'src/model/entity.model';
 import { UserService } from '../users/users.service';
 import { UserDataView } from 'src/entity/coreviews/userdata.view';
 import { UserRolesView } from 'src/entity/coreviews/userroles.view';
+import { EntityDataSource } from 'src/model/enity.data.model';
 
 @Injectable()
 export class RefreshTokenService extends EntityModel<RefreshToken> {
   constructor(
-    @Inject('data_source') model: DatabaseService,
+    @Inject(EntityDataSource) source: EntityDataSource,
     @Inject(forwardRef(() => UserService))
     private readonly user: UserService,
   ) {
-    super(RefreshToken, model);
+    super(RefreshToken, source);
   }
   async ViewSingleRefreshtoken(userId: string): Promise<RefreshToken> {
     const token = await this.repository.findOneBy({

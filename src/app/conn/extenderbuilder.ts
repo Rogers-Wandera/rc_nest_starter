@@ -8,6 +8,7 @@ import {
 import { format } from 'date-fns';
 import { CustomAppError } from '../context/app.error';
 import { BadRequestException } from '@nestjs/common';
+import { logEvent } from 'src/middlewares/logger.middleware';
 
 export class DataExtenderBuilder extends MainDBBuilder {
   constructor(options: DataSourceOptions) {
@@ -21,6 +22,7 @@ export class DataExtenderBuilder extends MainDBBuilder {
       if (Object.keys(data).length <= 0) {
         throw new BadRequestException('Pagination should be provided');
       }
+      const page = data.page > 0 ? data.page : 1;
       const repository = this.getRepository(entity);
       const queryBuilder = repository.createQueryBuilder('entity');
       if (data?.conditions) {
@@ -63,7 +65,7 @@ export class DataExtenderBuilder extends MainDBBuilder {
       }
 
       //   add pagination
-      queryBuilder.skip((data.page - 1) * data.limit).take(data.limit);
+      queryBuilder.skip((page - 1) * data.limit).take(data.limit);
       const [docs, totalDocs] = await queryBuilder.getManyAndCount();
       const totalPages = Math.ceil(totalDocs / data.limit);
       return {

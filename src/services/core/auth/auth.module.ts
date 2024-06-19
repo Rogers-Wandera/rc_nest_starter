@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { UserModule } from './users/users.module';
-import { TokenModule } from '../tokens/tokens.module';
+import { TokenModule } from '../system/tokens/tokens.module';
 import { JwtModule } from '@nestjs/jwt';
 import { EnvConfig, jwtconfig } from 'src/app/config/configuration';
 import { RoleModule } from './roles/roles.module';
 import { RefreshTokenModule } from './refreshtokens/refreshtokens.module';
 import { SystemRolesModule } from './systemroles/systemroles.module';
-import { PositionModule } from '../positions/positions.module';
+import { PositionModule } from '../system/positions/positions.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
