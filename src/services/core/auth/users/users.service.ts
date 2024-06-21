@@ -25,10 +25,13 @@ import { UserRolesView } from 'src/entity/coreviews/userroles.view';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
 import { EntityDataSource } from 'src/model/enity.data.model';
+import { customquerypaginateprops } from 'src/app/conn/conntypes';
+import { CustomRepository } from 'src/app/conn/customrepository';
 
 @Injectable()
 export class UserService extends EntityModel<User> {
   public positionId: number;
+  private userviewrepo: CustomRepository<UserDataView>;
   constructor(
     @Inject(EntityDataSource) source: EntityDataSource,
     private readonly tokens: TokenService,
@@ -42,6 +45,7 @@ export class UserService extends EntityModel<User> {
   ) {
     super(User, source);
     this.positionId = null;
+    this.userviewrepo = this.model.getRepository(UserDataView);
   }
 
   getuuid() {
@@ -136,7 +140,15 @@ export class UserService extends EntityModel<User> {
     const dbroles = await manager.find(UserRolesView, {
       where: { userId: user.id },
     });
+    const lastloginDate = format(
+      new Date(),
+      'yyyy-MM-dd HH:mm:ss',
+    ) as unknown as Date;
     const roles = dbroles.map((r) => r.role);
+    await this.repository.FindOneAndUpdate(
+      { id: user.id },
+      { lastloginDate, updatedBy: user.id },
+    );
     const accessToken: string = await this.createAccessToken(user, roles);
     const refreshToken: string = await this.createRefreshToken(user, roles);
     this.refreshtoken.entity.token = refreshToken;
@@ -224,6 +236,26 @@ export class UserService extends EntityModel<User> {
     try {
       const response = await this.roles.RemoveRole(data);
       return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  private userData(user: UserDataView, emailshow = false) {
+    user['email'] = emailshow ? user['email'] : null;
+    user['password'] = null;
+    return user;
+  }
+
+  async ViewUsers() {
+    try {
+      const query = 'SELECT *FROM userdata';
+      const data = await this.CustomPaginateData<UserDataView>(query);
+      if (data.docs.length > 0) {
+        const docs = data.docs.map((item) => this.userData(item));
+        return { ...data, docs };
+      }
+      return data;
     } catch (error) {
       throw error;
     }

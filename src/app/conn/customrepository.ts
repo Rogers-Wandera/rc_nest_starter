@@ -83,8 +83,9 @@ export class CustomRepository<T> extends Repository<T> {
       if (!exists) {
         throw new Error(`No ${this.metadata.tableName} found`);
       }
-      const updatedBy = this.request.user.id;
-      data['updatedBy'] = updatedBy;
+      if (this.request.user) {
+        data['updatedBy'] = this.request.user.id;
+      }
       const response = await this.update(conditions, data);
       if (response) {
         return true;

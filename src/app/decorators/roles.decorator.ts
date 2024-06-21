@@ -11,5 +11,4 @@ export enum Role {
   EDITOR = 1845,
 }
 export const ROLES_KEY = 'roles';
-// export const Roles = Reflector.createDecorator<rolestype[]>();
 export const Roles = (...roles: Role[]) => SetMetadata(ROLES_KEY, roles);

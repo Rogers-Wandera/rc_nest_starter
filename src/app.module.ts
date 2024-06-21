@@ -11,7 +11,10 @@ import { AllExceptionsFilter } from './app/context/exceptions/http-exception.fil
 import { EmailModule } from './app/mailer/mailer.module';
 import { SystemDefaultRolesModule } from './services/core/defaults/roles/roles.module';
 import { TransformPainateQuery } from './app/context/interceptors/jsonparser.interceptor';
-import { JoiPaginateValidation } from './app/context/interceptors/joi.interceptor';
+import {
+  JoiPaginateValidation,
+  JoiSchemaValidator,
+} from './app/context/interceptors/joi.interceptor';
 import { ModelModule } from './model/model.module';
 
 @Module({
@@ -41,6 +44,7 @@ import { ModelModule } from './model/model.module';
       useClass: TransformPainateQuery,
     },
     { provide: APP_INTERCEPTOR, useClass: JoiPaginateValidation },
+    { provide: APP_INTERCEPTOR, useClass: JoiSchemaValidator },
   ],
   exports: [EventsMoule],
 })

@@ -2,16 +2,15 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   HttpStatus,
   Inject,
   Post,
   Req,
   Res,
-  UseFilters,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { AllExceptionsFilter } from 'src/app/context/exceptions/http-exception.filter';
 import { UserService } from '../../../../services/core/auth/users/users.service';
 import { JoiValidator } from 'src/app/context/interceptors/joi.interceptor';
 import {
@@ -24,7 +23,7 @@ import {
   registertype,
 } from '../../../../services/core/auth/users/users.types';
 import { Request, Response } from 'express';
-import { format } from 'date-fns';
+
 import { EmailService } from 'src/app/mailer/mailer.service';
 import { EventsGateway } from 'src/events/event.gateway';
 import {
@@ -34,9 +33,10 @@ import {
   RolesGuard,
 } from '../../../../services/core/auth/authguards/authguard.guard';
 import { Role, Roles } from 'src/app/decorators/roles.decorator';
+import { Schemas } from 'src/app/decorators/schema.decorator';
+import { Paginate } from 'src/app/decorators/pagination.decorator';
 
 @Controller('/core/auth/user')
-@UseFilters(new AllExceptionsFilter())
 export class UsersController {
   constructor(
     private readonly model: UserService,
@@ -68,15 +68,9 @@ export class UsersController {
   }
 
   @Post('/login')
-  @UseInterceptors(new JoiValidator(LoginSchema, 'body'))
-  public async LoginUser(@Body() body: registertype, @Res() res: Response) {
+  @Schemas({ schemas: [LoginSchema], type: 'body' })
+  public async LoginUser(@Res() res: Response) {
     try {
-      this.model.entity.email = body.email;
-      this.model.entity.password = body.password;
-      this.model.entity.lastloginDate = format(
-        new Date(),
-        'yyyy-MM-dd HH:mm:ss',
-      ) as unknown as Date;
       const user = await this.model.UserLogin();
       this.socket.server.emit('login', { userId: user.id });
       res.status(200).json(user);
@@ -132,6 +126,19 @@ export class UsersController {
       await this.model.RemoveRole(body);
       this.socket.server.emit('loguserout', { userId: body.userId });
       res.status(200).json({ msg: 'Role deleted successfully', data: {} });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get('')
+  @Paginate()
+  @Roles(Role.ADMIN)
+  @UseGuards(JwtGuard, EMailGuard, RolesGuard)
+  async GetUsers(@Res() res: Response) {
+    try {
+      const response = await this.model.ViewUsers();
+      res.status(HttpStatus.OK).json(response);
     } catch (error) {
       throw error;
     }

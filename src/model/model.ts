@@ -13,9 +13,9 @@ export class Model extends DataExtenderBuilder {
   public setRequest(request: Request) {
     this.request = request;
   }
-  public async __viewCustomPaginateData<T extends ObjectLiteral>(
-    paginateprops: customquerypaginateprops<T>,
-  ): Promise<PaginationResults<T>> {
+  public async __viewCustomPaginateData<R extends ObjectLiteral>(
+    paginateprops: customquerypaginateprops<R>,
+  ): Promise<PaginationResults<R>> {
     try {
       const data = await this.customQueryPaginate(paginateprops);
       return data;

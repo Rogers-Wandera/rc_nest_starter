@@ -13,7 +13,6 @@ export class EntityModel<T extends ObjectLiteral> extends Utilities {
   protected repository: CustomRepository<T>;
   public pagination: paginateprops<T>;
   public entity: T;
-  public custompagination: customquerypaginateprops<T>;
   constructor(
     entity: EntityTarget<T>,
     private readonly datasource: EntityDataSource,
@@ -24,7 +23,6 @@ export class EntityModel<T extends ObjectLiteral> extends Utilities {
     this.entity = this.entityInstance(entity);
     this.repository = this.model.getRepository(entity);
     this.pagination = {} as paginateprops<T>;
-    this.custompagination = {} as customquerypaginateprops<T>;
   }
 
   private entityInstance(entity: EntityTarget<T>): T {
@@ -51,5 +49,28 @@ export class EntityModel<T extends ObjectLiteral> extends Utilities {
 
   protected getRepository(): CustomRepository<T> {
     return this.repository;
+  }
+
+  protected async CustomPaginateData<R extends ObjectLiteral>(
+    query: string,
+    params: (string | number)[] = [],
+  ) {
+    const pagination: paginateprops<R> = this
+      .pagination as unknown as paginateprops<R>;
+    return this.model.__viewCustomPaginateData({
+      query: query,
+      queryParams: params,
+      limit: this.pagination.limit || 10,
+      page: pagination.page || 1,
+      filters: pagination.filters || [],
+      sortBy: pagination.sortBy || [{ id: 'id', desc: true }],
+      globalFilter: pagination.globalFilter,
+    });
+  }
+
+  protected transformPaginateProps<R>() {
+    const pagination: paginateprops<R> = this
+      .pagination as unknown as paginateprops<R>;
+    return pagination;
   }
 }

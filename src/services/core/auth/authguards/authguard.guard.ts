@@ -140,6 +140,9 @@ export class RolesGuard implements CanActivate {
     const actualroles = roles.map((role) => {
       return Object.values(systemroles).find((val) => val === role);
     });
+    if (actualroles.length <= 0) {
+      throw new UnauthorizedException('Your not authorized to view this route');
+    }
     const results = userroles.map((role) => actualroles.includes(role));
     const checkResults = results.find((val) => val === true);
     if (!checkResults) {
