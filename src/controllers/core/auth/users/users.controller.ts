@@ -5,6 +5,8 @@ import {
   Get,
   HttpStatus,
   Inject,
+  Param,
+  ParseUUIDPipe,
   Post,
   Req,
   Res,
@@ -16,6 +18,7 @@ import { JoiValidator } from 'src/app/context/interceptors/joi.interceptor';
 import {
   AddRoleSchema,
   LoginSchema,
+  ResetSchema,
   UserRegisterSchema,
 } from 'src/schemas/core/user.schema';
 import {
@@ -35,11 +38,14 @@ import {
 import { Role, Roles } from 'src/app/decorators/roles.decorator';
 import { Schemas } from 'src/app/decorators/schema.decorator';
 import { Paginate } from 'src/app/decorators/pagination.decorator';
+import { UserUtilsService } from 'src/services/core/auth/users/user.utils.service';
+import { Decrypt } from 'src/app/decorators/decrypt.decorator';
 
 @Controller('/core/auth/user')
 export class UsersController {
   constructor(
     private readonly model: UserService,
+    private readonly userutils: UserUtilsService,
     @Inject(EventsGateway) private readonly socket: EventsGateway,
     private readonly emailService: EmailService,
   ) {}
@@ -131,7 +137,7 @@ export class UsersController {
     }
   }
 
-  @Get('')
+  @Get()
   @Paginate()
   @Roles(Role.ADMIN)
   @UseGuards(JwtGuard, EMailGuard, RolesGuard)
@@ -139,6 +145,101 @@ export class UsersController {
     try {
       const response = await this.model.ViewUsers();
       res.status(HttpStatus.OK).json(response);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Delete(':userId')
+  @Roles(Role.ADMIN)
+  @UseGuards(JwtGuard, EMailGuard, RolesGuard)
+  async DeleteUser(
+    @Res() res: Response,
+    @Param('userId', new ParseUUIDPipe()) id: string,
+  ) {
+    try {
+      this.model.entity.id = id;
+      const response = await this.model.DeleteUser();
+      const message = response
+        ? 'User deleted successfully'
+        : 'Something went wrong';
+      res.status(HttpStatus.OK).json({ msg: message });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get('view/:userId')
+  @Roles(Role.ADMIN, Role.USER)
+  @UseGuards(JwtGuard, EMailGuard, RolesGuard)
+  async GetUser(
+    @Res() res: Response,
+    @Param('userId', new ParseUUIDPipe()) id: string,
+  ) {
+    try {
+      this.model.entity.id = id;
+      const data = await this.model.GetUser();
+      res.status(HttpStatus.OK).json(data);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Post('/resetlink/:userId')
+  async ResetLink(
+    @Res() res: Response,
+    @Param('userId', new ParseUUIDPipe()) id: string,
+  ) {
+    try {
+      this.userutils.entity.id = id;
+      const response = await this.userutils.ResetPasswordLink();
+      const msg = response
+        ? 'Please check Check your email for a password reset link'
+        : 'Something went wrong';
+      res.status(HttpStatus.OK).json({ msg });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get('/resetpassword/:userId/:token')
+  @Decrypt({ type: 'params', keys: ['userId', 'token'], decrypttype: 'uri' })
+  async ResetPassword(
+    @Res() res: Response,
+    @Param('userId', new ParseUUIDPipe()) id: string,
+    @Param('token') token: string,
+  ) {
+    try {
+      this.userutils.entity.id = id;
+      const response = await this.userutils.ResetUserPassword(token);
+      res.status(HttpStatus.OK).json({
+        msg: 'You will be redirected to the reset page',
+        data: {
+          link: '/dashboard/core/auth/user/resetpassword',
+          tempToken: response.token.token,
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Post('/reset/:userId')
+  @Schemas({ type: 'body', schemas: [ResetSchema] })
+  @UseGuards(JwtGuard, EMailGuard, RolesGuard)
+  @Roles(Role.USER)
+  async ResetUserPassword(
+    @Res() res: Response,
+    @Param('userId', new ParseUUIDPipe()) id: string,
+  ) {
+    try {
+      this.model.entity.id = id;
+      const response = await this.model.ResetUserPassword();
+      const msg = response
+        ? 'Password has been reset successfully'
+        : 'Something went wrong';
+
+      res.status(HttpStatus.OK).json({ msg });
     } catch (error) {
       throw error;
     }

@@ -6,6 +6,10 @@ export type registertype = Partial<User> & {
   positionId: number;
 };
 
+export type resetpasswordtype = {
+  confirmpassword: string;
+  password: string;
+};
 export type addrolestype = {
   userId: string;
   roleId: number;

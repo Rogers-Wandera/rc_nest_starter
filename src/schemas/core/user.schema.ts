@@ -2,6 +2,7 @@ import Joi from 'joi';
 import {
   addrolestype,
   registertype,
+  resetpasswordtype,
 } from 'src/services/core/auth/users/users.types';
 
 const prefixes = ['+256', '+254', '+255'];
@@ -123,4 +124,20 @@ const AddRoleSchema = Joi.object<addrolestype>({
   }),
 });
 
-export { UserRegisterSchema, LoginSchema, AddRoleSchema };
+const ResetSchema = Joi.object<resetpasswordtype>({
+  password: Joi.string()
+    .pattern(new RegExp(/^(?=.*[a-zA-Z])(?=.*\d)(?=.*[a-zA-Z\d]).{6,}$/))
+    .required()
+    .messages({
+      'string.empty': 'Password is required',
+      'any.required': 'Password is required',
+      'string.pattern.base':
+        'Password must be at least 6 characters long containing at least one letter and one number',
+    }),
+  confirmpassword: Joi.valid(Joi.ref('password')).required().messages({
+    'any.only': 'Passwords must match',
+    'any.required': 'Password confirmation is required',
+  }),
+});
+
+export { UserRegisterSchema, LoginSchema, AddRoleSchema, ResetSchema };

@@ -12,8 +12,8 @@ export type customquerypaginateprops<T> = {
   limit: number;
   page: number;
   sortBy: { id: keyof T; desc?: boolean }[];
-  filters: { id: keyof T; value: string }[];
-  globalFilter: string | null;
+  filters?: { id: keyof T; value: string }[];
+  globalFilter?: string | null;
 };
 
 export interface PaginationResults<T> {

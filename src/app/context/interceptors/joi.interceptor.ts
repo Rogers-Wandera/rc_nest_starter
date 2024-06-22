@@ -5,11 +5,10 @@ import {
   Inject,
   Injectable,
   NestInterceptor,
-  Paramtype,
   PipeTransform,
   Scope,
 } from '@nestjs/common';
-import Joi, { ObjectSchema, Schema } from 'joi';
+import Joi, { ObjectSchema } from 'joi';
 import { paginateprops } from '../../conn/conntypes';
 import { CustomAppError } from '../../context/app.error';
 import { Request } from 'express';
@@ -22,6 +21,7 @@ import {
   schema_validate,
 } from 'src/app/decorators/schema.decorator';
 import { ObjectLiteral } from 'typeorm';
+import { Paramstype } from 'src/app/app.types';
 
 type schema<R> = ObjectSchema<R>;
 
@@ -70,7 +70,7 @@ export class JoiPaginateValidation<T> implements NestInterceptor {
 export class JoiValidator<T> implements NestInterceptor {
   constructor(
     private schema: schema<T>,
-    private type: Paramtype,
+    private type: Paramstype,
   ) {}
   intercept(context: ExecutionContext, next: CallHandler) {
     const request: Request = context.switchToHttp().getRequest();

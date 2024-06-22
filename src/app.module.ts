@@ -16,6 +16,9 @@ import {
   JoiSchemaValidator,
 } from './app/context/interceptors/joi.interceptor';
 import { ModelModule } from './model/model.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import path from 'path';
+import { DecryptData } from './app/context/interceptors/decrypt.interceptor';
 
 @Module({
   imports: [
@@ -24,6 +27,10 @@ import { ModelModule } from './model/model.module';
       isGlobal: true,
       load: [envconfig],
       cache: true,
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: path.join(__dirname, 'app', 'public'),
+      exclude: ['/api/(.*)'],
     }),
     EventsMoule,
     UtilsModule,
@@ -38,6 +45,10 @@ import { ModelModule } from './model/model.module';
     {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: DecryptData,
     },
     {
       provide: APP_INTERCEPTOR,

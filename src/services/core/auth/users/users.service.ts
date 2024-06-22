@@ -25,7 +25,6 @@ import { UserRolesView } from 'src/entity/coreviews/userroles.view';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
 import { EntityDataSource } from 'src/model/enity.data.model';
-import { customquerypaginateprops } from 'src/app/conn/conntypes';
 import { CustomRepository } from 'src/app/conn/customrepository';
 
 @Injectable()
@@ -256,6 +255,74 @@ export class UserService extends EntityModel<User> {
         return { ...data, docs };
       }
       return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async DeleteUser() {
+    try {
+      const user = await this.repository.findOne({
+        where: { id: this.entity.id },
+      });
+      if (!user) {
+        throw new BadRequestException('No user found');
+      }
+      if (user.id === this.request.user.id) {
+        throw new BadRequestException('You cannot delete Your self');
+      }
+      const response = await this.repository.softDataDelete({
+        id: this.entity.id,
+      });
+      if (response.affected === 1) {
+        return true;
+      }
+      return false;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async GetUser() {
+    try {
+      const user = await this.userviewrepo.findOneByConditions({
+        id: this.entity.id,
+      });
+      if (user) {
+        const formatted = this.userData(user, true);
+        return formatted;
+      }
+      return {} as UserDataView;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async ResetUserPassword() {
+    try {
+      const user = await this.repository.findOneBy({ id: this.entity.id });
+      if (!user) {
+        throw new BadRequestException('No user found');
+      }
+      if (user.adminCreated === 1) {
+        user.adminCreated = 0;
+      }
+      const oldpassword = await bcrptjs.compare(
+        this.entity.password,
+        user.password,
+      );
+      if (oldpassword) {
+        throw new BadRequestException('Please change to a new password');
+      }
+      const hashedPassword = await bcrptjs.hash(this.entity.password, 10);
+      user.password = hashedPassword;
+      const response = await this.repository.FindOneAndUpdate(
+        {
+          id: this.entity.id,
+        },
+        { password: hashedPassword, adminCreated: user.adminCreated },
+      );
+      return response;
     } catch (error) {
       throw error;
     }

@@ -1,10 +1,19 @@
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { User } from 'src/entity/core/users.entity';
+import { EnvConfig } from '../config/configuration';
+import { mailer2Options } from './mailer.types';
 
 @Injectable()
 export class EmailService {
-  constructor(private readonly mailService: MailerService) {}
+  private company: string;
+  constructor(
+    private readonly mailService: MailerService,
+    configservice: ConfigService<EnvConfig>,
+  ) {
+    this.company = configservice.get('comapny');
+  }
   async sendVerificationEmail(
     user: User,
     link: string,
@@ -37,5 +46,17 @@ export class EmailService {
       template: `./${template}`,
       context: context,
     });
+  }
+
+  async SendWithMailer2(content: mailer2Options) {
+    const company = content.company || this.company;
+    content.company = company;
+    const response = await this.SendMail(
+      content.email,
+      content.subject,
+      'mailer2',
+      content,
+    );
+    return response;
   }
 }

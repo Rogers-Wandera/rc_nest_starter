@@ -6,6 +6,7 @@ import { RoleModule } from '../roles/roles.module';
 import { SystemRolesModule } from '../systemroles/systemroles.module';
 import { RefreshTokenModule } from '../refreshtokens/refreshtokens.module';
 import { UsersController } from 'src/controllers/core/auth/users/users.controller';
+import { UserUtilsService } from './user.utils.service';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { UsersController } from 'src/controllers/core/auth/users/users.controlle
     forwardRef(() => SystemRolesModule),
     forwardRef(() => RefreshTokenModule),
   ],
-  providers: [UserService],
+  providers: [UserService, UserUtilsService],
   controllers: [UsersController],
   exports: [UserService],
 })

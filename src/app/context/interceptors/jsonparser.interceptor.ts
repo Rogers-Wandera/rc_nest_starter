@@ -4,18 +4,18 @@ import {
   ExecutionContext,
   Injectable,
   NestInterceptor,
-  Paramtype,
   Scope,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
+import { Paramstype } from 'src/app/app.types';
 import { PAGINATE_KEY } from 'src/app/decorators/pagination.decorator';
 
 @Injectable({ scope: Scope.REQUEST })
 export class TransformJson<T> implements NestInterceptor {
   constructor(
     private readonly key: keyof T | string[],
-    private readonly type: Paramtype,
+    private readonly type: Paramstype,
   ) {}
   intercept(context: ExecutionContext, next: CallHandler) {
     const request: Request = context.switchToHttp().getRequest();

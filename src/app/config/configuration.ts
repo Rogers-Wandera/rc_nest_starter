@@ -3,6 +3,7 @@ export const envconfig = () => ({
   baseUrl: process.env.BASE_URL,
   frontUrl: process.env.BASE_FRONT_URL,
   encrytKey: process.env.ENCRYPTION_KEY,
+  comapny: process.env.COMPANY_NAME,
   database: {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,

@@ -27,7 +27,7 @@ export class Utilities {
     }
   }
 
-  public checkExpireDate(date: string): boolean {
+  public checkExpireDate(date: string | Date): boolean {
     try {
       const newdate = new Date(date);
       const fm = format(newdate, 'yyyy-MM-dd HH:mm:ss');
@@ -37,5 +37,12 @@ export class Utilities {
     } catch (error) {
       throw new CustomAppError(error.message, 400);
     }
+  }
+
+  public encryptUrl(input: string) {
+    return encodeURIComponent(this.encryptData(input));
+  }
+  public decryptUrl(decrypted: string) {
+    return decodeURIComponent(this.decryptData(decrypted));
   }
 }

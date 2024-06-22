@@ -1,7 +1,7 @@
 import { EntityTarget, ObjectLiteral } from 'typeorm';
 import { Model } from './model';
 import { CustomRepository } from '../app/conn/customrepository';
-import { customquerypaginateprops, paginateprops } from '../app/conn/conntypes';
+import { paginateprops } from '../app/conn/conntypes';
 import { CustomAppError } from '../app/context/app.error';
 import { Utilities } from '../app/utils/app.utils';
 import { ModelClass } from 'src/app/decorators/model.decorators';
