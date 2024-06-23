@@ -34,8 +34,10 @@ export class TokenService extends EntityModel<Token> {
       const token = await this.repository.findOneBy({
         user: { id: userId },
         isActive: 1,
+        token: this.entity.token,
       });
       if (token) {
+        token.isActive = 0;
         await this.repository.save(token);
       }
       return token;
@@ -59,5 +61,15 @@ export class TokenService extends EntityModel<Token> {
     } catch (error) {
       throw error;
     }
+  }
+
+  async GetUserToken(userId: string) {
+    const token = await this.repository.findOne({
+      where: { user: { id: userId }, isActive: 1 },
+    });
+    if (!token) {
+      throw new BadRequestException('No token found for this user');
+    }
+    return token;
   }
 }

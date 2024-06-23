@@ -5,7 +5,7 @@ import { EntityModel } from 'src/model/entity.model';
 import crypto from 'crypto';
 import { ConfigService } from '@nestjs/config';
 import { EnvConfig } from 'src/app/config/configuration';
-import { addHours, format } from 'date-fns';
+import { addHours } from 'date-fns';
 import { TokenService } from '../../system/tokens/tokens.service';
 import { EmailService } from 'src/app/mailer/mailer.service';
 
@@ -24,6 +24,15 @@ export class UserUtilsService extends EntityModel<User> {
       const user = await this.repository.findOneBy({ id: this.entity.id });
       if (!user) {
         throw new BadRequestException('No user found');
+      }
+      const checktoken = await this.tokens.FindOne({ user: user, isActive: 1 });
+      if (checktoken) {
+        const expired = this.checkExpireDate(checktoken.expire);
+        if (!expired) {
+          throw new BadRequestException(
+            'Please you still have an active reset token, check your mail',
+          );
+        }
       }
       const token = crypto.randomBytes(64).toString('hex');
       const baseurl = this.configservive.get<string>('baseUrl');
@@ -80,6 +89,68 @@ export class UserUtilsService extends EntityModel<User> {
         throw new BadRequestException('The token has already expired');
       }
       return usertoken;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async RegenerateActivation() {
+    try {
+      const user = await this.repository.findOne({
+        where: { id: this.entity.id },
+      });
+      if (!user) {
+        throw new Error('No user found');
+      }
+      if (user.verified === 1) {
+        throw new BadRequestException('User already verified');
+      }
+      const token = await this.tokens.GetUserToken(user.id);
+      const expired = this.checkExpireDate(token.expire);
+      if (!expired) {
+        throw new BadRequestException(
+          'You still have an active token, please check your email for a verification link',
+        );
+      }
+      const newtoken = require('crypto').randomBytes(64).toString('hex');
+      const expireDate = addHours(new Date(), 1);
+      const verify = `${process.env.BASE_URL}/core/auth/user/verification/verify/${this.encryptUrl(user.id)}/${this.encryptUrl(newtoken)}`;
+      this.tokens.entity.token = newtoken;
+      this.tokens.entity.user = user;
+      this.tokens.entity.expire = expireDate;
+      this.tokens.entity.createdBy = user.id;
+      await this.tokens.CreateToken();
+      return { link: verify, user };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async VerifyUser(token: string) {
+    try {
+      const user = await this.repository.findOne({
+        where: { id: this.entity.id },
+      });
+      if (!user) {
+        throw new Error('No user found');
+      }
+      if (user.verified === 1) {
+        throw new BadRequestException('User already verified');
+      }
+      this.tokens.entity.user = user;
+      this.tokens.entity.token = token;
+      const usertoken = await this.tokens.CheckTokenExpiry();
+      if (usertoken.isExpired) {
+        throw new BadRequestException(
+          'The token has already expired, please generate new one',
+        );
+      }
+      const results = await this.repository.FindOneAndUpdate(
+        { id: user.id },
+        { verified: 1 },
+      );
+      await this.tokens.DeactivateUserToken(user.id);
+      return results;
     } catch (error) {
       throw error;
     }

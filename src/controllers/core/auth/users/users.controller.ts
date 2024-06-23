@@ -40,15 +40,19 @@ import { Schemas } from 'src/app/decorators/schema.decorator';
 import { Paginate } from 'src/app/decorators/pagination.decorator';
 import { UserUtilsService } from 'src/services/core/auth/users/user.utils.service';
 import { Decrypt } from 'src/app/decorators/decrypt.decorator';
+import { IController } from 'src/controllers/controller.interface';
 
 @Controller('/core/auth/user')
-export class UsersController {
+export class UsersController extends IController<UserService> {
   constructor(
-    private readonly model: UserService,
+    model: UserService,
     private readonly userutils: UserUtilsService,
     @Inject(EventsGateway) private readonly socket: EventsGateway,
     private readonly emailService: EmailService,
-  ) {}
+  ) {
+    super(model);
+  }
+
   @Post('/register')
   @UseInterceptors(new JoiValidator(UserRegisterSchema, 'body'))
   public async RegisterUser(@Body() body: registertype, @Res() res: Response) {
@@ -58,7 +62,7 @@ export class UsersController {
         additionaldata = [`Please login using this password ${body.password}`];
       }
       const { user, token } = await this.model.createUser(body);
-      const verify = `${process.env.BASE_URL}/verify?userId=${user.id}&token=${token}`;
+      const verify = `${process.env.BASE_URL}/core/auth/user/verification/verify/${this.model.encryptUrl(user.id)}/${this.model.encryptUrl(token)}`;
 
       const response = await this.emailService.sendVerificationEmail(
         user,
@@ -73,6 +77,44 @@ export class UsersController {
     }
   }
 
+  @Post('/verification/resend/:userId')
+  async GenerateVerification(
+    @Res() res: Response,
+    @Param('userId', new ParseUUIDPipe()) id: string,
+  ) {
+    try {
+      this.model.entity.id = id;
+      const { user, link } = await this.userutils.RegenerateActivation();
+      const response = await this.emailService.sendVerificationEmail(
+        user,
+        link,
+      );
+      res
+        .status(HttpStatus.OK)
+        .json({ msg: 'Verification Sent Successfully', emailsent: response });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get('/verification/verify/:userId/:token')
+  @Decrypt({ type: 'params', keys: ['userId', 'token'], decrypttype: 'uri' })
+  async VerifyUser(
+    @Res() res: Response,
+    @Param('userId', new ParseUUIDPipe()) id: string,
+    @Param('token') token: string,
+  ) {
+    try {
+      this.userutils.entity.id = id;
+      const response = await this.userutils.VerifyUser(token);
+      const msg = response
+        ? 'Verification has been successful'
+        : 'Something went wrong';
+      res.status(HttpStatus.OK).json({ msg });
+    } catch (error) {
+      throw error;
+    }
+  }
   @Post('/login')
   @Schemas({ schemas: [LoginSchema], type: 'body' })
   public async LoginUser(@Res() res: Response) {

@@ -22,12 +22,15 @@ import {
 import { Role, Roles } from 'src/app/decorators/roles.decorator';
 import { Schemas } from 'src/app/decorators/schema.decorator';
 import { SystemRolesSchema } from 'src/schemas/core/auth/systemroles.schema';
+import { IController } from 'src/controllers/controller.interface';
 
 @Controller('/core/auth/roles')
 @UseGuards(JwtGuard, EMailGuard, RolesGuard)
 @Roles(Role.ADMIN)
-export class SystemRolesController {
-  constructor(private readonly model: SystemRolesService) {}
+export class SystemRolesController extends IController<SystemRolesService> {
+  constructor(model: SystemRolesService) {
+    super(model);
+  }
   @Get('/')
   @Paginate()
   async ViewSystemRoles(@Res() res: Response) {

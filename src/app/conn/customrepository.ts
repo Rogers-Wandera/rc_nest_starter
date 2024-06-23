@@ -206,13 +206,16 @@ export class CustomRepository<T> extends Repository<T> {
     conditions?: FindOneOptions<T>,
   ): Promise<number | null> {
     try {
-      const query = this.createQueryBuilder('entity')
-        .select(`MAX(entity.${String(field)})`, 'maxValue')
-        .withDeleted();
+      const query = this.createQueryBuilder('entity').select(
+        `MAX(entity.${String(field)})`,
+        'maxValue',
+      );
       if (conditions) {
         query.where(conditions.where);
       }
-      const result = (await query.getOne()) as { maxValue: number | null };
+      const result: { maxValue: number | null } = await query
+        .withDeleted()
+        .getRawOne();
       return result?.maxValue;
     } catch (error) {
       throw error;
