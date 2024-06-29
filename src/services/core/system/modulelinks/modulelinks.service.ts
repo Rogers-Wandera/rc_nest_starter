@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ModuleLink } from 'src/entity/core/modulelinks.entity';
 import { EntityDataSource } from 'src/model/enity.data.model';
 import { EntityModel } from 'src/model/entity.model';
 import { ModuleService } from '../modules/modules.service';
+import { QueryFailedError } from 'typeorm';
+import { ModuleLinksView } from 'src/entity/coreviews/modulelinks.view';
 
 @Injectable()
 export class ModuleLinksService extends EntityModel<ModuleLink> {
@@ -20,7 +22,7 @@ export class ModuleLinksService extends EntityModel<ModuleLink> {
         throw new Error(`No module found`);
       }
       const exists = await this.repository.findOne({
-        where: { linkname: this.entity.linkname, module: moduleexists },
+        where: { linkname: this.entity.linkname, module: { id: moduleId } },
         withDeleted: true,
       });
       if (exists) {
@@ -32,7 +34,6 @@ export class ModuleLinksService extends EntityModel<ModuleLink> {
       const position = await this.repository.countField('position', {
         where: { module: { id: moduleId } },
       });
-      console.log(position);
       if (position) {
         this.entity.position = position + 1;
       } else {
@@ -41,6 +42,84 @@ export class ModuleLinksService extends EntityModel<ModuleLink> {
       this.entity.module = moduleexists;
       const response = await this.repository.save(this.entity);
       return response;
+    } catch (error) {
+      if (error instanceof QueryFailedError) {
+        if (error.message.includes('UQ_moduleId_linkname')) {
+          throw new BadRequestException(
+            'The module link already exists on this module',
+          );
+        }
+      }
+      throw error;
+    }
+  }
+
+  async updateModeleLink() {
+    try {
+      const module = await this.repository.findOne({
+        where: { id: this.entity.id },
+        relations: ['module'],
+      });
+      if (!module) {
+        throw new BadRequestException('No module found');
+      }
+      if (module.position === this.entity.position) {
+        const data = { ...module, ...this.entity };
+        const response = await this.repository.FindOneAndUpdate(
+          { id: this.entity.id },
+          data,
+        );
+        return response;
+      }
+      const withposition = await this.repository.findOne({
+        where: {
+          position: this.entity.position,
+          module: { id: module.module.id },
+        },
+      });
+      if (!withposition) {
+        throw new BadRequestException('The position does not exist');
+      }
+      this.entity.position = withposition.position;
+      withposition.position = module.position;
+      const newdata = { ...module, ...this.entity };
+      const response = await this.repository.FindOneAndUpdate(
+        { id: module.id },
+        newdata,
+      );
+      await this.repository.FindOneAndUpdate(
+        { id: withposition.id },
+        withposition,
+      );
+      return response;
+    } catch (error) {
+      if (error instanceof QueryFailedError) {
+        if (error.message.includes('UQ_moduleId_linkname')) {
+          throw new BadRequestException(
+            'The module link already exists on this module',
+          );
+        }
+      }
+      throw error;
+    }
+  }
+
+  async DeleteLink() {
+    try {
+      const response = await this.repository.softDataDelete({
+        id: this.entity.id,
+      });
+      return response.affected === 1;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async ViewModuleLinks(moduleId: number) {
+    try {
+      const pagination = this.transformPaginateProps<ModuleLinksView>();
+      pagination.conditions = { moduleId: moduleId };
+      return this.model.findPaginate(ModuleLinksView, pagination);
     } catch (error) {
       throw error;
     }

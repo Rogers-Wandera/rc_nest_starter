@@ -8,7 +8,6 @@ import {
 import { format } from 'date-fns';
 import { CustomAppError } from '../context/app.error';
 import { BadRequestException } from '@nestjs/common';
-import { logEvent } from 'src/middlewares/logger.middleware';
 
 export class DataExtenderBuilder extends MainDBBuilder {
   constructor(options: DataSourceOptions) {

@@ -9,8 +9,8 @@ export abstract class IController<T extends EntityModel<any>> {
   constructor(model: T) {
     this.model = model;
   }
-  View?(...args): unknown | void;
-  Update?(...args): unknown | void;
-  Delete?(...args): unknown | void;
-  Create?(...args): unknown | void;
+  View?(...args: any): unknown | void;
+  Update?(...args: any): unknown | void;
+  Delete?(...args: any): unknown | void;
+  Create?(...args: any): unknown | void;
 }

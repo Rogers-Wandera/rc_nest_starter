@@ -101,7 +101,8 @@ export class JoiSchemaValidator implements NestInterceptor {
       [context.getHandler(), context.getClass()],
     );
     if (schemas) {
-      const data: Record<string, unknown> = request[schemas.type];
+      const type = schemas.type || 'body';
+      const data: Record<string, unknown> = request[type];
       const schema = schemas.schemas.reduce((acc, schema) => {
         return acc.concat(schema);
       }, Joi.object());

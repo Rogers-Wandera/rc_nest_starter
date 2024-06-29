@@ -19,6 +19,7 @@ import { ModelModule } from './model/model.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import path from 'path';
 import { DecryptData } from './app/context/interceptors/decrypt.interceptor';
+import { ServiceValidator } from './app/context/interceptors/servicevalidator.interceptor';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { DecryptData } from './app/context/interceptors/decrypt.interceptor';
       useClass: TransformPainateQuery,
     },
     { provide: APP_INTERCEPTOR, useClass: JoiPaginateValidation },
+    { provide: APP_INTERCEPTOR, useClass: ServiceValidator },
     { provide: APP_INTERCEPTOR, useClass: JoiSchemaValidator },
   ],
   exports: [EventsMoule],

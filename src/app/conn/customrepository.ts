@@ -6,15 +6,15 @@ import {
   FindOptionsWhere,
   ObjectLiteral,
   QueryRunner,
-  Repository,
   UpdateResult,
 } from 'typeorm';
 import { DataUtility } from './datautility';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { Request } from 'express';
 import { UnauthorizedException } from '@nestjs/common';
+import { MyRepository, validateWhereOptions } from './repository';
 
-export class CustomRepository<T> extends Repository<T> {
+export class CustomRepository<T> extends MyRepository<T> {
   public request: Request;
   constructor(
     target: EntityTarget<T>,
@@ -85,6 +85,7 @@ export class CustomRepository<T> extends Repository<T> {
       }
       if (this.request.user) {
         data['updatedBy'] = this.request.user.id;
+        data['updateDate'] = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
       }
       const response = await this.update(conditions, data);
       if (response) {
@@ -104,7 +105,7 @@ export class CustomRepository<T> extends Repository<T> {
         throw new UnauthorizedException('No user found at soft delete');
       }
       const datautility = new DataUtility(this.manager);
-      const exists: T | undefined = await this.findOneBy(criteria);
+      const exists: T | undefined = await this.findOne({ where: criteria });
       if (!exists) {
         throw new Error(`No ${this.metadata.tableName} found`);
       }
@@ -154,6 +155,7 @@ export class CustomRepository<T> extends Repository<T> {
 
   async findByConditions(conditions: FindOptionsWhere<T>) {
     try {
+      await validateWhereOptions(conditions);
       const data = await this.createQueryBuilder('entity')
         .withDeleted()
         .andWhere(conditions)
@@ -165,6 +167,7 @@ export class CustomRepository<T> extends Repository<T> {
   }
   async findOneByConditions(conditions: FindOptionsWhere<T>) {
     try {
+      await validateWhereOptions(conditions);
       const data = await this.createQueryBuilder('entity')
         .withDeleted()
         .andWhere(conditions)

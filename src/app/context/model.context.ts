@@ -22,8 +22,11 @@ export class ModelService {
   public async initialize(): Promise<void> {
     await this.modelInstance.initialize();
   }
-  public getModel<T>(caller: T): Model {
+  public getModel<T>(caller: T | 'pass'): Model {
     try {
+      if (caller === 'pass') {
+        return this.modelInstance;
+      }
       const data = this.getCallerInfo(caller);
       if (data.isEntityModel && data.metadata) {
         return this.modelInstance;

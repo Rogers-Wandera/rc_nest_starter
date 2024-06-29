@@ -2,6 +2,7 @@ import { Inject, Injectable, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
 import { DatabaseService } from 'src/db/database.provider';
+import { EntityTarget, Repository } from 'typeorm';
 
 @Injectable({ scope: Scope.REQUEST })
 export class EntityDataSource {
@@ -13,5 +14,8 @@ export class EntityDataSource {
   ) {
     this.request = request;
     this.model = model;
+  }
+  public getRepository<T>(entity: EntityTarget<T>): Repository<T> {
+    return this.model.GetRepository(entity);
   }
 }
