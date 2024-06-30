@@ -8,6 +8,7 @@ import { RefreshTokenModule } from './refreshtokens/refreshtokens.module';
 import { SystemRolesModule } from './systemroles/systemroles.module';
 import { PositionModule } from '../system/positions/positions.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { LinkRoleModule } from './linkroles/linkroles.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
       global: true,
     },
+    LinkRoleModule,
   ],
   exports: [
     UserModule,

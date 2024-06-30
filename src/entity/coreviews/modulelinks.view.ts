@@ -8,7 +8,7 @@ import { Module } from '../core/modules.entity';
     model
       .createQueryBuilder()
       .select('ml.*')
-      .addSelect('m.name as name')
+      .addSelect('m.name as name, m.position as mpos')
       .from(ModuleLink, 'ml')
       .innerJoin(Module, 'm', 'm.id = ml.moduleId')
       .where('m.isActive = 1')
@@ -38,4 +38,6 @@ export class ModuleLinksView {
   render: number;
   @ViewColumn()
   name: string;
+  @ViewColumn()
+  mpos: number;
 }

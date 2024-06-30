@@ -24,7 +24,7 @@ enum METHODS {
 export class LinkPermission extends BaseEntityClass {
   @PrimaryGeneratedColumn()
   id: number;
-  @ManyToOne(() => ModuleLink, (modulelink) => modulelink)
+  @ManyToOne(() => ModuleLink, (modulelink) => modulelink, { nullable: false })
   @JoinColumn({ name: 'moduleLinkId' })
   ModuleLink: ModuleLink;
   @Column({ nullable: false, length: 20 })

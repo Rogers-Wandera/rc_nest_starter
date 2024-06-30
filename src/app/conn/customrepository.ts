@@ -127,7 +127,10 @@ export class CustomRepository<T> extends MyRepository<T> {
     }
   };
 
-  async restoreDelete(criteria: FindOptionsWhere<T>): Promise<UpdateResult> {
+  async restoreDelete(
+    criteria: FindOptionsWhere<T>,
+    data?: QueryDeepPartialEntity<T>,
+  ): Promise<UpdateResult> {
     try {
       const datautility = new DataUtility(this.manager);
       const exists = await this.createQueryBuilder()
@@ -137,11 +140,14 @@ export class CustomRepository<T> extends MyRepository<T> {
       if (!exists) {
         throw new Error(`No ${this.metadata.tableName} found`);
       }
-      const updateCriteria: QueryDeepPartialEntity<ObjectLiteral> = {
+      let updateCriteria: QueryDeepPartialEntity<ObjectLiteral> = {
         deletedAt: null,
         isActive: 1,
         deletedBy: null,
       };
+      if (data) {
+        updateCriteria = { ...data, ...updateCriteria };
+      }
       const response = await this.update(criteria, updateCriteria);
       await datautility.restoreDelete(
         this.metadata.tableName,

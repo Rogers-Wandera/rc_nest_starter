@@ -4,3 +4,13 @@ export type systemrolestype = {
   description: string;
   released: number;
 };
+
+export type UserModuleRes = {
+  [key: string]: {
+    name: string;
+    linkname: string;
+    route: string;
+    expired: number;
+    render: number;
+  }[];
+};

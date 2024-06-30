@@ -12,7 +12,7 @@ import { BaseEntityClass } from '../base.entity';
 export class Token extends BaseEntityClass {
   @PrimaryGeneratedColumn()
   id: number;
-  @ManyToOne(() => User, (user) => user.tokens)
+  @ManyToOne(() => User, (user) => user.tokens, { nullable: false })
   @JoinColumn({ name: 'userId' })
   user: User;
   @Column({ nullable: false, type: 'text' })

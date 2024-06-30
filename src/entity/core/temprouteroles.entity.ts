@@ -14,7 +14,7 @@ import { User } from './users.entity';
 export class TempRouteRole extends BaseEntityClass {
   @PrimaryGeneratedColumn()
   id: number;
-  @ManyToOne(() => User, (user) => user.temprouteRoles)
+  @ManyToOne(() => User, (user) => user.temprouteRoles, { nullable: false })
   @JoinColumn({ name: 'userId' })
   user: User;
   @Column({ nullable: false })

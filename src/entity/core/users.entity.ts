@@ -15,6 +15,7 @@ import { BaseEntityClass } from '../base.entity';
 import { RefreshToken } from './refreshtokens.entity';
 import { UserProfileImage } from './userprofileimages.entity';
 import { TempRouteRole } from './temprouteroles.entity';
+import { LinkRole } from './linkroles.entity';
 @Entity({ name: 'users' })
 export class User extends BaseEntityClass {
   @PrimaryColumn({ nullable: false, type: 'varchar', length: 100 })
@@ -40,7 +41,10 @@ export class User extends BaseEntityClass {
   gender: string;
   @Column({ nullable: false })
   tel: string;
-  @ManyToOne(() => Position, (position) => position.users, { eager: true })
+  @ManyToOne(() => Position, (position) => position.users, {
+    eager: true,
+    nullable: false,
+  })
   @JoinColumn({ name: 'positionId' })
   position: Position;
   @Column({ nullable: false, default: 0 })
@@ -55,4 +59,6 @@ export class User extends BaseEntityClass {
   image: UserProfileImage;
   @OneToMany(() => TempRouteRole, (role) => role.user)
   temprouteRoles: TempRouteRole[];
+  @OneToMany(() => LinkRole, (linkrole) => linkrole.User)
+  LinkRoles: LinkRole[];
 }

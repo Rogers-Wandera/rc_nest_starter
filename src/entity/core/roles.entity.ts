@@ -14,9 +14,10 @@ import { BaseEntityClass } from '../base.entity';
 export class Role extends BaseEntityClass {
   @PrimaryGeneratedColumn()
   id: number;
-  @ManyToOne(() => User, (user) => user.roles)
+  @ManyToOne(() => User, (user) => user.roles, { nullable: false })
+  @JoinColumn({ name: 'userId' })
   user: User;
-  @ManyToOne(() => Systemrole, (role) => role.roles)
+  @ManyToOne(() => Systemrole, (role) => role.roles, { nullable: false })
   @JoinColumn({ name: 'roleId' })
   systemRole: Systemrole;
 }

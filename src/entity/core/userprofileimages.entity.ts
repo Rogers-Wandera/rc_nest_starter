@@ -14,7 +14,7 @@ export class UserProfileImage extends BaseEntityClass {
   id: number;
   @Column({ nullable: false, type: 'text' })
   image: string;
-  @OneToOne(() => User, (user) => user.image)
+  @OneToOne(() => User, (user) => user.image, { nullable: false })
   @JoinColumn({ name: 'userId' })
   user: User;
   @Column({ nullable: false })

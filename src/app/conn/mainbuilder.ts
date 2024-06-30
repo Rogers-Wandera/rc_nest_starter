@@ -59,7 +59,7 @@ export class MainDBBuilder extends DataSource {
 
   async executeQuery<T extends ObjectLiteral>(
     query: string,
-    params: (string | number)[],
+    params?: (string | number)[],
   ): Promise<T[]> {
     try {
       const response = await this.query<T[]>(query, params);

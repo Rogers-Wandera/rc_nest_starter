@@ -12,8 +12,8 @@ import { User } from './users.entity';
 export class RefreshToken extends BaseEntityClass {
   @PrimaryGeneratedColumn()
   id: number;
-  @OneToOne(() => User, (user) => user.refreshtoken)
-  @JoinColumn({ name: 'userId', referencedColumnName: 'id' })
+  @OneToOne(() => User, (user) => user.refreshtoken, { nullable: false })
+  @JoinColumn({ name: 'userId' })
   user: User;
   @Column({ nullable: false, type: 'text' })
   token: string;

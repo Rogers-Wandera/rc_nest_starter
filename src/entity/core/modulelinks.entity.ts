@@ -10,13 +10,17 @@ import {
 import { BaseEntityClass } from '../base.entity';
 import { Module } from './modules.entity';
 import { LinkPermission } from './linkpermissions.entity';
+import { LinkRole } from './linkroles.entity';
 
 @Entity({ name: 'modulelinks' })
 @Unique('UQ_moduleId_linkname', ['module', 'linkname'])
 export class ModuleLink extends BaseEntityClass {
   @PrimaryGeneratedColumn()
   id: number;
-  @ManyToOne(() => Module, (module) => module.modulelinks)
+  @ManyToOne(() => Module, (module) => module.modulelinks, {
+    nullable: false,
+    eager: true,
+  })
   @JoinColumn({ name: 'moduleId' })
   module: Module;
   @Column({ nullable: false })
@@ -34,4 +38,6 @@ export class ModuleLink extends BaseEntityClass {
     (linkpermission) => linkpermission.ModuleLink,
   )
   LinkPermissions: LinkPermission[];
+  @OneToMany(() => LinkRole, (linkrole) => linkrole.ModuleLink)
+  LinkRoles: LinkRole[];
 }
