@@ -5,7 +5,7 @@ import { Paramstype } from '../app.types';
 export const VALIDATE_SERVICE = 'VALIDATE_SERVICE';
 export type servicevalidate<T> = {
   entity: EntityTarget<T>;
-  key: string;
+  key?: string;
   type?: Paramstype;
   field?: string;
   name?: string;

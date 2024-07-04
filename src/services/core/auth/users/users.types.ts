@@ -1,4 +1,5 @@
 import { User } from 'src/entity/core/users.entity';
+import { ServerRolesType } from '../auth.types';
 
 export type registertype = Partial<User> & {
   confirmpassword: string;
@@ -24,6 +25,7 @@ export type reqUser = {
   adminCreated: number;
   position: string;
   image: string;
+  serverroles: ServerRolesType[];
 };
 
 export type TokenUser = {

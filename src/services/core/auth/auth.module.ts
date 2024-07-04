@@ -9,6 +9,8 @@ import { SystemRolesModule } from './systemroles/systemroles.module';
 import { PositionModule } from '../system/positions/positions.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LinkRoleModule } from './linkroles/linkroles.module';
+import { RolePermissionModule } from './rolepermissions/rolepermission.module';
+import { ServerRouteRoleModule } from './serverrouteroles/serverrouteroles.module';
 
 @Module({
   imports: [
@@ -31,6 +33,8 @@ import { LinkRoleModule } from './linkroles/linkroles.module';
       global: true,
     },
     LinkRoleModule,
+    RolePermissionModule,
+    ServerRouteRoleModule,
   ],
   exports: [
     UserModule,

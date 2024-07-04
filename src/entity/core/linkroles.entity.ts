@@ -3,12 +3,14 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
 import { BaseEntityClass } from '../base.entity';
 import { ModuleLink } from './modulelinks.entity';
 import { User } from './users.entity';
+import { RolePermission } from './rolepermissions.entity';
 
 @Entity({
   name: 'linkroles',
@@ -31,4 +33,6 @@ export class LinkRole extends BaseEntityClass {
   User: User;
   @Column({ type: 'datetime', nullable: true })
   expireDate: Date;
+  @OneToMany(() => RolePermission, (role) => role.linkrole)
+  rolepermissions: RolePermission[];
 }

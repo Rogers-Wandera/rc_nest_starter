@@ -124,12 +124,18 @@ export class LinkRoleService extends EntityModel<LinkRole> {
 
   async getToAssignRoles() {
     try {
-      const query = `SELECT *FROM vw_module_links ml
-      WHERE ml.id NOT IN (SELECT moduleLinkId FROM vw_module_roles mr WHERE mr.userId = ?)
-      AND ml.isActive = 1 AND ml.released = 1;`;
-      const response = await this.model.executeQuery<ModuleLinksView>(query, [
-        this.entity.User.id,
-      ]);
+      const response = await this.model.manager
+        .createQueryBuilder(ModuleLinksView, 'ml')
+        .leftJoin(
+          ModuleRolesView,
+          'mr',
+          'ml.id = mr.moduleLinkId AND mr.userId = :userId',
+          { userId: this.entity.User.id },
+        )
+        .where('mr.moduleLinkId IS NULL')
+        .andWhere('ml.isActive = :isActive', { isActive: 1 })
+        .andWhere('ml.released = :released', { released: 1 })
+        .getMany();
       return response;
     } catch (error) {
       throw error;

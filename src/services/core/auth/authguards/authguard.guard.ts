@@ -19,6 +19,8 @@ import {
 } from 'src/app/decorators/roles.decorator';
 import { SystemDefaultRoles } from '../../defaults/roles/roles.service';
 import { logEvent } from 'src/middlewares/logger.middleware';
+import { ConfigService } from '@nestjs/config';
+import { EnvConfig } from 'src/app/config/configuration';
 
 @Injectable()
 export class JwtGuard implements CanActivate {
@@ -101,6 +103,7 @@ export class RolesGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private systemroles: SystemDefaultRoles,
+    private configservice: ConfigService<EnvConfig>,
   ) {}
   async canActivate(context: ExecutionContext) {
     const roles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
@@ -125,6 +128,7 @@ export class RolesGuard implements CanActivate {
         'Please no roles specified contact admin',
       );
     }
+    console.log(await this.MatchServerRoles(context));
     const response = await this.matchRoles(context, systemroles, roles);
     await this.LogAccessEvent(request);
     return response;
@@ -149,6 +153,15 @@ export class RolesGuard implements CanActivate {
       throw new UnauthorizedException('Your not authorized to view this route');
     }
     return checkResults;
+  }
+
+  async MatchServerRoles(context: ExecutionContext) {
+    const req: Request = context.switchToHttp().getRequest();
+    const method = req.method;
+    const urlpath = `${this.configservice.get('baseUrl')}${req.route.path}`;
+    console.log(urlpath);
+    const userroles = req.user.serverroles;
+    console.log(req.user);
   }
 
   async LogAccessEvent(req: Request) {

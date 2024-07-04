@@ -26,6 +26,8 @@ import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
 import { EntityDataSource } from 'src/model/enity.data.model';
 import { CustomRepository } from 'src/app/conn/customrepository';
+import { ServerRolesView } from 'src/entity/coreviews/serverroute.view';
+import { ServerRolesType } from '../auth.types';
 
 @Injectable()
 export class UserService extends EntityModel<User> {
@@ -119,6 +121,26 @@ export class UserService extends EntityModel<User> {
     return { user, token, expireDate };
   }
 
+  private async GetServerRoles(user: UserDataView): Promise<ServerRolesType[]> {
+    const serveraccess = await this.model
+      .getRepository(ServerRolesView)
+      .find({ where: { userId: user.id, expired: 0 } });
+    if (serveraccess.length > 0) {
+      const res: ServerRolesType[] = serveraccess.map((data) => {
+        return {
+          roleName: data.roleName,
+          roleValue: data.roleValue,
+          expired: data.expired,
+          days_left: data.days_left,
+          userId: data.userId,
+          method: data.method,
+        };
+      });
+      return res;
+    }
+    return [];
+  }
+
   async UserLogin() {
     const { email, password } = this.entity;
     const { manager } = this.model;
@@ -148,8 +170,17 @@ export class UserService extends EntityModel<User> {
       { id: user.id },
       { lastloginDate, updatedBy: user.id },
     );
-    const accessToken: string = await this.createAccessToken(user, roles);
-    const refreshToken: string = await this.createRefreshToken(user, roles);
+    const serverroles = await this.GetServerRoles(user);
+    const accessToken: string = await this.createAccessToken(
+      user,
+      roles,
+      serverroles,
+    );
+    const refreshToken: string = await this.createRefreshToken(
+      user,
+      roles,
+      serverroles,
+    );
     this.refreshtoken.entity.token = refreshToken;
     this.refreshtoken.entity.user = systemuser;
     this.refreshtoken.entity.createdBy = user.id;
@@ -161,7 +192,11 @@ export class UserService extends EntityModel<User> {
     };
   }
 
-  private readonly jwtPayload = (user: UserDataView, roles: number[]) => {
+  private readonly jwtPayload = (
+    user: UserDataView,
+    roles: number[],
+    serverroles: ServerRolesType[],
+  ) => {
     return {
       user: {
         id: user.id,
@@ -172,6 +207,7 @@ export class UserService extends EntityModel<User> {
         displayName: user.userName,
         position: user.position,
         image: this.encryptData(user.image),
+        serverroles: serverroles,
       },
       sub: user.id,
     };
@@ -180,19 +216,20 @@ export class UserService extends EntityModel<User> {
   private createAccessToken(
     user: UserDataView,
     roles: number[],
+    serverroles: ServerRolesType[],
   ): Promise<string> {
-    const payload = this.jwtPayload(user, roles);
+    const payload = this.jwtPayload(user, roles, serverroles);
     return this.jwtService.signAsync(payload);
   }
 
   private createRefreshToken(
     user: UserDataView,
     roles: number[],
+    serverroles: ServerRolesType[],
   ): Promise<string> {
-    const payload = this.jwtPayload(user, roles);
+    const payload = this.jwtPayload(user, roles, serverroles);
     return this.jwtService.signAsync(payload, { expiresIn: '1d' });
   }
-
   async HandleRefreshToken() {
     const user = await this.model.manager.findOneBy(UserDataView, {
       id: this.entity.id,
@@ -204,8 +241,12 @@ export class UserService extends EntityModel<User> {
     return token;
   }
 
-  public getToken(user: UserDataView, roles: number[]): Promise<string> {
-    return this.createAccessToken(user, roles);
+  public getToken(
+    user: UserDataView,
+    roles: number[],
+    serverroles: ServerRolesType[],
+  ): Promise<string> {
+    return this.createAccessToken(user, roles, serverroles);
   }
 
   async addRole(data: addrolestype) {

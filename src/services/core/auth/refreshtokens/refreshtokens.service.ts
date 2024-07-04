@@ -4,13 +4,14 @@ import {
   UnauthorizedException,
   forwardRef,
 } from '@nestjs/common';
-import { DatabaseService } from 'src/db/database.provider';
 import { RefreshToken } from 'src/entity/core/refreshtokens.entity';
 import { EntityModel } from 'src/model/entity.model';
 import { UserService } from '../users/users.service';
 import { UserDataView } from 'src/entity/coreviews/userdata.view';
 import { UserRolesView } from 'src/entity/coreviews/userroles.view';
 import { EntityDataSource } from 'src/model/enity.data.model';
+import { ServerRolesView } from 'src/entity/coreviews/serverroute.view';
+import { ServerRolesType } from '../auth.types';
 
 @Injectable()
 export class RefreshTokenService extends EntityModel<RefreshToken> {
@@ -20,6 +21,25 @@ export class RefreshTokenService extends EntityModel<RefreshToken> {
     private readonly user: UserService,
   ) {
     super(RefreshToken, source);
+  }
+  private async GetServerRoles(user: UserDataView): Promise<ServerRolesType[]> {
+    const serveraccess = await this.model
+      .getRepository(ServerRolesView)
+      .find({ where: { userId: user.id, expired: 0 } });
+    if (serveraccess.length > 0) {
+      const res: ServerRolesType[] = serveraccess.map((data) => {
+        return {
+          roleName: data.roleName,
+          roleValue: data.roleValue,
+          expired: data.expired,
+          days_left: data.days_left,
+          userId: data.userId,
+          method: data.method,
+        };
+      });
+      return res;
+    }
+    return [];
   }
   async ViewSingleRefreshtoken(userId: string): Promise<RefreshToken> {
     const token = await this.repository.findOneBy({
@@ -57,7 +77,8 @@ export class RefreshTokenService extends EntityModel<RefreshToken> {
       where: { userId: user.id },
     });
     const roles = dbroles.map((r) => r.role);
-    const token = await this.user.getToken(user, roles);
+    const serverroles = await this.GetServerRoles(user);
+    const token = await this.user.getToken(user, roles, serverroles);
     return { token };
   };
 }

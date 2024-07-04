@@ -132,6 +132,7 @@ export class CustomRepository<T> extends MyRepository<T> {
     data?: QueryDeepPartialEntity<T>,
   ): Promise<UpdateResult> {
     try {
+      await validateWhereOptions(criteria);
       const datautility = new DataUtility(this.manager);
       const exists = await this.createQueryBuilder()
         .withDeleted()

@@ -5,6 +5,15 @@ export type systemrolestype = {
   released: number;
 };
 
+export enum METHODS {
+  GET = 'GET',
+  POST = 'POST',
+  PATCH = 'PATCH',
+  DELETE = 'DELETE',
+  PUT = 'PUT',
+  OPTIONS = 'OPTIONS',
+}
+
 export type UserModuleRes = {
   [key: string]: {
     name: string;
@@ -13,4 +22,13 @@ export type UserModuleRes = {
     expired: number;
     render: number;
   }[];
+};
+
+export type ServerRolesType = {
+  roleName: string;
+  roleValue: string;
+  userId: string;
+  expired: number;
+  days_left: number;
+  method: METHODS;
 };

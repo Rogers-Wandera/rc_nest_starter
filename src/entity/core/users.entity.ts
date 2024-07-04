@@ -16,6 +16,8 @@ import { RefreshToken } from './refreshtokens.entity';
 import { UserProfileImage } from './userprofileimages.entity';
 import { TempRouteRole } from './temprouteroles.entity';
 import { LinkRole } from './linkroles.entity';
+import { RolePermission } from './rolepermissions.entity';
+import { ServerRouteRole } from './serverrouteroles.entity';
 @Entity({ name: 'users' })
 export class User extends BaseEntityClass {
   @PrimaryColumn({ nullable: false, type: 'varchar', length: 100 })
@@ -61,4 +63,8 @@ export class User extends BaseEntityClass {
   temprouteRoles: TempRouteRole[];
   @OneToMany(() => LinkRole, (linkrole) => linkrole.User)
   LinkRoles: LinkRole[];
+  @OneToMany(() => RolePermission, (role) => role.user)
+  rolepermissions: RolePermission[];
+  @OneToMany(() => ServerRouteRole, (role) => role.user)
+  serverrouteroles: ServerRouteRole[];
 }

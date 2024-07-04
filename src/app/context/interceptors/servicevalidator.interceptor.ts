@@ -37,20 +37,24 @@ export class ServiceValidator implements NestInterceptor {
         const type = service.type || 'params';
         const name = service.name || 'Record';
         const field = service.field || 'id';
+        let key = service?.key;
+        if (!service.key) {
+          key = Object.keys(request[type])[0];
+        }
         const repository = this.source.getRepository(service.entity);
         const exists = await repository.findOne({
-          where: { [field]: request[type][service.key] },
+          where: { [field]: request[type][key] },
         });
         if (!exists) {
           throw new BadRequestException(
-            `No ${name} found with ${service.key} of ${request[type][service.key]}`,
+            `No ${name} found with ${key} of ${request[type][key]}`,
           );
         }
         const classname = repository.metadata.name;
         if (classname === parentClassName) {
           this.parentClass.model.entity = exists;
         } else {
-          entityobj[service.key] = exists;
+          entityobj[key] = exists;
         }
       });
       await Promise.all(promises);
