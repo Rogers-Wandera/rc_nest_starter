@@ -95,12 +95,12 @@ export class JoiSchemaValidator implements NestInterceptor {
   ) {}
   intercept(context: ExecutionContext, next: CallHandler) {
     const request = context.switchToHttp().getRequest() as Request;
-    const entity: ObjectLiteral = this.parentClass.model.entity;
     const schemas = this.reflector.getAllAndOverride<schema_validate>(
       SCHEMA_KEY,
       [context.getHandler(), context.getClass()],
     );
     if (schemas) {
+      const entity: ObjectLiteral = this.parentClass.model.entity;
       const type = schemas.type || 'body';
       const data: Record<string, unknown> = request[type];
       const schema = schemas.schemas.reduce((acc, schema) => {

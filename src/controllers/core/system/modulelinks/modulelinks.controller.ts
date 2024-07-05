@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { Paginate } from 'src/app/decorators/pagination.decorator';
+import { Permissions } from 'src/app/decorators/permissions.decorator';
 import { Role, Roles } from 'src/app/decorators/roles.decorator';
 import { Schemas } from 'src/app/decorators/schema.decorator';
 import { IController } from 'src/controllers/controller.interface';
@@ -26,6 +27,11 @@ import { ModuleLinksService } from 'src/services/core/system/modulelinks/modulel
 @Controller('/core/system/modulelinks')
 @Roles(Role.ADMIN)
 @UseGuards(JwtGuard, EMailGuard, RolesGuard)
+@Permissions({
+  module: 'Modules',
+  moduleLink: 'Manage Modules',
+  name: 'Links',
+})
 export class ModuleLinksController extends IController<ModuleLinksService> {
   constructor(model: ModuleLinksService) {
     super(model);

@@ -1,3 +1,5 @@
+import { permissiontype } from 'src/app/decorators/permissions.decorator';
+
 export type systemrolestype = {
   rolename: string;
   value: number;
@@ -31,4 +33,10 @@ export type ServerRolesType = {
   expired: number;
   days_left: number;
   method: METHODS;
+};
+
+export type PermissionRouteType = {
+  permission: permissiontype;
+  dashboardRoute: string;
+  routes: { method: METHODS; route: string; name: string }[];
 };

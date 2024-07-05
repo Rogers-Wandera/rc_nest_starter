@@ -40,7 +40,8 @@ export class ModuleLinksService extends EntityModel<ModuleLink> {
         this.entity.position = 1;
       }
       this.entity.module = moduleexists;
-      const response = await this.repository.save(this.entity);
+      const entity = this.repository.create(this.entity);
+      const response = await this.repository.save(entity);
       return response;
     } catch (error) {
       if (error instanceof QueryFailedError) {

@@ -128,10 +128,13 @@ export class RolesGuard implements CanActivate {
         'Please no roles specified contact admin',
       );
     }
-    console.log(await this.MatchServerRoles(context));
     const response = await this.matchRoles(context, systemroles, roles);
+    const checkserverrole = this.MatchServerRoles(context);
     await this.LogAccessEvent(request);
-    return response;
+    if (response || checkserverrole) {
+      return true;
+    }
+    throw new UnauthorizedException('Your not authorized to view this route');
   }
 
   async matchRoles(
@@ -149,19 +152,26 @@ export class RolesGuard implements CanActivate {
     }
     const results = userroles.map((role) => actualroles.includes(role));
     const checkResults = results.find((val) => val === true);
-    if (!checkResults) {
-      throw new UnauthorizedException('Your not authorized to view this route');
-    }
     return checkResults;
   }
 
-  async MatchServerRoles(context: ExecutionContext) {
+  MatchServerRoles(context: ExecutionContext) {
     const req: Request = context.switchToHttp().getRequest();
+    const baseapi = this.configservice.get<string>('baseapi');
     const method = req.method;
-    const urlpath = `${this.configservice.get('baseUrl')}${req.route.path}`;
-    console.log(urlpath);
+    const urlpath = `${req.route.path}`;
     const userroles = req.user.serverroles;
-    console.log(req.user);
+    if (userroles.length > 0) {
+      const exists = userroles.find((role) => {
+        const fullroute = `${baseapi}${role.roleValue}`;
+        return fullroute === urlpath && role.method === method;
+      });
+      if (!exists) {
+        return false;
+      }
+      return true;
+    }
+    return false;
   }
 
   async LogAccessEvent(req: Request) {

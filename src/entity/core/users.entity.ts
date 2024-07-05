@@ -14,7 +14,6 @@ import { Token } from './tokens.entity';
 import { BaseEntityClass } from '../base.entity';
 import { RefreshToken } from './refreshtokens.entity';
 import { UserProfileImage } from './userprofileimages.entity';
-import { TempRouteRole } from './temprouteroles.entity';
 import { LinkRole } from './linkroles.entity';
 import { RolePermission } from './rolepermissions.entity';
 import { ServerRouteRole } from './serverrouteroles.entity';
@@ -59,8 +58,6 @@ export class User extends BaseEntityClass {
   refreshtoken: RefreshToken;
   @OneToOne(() => UserProfileImage, (image) => image.user)
   image: UserProfileImage;
-  @OneToMany(() => TempRouteRole, (role) => role.user)
-  temprouteRoles: TempRouteRole[];
   @OneToMany(() => LinkRole, (linkrole) => linkrole.User)
   LinkRoles: LinkRole[];
   @OneToMany(() => RolePermission, (role) => role.user)

@@ -41,6 +41,7 @@ import { Paginate } from 'src/app/decorators/pagination.decorator';
 import { UserUtilsService } from 'src/services/core/auth/users/user.utils.service';
 import { Decrypt } from 'src/app/decorators/decrypt.decorator';
 import { IController } from 'src/controllers/controller.interface';
+import { Permissions } from 'src/app/decorators/permissions.decorator';
 
 @Controller('/core/auth/user')
 export class UsersController extends IController<UserService> {
@@ -182,6 +183,7 @@ export class UsersController extends IController<UserService> {
   @Get()
   @Paginate()
   @Roles(Role.ADMIN)
+  @Permissions({ module: 'User Management', moduleLink: 'Users' })
   @UseGuards(JwtGuard, EMailGuard, RolesGuard)
   async GetUsers(@Res() res: Response) {
     try {
@@ -194,6 +196,7 @@ export class UsersController extends IController<UserService> {
 
   @Delete(':userId')
   @Roles(Role.ADMIN)
+  @Permissions({ module: 'User Management', moduleLink: 'Users' })
   @UseGuards(JwtGuard, EMailGuard, RolesGuard)
   async DeleteUser(
     @Res() res: Response,
@@ -212,6 +215,7 @@ export class UsersController extends IController<UserService> {
   }
 
   @Get('view/:userId')
+  @Permissions({ module: 'User Management', moduleLink: 'Users' })
   @Roles(Role.ADMIN, Role.USER)
   @UseGuards(JwtGuard, EMailGuard, RolesGuard)
   async GetUser(

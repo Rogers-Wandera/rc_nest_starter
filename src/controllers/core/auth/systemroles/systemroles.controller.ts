@@ -23,10 +23,12 @@ import { Role, Roles } from 'src/app/decorators/roles.decorator';
 import { Schemas } from 'src/app/decorators/schema.decorator';
 import { SystemRolesSchema } from 'src/schemas/core/auth/systemroles.schema';
 import { IController } from 'src/controllers/controller.interface';
+import { Permissions } from 'src/app/decorators/permissions.decorator';
 
 @Controller('/core/auth/roles')
 @UseGuards(JwtGuard, EMailGuard, RolesGuard)
 @Roles(Role.ADMIN)
+@Permissions({ module: 'Configurations', moduleLink: 'Manage Roles' })
 export class SystemRolesController extends IController<SystemRolesService> {
   constructor(model: SystemRolesService) {
     super(model);

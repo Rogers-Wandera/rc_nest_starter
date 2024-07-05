@@ -1,4 +1,4 @@
-import { EntityTarget, ObjectLiteral } from 'typeorm';
+import { EntityTarget, FindOptionsWhere, ObjectLiteral } from 'typeorm';
 import { Model } from './model';
 import { CustomRepository } from '../app/conn/customrepository';
 import { paginateprops } from '../app/conn/conntypes';
@@ -29,7 +29,7 @@ export class EntityModel<T extends ObjectLiteral> extends Utilities {
     return Object.assign(new (entity as { new (): T })());
   }
 
-  public async FindOne(conditions: Partial<T>): Promise<T> {
+  public async FindOne(conditions: FindOptionsWhere<T>): Promise<T> {
     try {
       const data = await this.repository.findOneByConditions(conditions);
       return data;

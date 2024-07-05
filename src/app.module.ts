@@ -6,7 +6,7 @@ import { UtilsModule } from './app/utils/app.utils.module';
 import { AppContextsModule } from './app/context/app.contexts.module';
 import { DatabaseModule } from './db/database.module';
 import { CoreModules } from './services/core/core.service.module';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR, DiscoveryModule } from '@nestjs/core';
 import { AllExceptionsFilter } from './app/context/exceptions/http-exception.filter';
 import { EmailModule } from './app/mailer/mailer.module';
 import { SystemDefaultRolesModule } from './services/core/defaults/roles/roles.module';
@@ -20,6 +20,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import path from 'path';
 import { DecryptData } from './app/context/interceptors/decrypt.interceptor';
 import { ServiceValidator } from './app/context/interceptors/servicevalidator.interceptor';
+import { DefaultsModule } from './services/core/defaults/defaults.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ServiceValidator } from './app/context/interceptors/servicevalidator.in
       load: [envconfig],
       cache: true,
     }),
+    DiscoveryModule,
     ServeStaticModule.forRoot({
       rootPath: path.join(__dirname, 'app', 'public'),
       exclude: ['/api/(.*)'],
@@ -39,8 +41,8 @@ import { ServiceValidator } from './app/context/interceptors/servicevalidator.in
     DatabaseModule,
     CoreModules,
     EmailModule,
-    SystemDefaultRolesModule,
     ModelModule,
+    DefaultsModule,
   ],
   providers: [
     {

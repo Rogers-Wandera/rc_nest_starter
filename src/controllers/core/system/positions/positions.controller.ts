@@ -16,6 +16,7 @@ import {
 import { Request, Response } from 'express';
 import { JoiValidator } from 'src/app/context/interceptors/joi.interceptor';
 import { Paginate } from 'src/app/decorators/pagination.decorator';
+import { Permissions } from 'src/app/decorators/permissions.decorator';
 import { Role, Roles } from 'src/app/decorators/roles.decorator';
 import { IController } from 'src/controllers/controller.interface';
 import { Position } from 'src/entity/core/positions.entity';
@@ -29,6 +30,10 @@ import { PositionService } from 'src/services/core/system/positions/positions.se
 
 @Controller('/core/system/positions')
 @UseGuards(JwtGuard, EMailGuard, RolesGuard)
+@Permissions({
+  module: 'User Management',
+  moduleLink: 'Positions',
+})
 @Roles(Role.ADMIN)
 export class PositionController extends IController<PositionService> {
   constructor(model: PositionService) {

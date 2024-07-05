@@ -45,4 +45,26 @@ export class Utilities {
   public decryptUrl(decrypted: string) {
     return decodeURIComponent(this.decryptData(decrypted));
   }
+
+  formatCamelCase(input: string): string {
+    // Find positions where camel case changes
+    const matches = input.match(/([A-Z]?[^A-Z]*)/g);
+    if (!matches) {
+      return input;
+    }
+
+    // Join matches with space and capitalize first letter if necessary
+    const formatted = matches
+      .map((match, index) => {
+        if (index === 0) {
+          // Capitalize first letter if it's lowercase
+          return match.charAt(0).toUpperCase() + match.slice(1);
+        } else {
+          return match.toLowerCase();
+        }
+      })
+      .join(' ');
+
+    return formatted.trim();
+  }
 }

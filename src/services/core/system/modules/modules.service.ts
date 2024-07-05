@@ -27,7 +27,8 @@ export class ModuleService extends EntityModel<Module> {
       } else {
         this.entity.position = 1;
       }
-      const response = await this.repository.save(this.entity);
+      const entity = this.repository.create(this.entity);
+      const response = await this.repository.save(entity);
       return response;
     } catch (error) {
       if (error instanceof QueryFailedError) {
@@ -102,6 +103,18 @@ export class ModuleService extends EntityModel<Module> {
       return [];
     } catch (err) {
       throw err;
+    }
+  }
+
+  async findModuleWithDeleted() {
+    try {
+      const exists = await this.repository.findOne({
+        where: { id: this.entity.id },
+        withDeleted: true,
+      });
+      return exists;
+    } catch (error) {
+      throw error;
     }
   }
 }

@@ -13,7 +13,8 @@ export class LinkPermissionService extends EntityModel<LinkPermission> {
 
   async AddPermission() {
     try {
-      const response = await this.repository.save(this.entity);
+      const entity = this.repository.create(this.entity);
+      const response = await this.repository.save(entity);
       return response.id > 0;
     } catch (error) {
       if (error instanceof QueryFailedError) {
