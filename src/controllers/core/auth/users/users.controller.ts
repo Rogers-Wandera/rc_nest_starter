@@ -42,7 +42,24 @@ import { UserUtilsService } from 'src/services/core/auth/users/user.utils.servic
 import { Decrypt } from 'src/app/decorators/decrypt.decorator';
 import { IController } from 'src/controllers/controller.interface';
 import { Permissions } from 'src/app/decorators/permissions.decorator';
+import { ApiTags } from '@nestjs/swagger';
+import {
+  AddRolesDocs,
+  DeleteUserDocs,
+  GenerateVerificationDocs,
+  GetUserDoc,
+  GetUsersDocs,
+  LoginUserDocs,
+  RefreshTokenDocs,
+  RegisterUserDocs,
+  RemoveRolesDocs,
+  ResetLinkDoc,
+  ResetPasswordDoc,
+  ResetUserPasswordDoc,
+  VerifyUserDocs,
+} from 'src/swagger/controllers/core/usercontroller';
 
+@ApiTags('User Management')
 @Controller('/core/auth/user')
 export class UsersController extends IController<UserService> {
   constructor(
@@ -55,6 +72,7 @@ export class UsersController extends IController<UserService> {
   }
 
   @Post('/register')
+  @RegisterUserDocs()
   @UseInterceptors(new JoiValidator(UserRegisterSchema, 'body'))
   public async RegisterUser(@Body() body: registertype, @Res() res: Response) {
     try {
@@ -79,6 +97,7 @@ export class UsersController extends IController<UserService> {
   }
 
   @Post('/verification/resend/:userId')
+  @GenerateVerificationDocs()
   async GenerateVerification(
     @Res() res: Response,
     @Param('userId', new ParseUUIDPipe()) id: string,
@@ -99,6 +118,7 @@ export class UsersController extends IController<UserService> {
   }
 
   @Get('/verification/verify/:userId/:token')
+  @VerifyUserDocs()
   @Decrypt({ type: 'params', keys: ['userId', 'token'], decrypttype: 'uri' })
   async VerifyUser(
     @Res() res: Response,
@@ -117,6 +137,7 @@ export class UsersController extends IController<UserService> {
     }
   }
   @Post('/login')
+  @LoginUserDocs()
   @Schemas({ schemas: [LoginSchema], type: 'body' })
   public async LoginUser(@Res() res: Response) {
     try {
@@ -130,6 +151,7 @@ export class UsersController extends IController<UserService> {
 
   @UseGuards(JwtGuard, EMailGuard, RefreshTokenGuard)
   @Post('/refresh')
+  @RefreshTokenDocs()
   async RefreshToken(@Res() res: Response, @Req() req: Request) {
     try {
       this.model.entity.id = req.user.id;
@@ -144,6 +166,7 @@ export class UsersController extends IController<UserService> {
 
   @UseGuards(JwtGuard, EMailGuard, RolesGuard)
   @Post('/roles')
+  @AddRolesDocs()
   @UseInterceptors(new JoiValidator(AddRoleSchema, 'body'))
   @Roles(Role.ADMIN)
   async AddRoles(
@@ -163,6 +186,7 @@ export class UsersController extends IController<UserService> {
 
   @UseGuards(JwtGuard, EMailGuard, RolesGuard)
   @Delete('/roles')
+  @RemoveRolesDocs()
   @UseInterceptors(new JoiValidator(AddRoleSchema, 'body'))
   @Roles(Role.ADMIN)
   async RemoveRoles(
@@ -181,6 +205,7 @@ export class UsersController extends IController<UserService> {
   }
 
   @Get()
+  @GetUsersDocs()
   @Paginate()
   @Roles(Role.ADMIN)
   @Permissions({ module: 'User Management', moduleLink: 'Users' })
@@ -195,6 +220,7 @@ export class UsersController extends IController<UserService> {
   }
 
   @Delete(':userId')
+  @DeleteUserDocs()
   @Roles(Role.ADMIN)
   @Permissions({ module: 'User Management', moduleLink: 'Users' })
   @UseGuards(JwtGuard, EMailGuard, RolesGuard)
@@ -215,6 +241,7 @@ export class UsersController extends IController<UserService> {
   }
 
   @Get('view/:userId')
+  @GetUserDoc()
   @Permissions({ module: 'User Management', moduleLink: 'Users' })
   @Roles(Role.ADMIN, Role.USER)
   @UseGuards(JwtGuard, EMailGuard, RolesGuard)
@@ -232,6 +259,7 @@ export class UsersController extends IController<UserService> {
   }
 
   @Post('/resetlink/:userId')
+  @ResetLinkDoc()
   async ResetLink(
     @Res() res: Response,
     @Param('userId', new ParseUUIDPipe()) id: string,
@@ -249,6 +277,7 @@ export class UsersController extends IController<UserService> {
   }
 
   @Get('/resetpassword/:userId/:token')
+  @ResetPasswordDoc()
   @Decrypt({ type: 'params', keys: ['userId', 'token'], decrypttype: 'uri' })
   async ResetPassword(
     @Res() res: Response,
@@ -271,6 +300,7 @@ export class UsersController extends IController<UserService> {
   }
 
   @Post('/reset/:userId')
+  @ResetUserPasswordDoc()
   @Schemas({ type: 'body', schemas: [ResetSchema] })
   @UseGuards(JwtGuard, EMailGuard, RolesGuard)
   @Roles(Role.USER)

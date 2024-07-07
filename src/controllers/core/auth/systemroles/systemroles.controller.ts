@@ -24,8 +24,17 @@ import { Schemas } from 'src/app/decorators/schema.decorator';
 import { SystemRolesSchema } from 'src/schemas/core/auth/systemroles.schema';
 import { IController } from 'src/controllers/controller.interface';
 import { Permissions } from 'src/app/decorators/permissions.decorator';
+import { ApiTags } from '@nestjs/swagger';
+import {
+  AddSystemRolesDoc,
+  DeleteSystemRoleDoc,
+  GetUnassignedRolesDoc,
+  UpdateSystemRolesDoc,
+  ViewSystemRolesDoc,
+} from 'src/swagger/controllers/core/systemrolescontroller';
 
 @Controller('/core/auth/roles')
+@ApiTags('System Roles')
 @UseGuards(JwtGuard, EMailGuard, RolesGuard)
 @Roles(Role.ADMIN)
 @Permissions({ module: 'Configurations', moduleLink: 'Manage Roles' })
@@ -34,6 +43,7 @@ export class SystemRolesController extends IController<SystemRolesService> {
     super(model);
   }
   @Get('/')
+  @ViewSystemRolesDoc()
   @Paginate()
   async ViewSystemRoles(@Res() res: Response) {
     try {
@@ -45,6 +55,7 @@ export class SystemRolesController extends IController<SystemRolesService> {
   }
 
   @Post()
+  @AddSystemRolesDoc()
   @Schemas({ schemas: [SystemRolesSchema], type: 'body' })
   async AddSystemRoles(@Res() res: Response) {
     try {
@@ -59,6 +70,7 @@ export class SystemRolesController extends IController<SystemRolesService> {
   }
 
   @Patch(':roleId')
+  @UpdateSystemRolesDoc()
   @Schemas({ schemas: [SystemRolesSchema], type: 'body' })
   async UpdateSysyemRoles(
     @Res() res: Response,
@@ -78,6 +90,7 @@ export class SystemRolesController extends IController<SystemRolesService> {
   }
 
   @Delete(':roleId')
+  @DeleteSystemRoleDoc()
   async DeleteSystemRole(
     @Res() res: Response,
     @Param('roleId', new ParseIntPipe())
@@ -96,6 +109,7 @@ export class SystemRolesController extends IController<SystemRolesService> {
   }
 
   @Get('/unassigned/:userId')
+  @GetUnassignedRolesDoc()
   async GetUnassignedRoles(
     @Res() res: Response,
     @Param('userId', new ParseUUIDPipe())

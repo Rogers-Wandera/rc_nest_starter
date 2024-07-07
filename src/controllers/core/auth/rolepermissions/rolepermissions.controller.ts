@@ -10,6 +10,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { Role, Roles } from 'src/app/decorators/roles.decorator';
 import { ValidateService } from 'src/app/decorators/servicevalidate.decorator';
@@ -24,8 +25,14 @@ import {
   RolesGuard,
 } from 'src/services/core/auth/authguards/authguard.guard';
 import { RolePermissionService } from 'src/services/core/auth/rolepermissions/rolepermission.service';
+import {
+  ApiCreatePermission,
+  ApiDeletePermission,
+  ApiViewPermissions,
+} from 'src/swagger/controllers/core/rolepermissions';
 
 @Controller('/core/auth/permissions')
+@ApiTags('Role Permissions')
 @UseGuards(JwtGuard, EMailGuard, RolesGuard)
 @Roles(Role.ADMIN)
 export class RolePermissionController extends IController<RolePermissionService> {
@@ -33,6 +40,7 @@ export class RolePermissionController extends IController<RolePermissionService>
     super(model);
   }
   @Post(':roleId/:permissionId/:userId')
+  @ApiCreatePermission()
   @ValidateService([
     { entity: User, key: 'userId' },
     { entity: LinkRole, key: 'roleId' },
@@ -56,6 +64,7 @@ export class RolePermissionController extends IController<RolePermissionService>
   }
 
   @Delete(':id')
+  @ApiDeletePermission()
   @ValidateService([{ entity: RolePermission }])
   async Delete(@Res() res: Response) {
     try {
@@ -71,6 +80,7 @@ export class RolePermissionController extends IController<RolePermissionService>
   }
 
   @Get(':userId/:linkId')
+  @ApiViewPermissions()
   @ValidateService([{ entity: User }])
   async View(
     @Res() res: Response,

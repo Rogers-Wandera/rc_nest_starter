@@ -1,3 +1,5 @@
+import { ApiProperty } from '@nestjs/swagger';
+
 export type paginateprops<T> = {
   limit: number;
   page: number;
@@ -21,4 +23,33 @@ export interface PaginationResults<T> {
   totalDocs: number;
   totalPages: number;
   page: number;
+}
+
+export class PaginateDTO<T> {
+  @ApiProperty({ type: 'array', items: { type: 'object' } })
+  docs: T[];
+
+  @ApiProperty()
+  totalDocs: number;
+
+  @ApiProperty()
+  totalPages: number;
+
+  @ApiProperty()
+  page: number;
+}
+
+export class paginatepropsDto<T> {
+  @ApiProperty()
+  limit: number;
+  @ApiProperty()
+  page: number;
+  @ApiProperty({ type: 'array', items: { type: 'object' } })
+  sortBy: { id: keyof T; desc?: boolean }[];
+  @ApiProperty({ required: false })
+  conditions?: Partial<T> | null;
+  @ApiProperty({ required: false })
+  filters?: { id: keyof T; value: string }[];
+  @ApiProperty({ required: false })
+  globalFilter?: string | null;
 }

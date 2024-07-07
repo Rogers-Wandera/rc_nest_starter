@@ -9,6 +9,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { Paginate } from 'src/app/decorators/pagination.decorator';
 import { Role, Roles } from 'src/app/decorators/roles.decorator';
@@ -28,14 +29,24 @@ import {
   updatelinkSchema,
 } from 'src/services/core/auth/linkroles/linkroles.schema';
 import { LinkRoleService } from 'src/services/core/auth/linkroles/linkroles.service';
+import {
+  ApiCreateLinkRole,
+  ApiDeleteLinkRole,
+  ApiGetAssignedRoles,
+  ApiGetUnassignedRoles,
+  ApiGetUserModules,
+  ApiUpdateLinkRole,
+} from 'src/swagger/controllers/core/linkrolescontroller';
 
 @Controller('/core/auth/linkroles')
+@ApiTags('Link Roles (Module Link Roles)')
 @UseGuards(JwtGuard, EMailGuard, RolesGuard)
 export class LinkRoleController extends IController<LinkRoleService> {
   constructor(model: LinkRoleService) {
     super(model);
   }
   @Post()
+  @ApiCreateLinkRole()
   @Roles(Role.ADMIN)
   @Schemas({ type: 'body', schemas: [linkrolesSchema] })
   @ValidateService([
@@ -57,6 +68,7 @@ export class LinkRoleController extends IController<LinkRoleService> {
   }
 
   @Delete(':id')
+  @ApiDeleteLinkRole()
   @Roles(Role.ADMIN)
   @ValidateService([{ entity: LinkRole, key: 'id' }])
   async Delete(@Res() res: Response) {
@@ -71,6 +83,7 @@ export class LinkRoleController extends IController<LinkRoleService> {
     }
   }
   @Patch(':id')
+  @ApiUpdateLinkRole()
   @Roles(Role.ADMIN)
   @ValidateService([{ entity: LinkRole, key: 'id' }])
   @Schemas({ type: 'body', schemas: [updatelinkSchema] })
@@ -88,6 +101,7 @@ export class LinkRoleController extends IController<LinkRoleService> {
 
   @Get('/user/:userId')
   @Roles(Role.USER)
+  @ApiGetUserModules()
   @ValidateService([{ entity: User, key: 'userId' }])
   async GetUserModules(@Res() res: Response, @Req() req: Request) {
     try {
@@ -100,6 +114,7 @@ export class LinkRoleController extends IController<LinkRoleService> {
   }
 
   @Get('/user/assigned/:userId')
+  @ApiGetAssignedRoles()
   @Paginate()
   @Roles(Role.ADMIN)
   @ValidateService([{ entity: User, key: 'userId' }])
@@ -114,6 +129,7 @@ export class LinkRoleController extends IController<LinkRoleService> {
   }
 
   @Get('/user/unassigned/:userId')
+  @ApiGetUnassignedRoles()
   @Roles(Role.ADMIN)
   @ValidateService([{ entity: User, key: 'userId' }])
   async GetUnAssignedRoles(@Res() res: Response, @Req() req: Request) {

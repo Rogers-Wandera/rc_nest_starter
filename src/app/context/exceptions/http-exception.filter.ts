@@ -4,9 +4,8 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
-  BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
-import { HttpAdapterHost } from '@nestjs/core';
 import { Request, Response } from 'express';
 import { CustomAppError } from '../app.error';
 
@@ -40,7 +39,15 @@ export class AllExceptionsFilter implements ExceptionFilter {
     let errorMessage = 'Internal Server Error';
     let stackTrace = '';
 
-    if (exception instanceof HttpException) {
+    if (exception instanceof NotFoundException) {
+      if (exception.message.toLowerCase().startsWith('cannot')) {
+        errorMessage = 'Resource not found';
+      } else {
+        errorMessage = exception.message;
+      }
+      httpStatus = exception.getStatus();
+      stackTrace = exception.stack;
+    } else if (exception instanceof HttpException) {
       httpStatus = exception.getStatus();
       errorMessage = exception.message;
       stackTrace = exception.stack;

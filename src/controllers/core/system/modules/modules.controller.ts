@@ -10,6 +10,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { Paginate } from 'src/app/decorators/pagination.decorator';
 import { Permissions } from 'src/app/decorators/permissions.decorator';
@@ -23,8 +24,16 @@ import {
 } from 'src/services/core/auth/authguards/authguard.guard';
 import { ModulesSchema } from 'src/services/core/system/modules/module.schema';
 import { ModuleService } from 'src/services/core/system/modules/modules.service';
+import {
+  ApiCreateModule,
+  ApiDeleteModule,
+  ApiUpdateModule,
+  ApiViewModules,
+  ApiViewSelectModules,
+} from 'src/swagger/controllers/core/modulescontroller';
 
 @Controller('/core/system/modules')
+@ApiTags('Modules')
 @Roles(Role.ADMIN)
 @Permissions({
   module: 'Modules',
@@ -37,6 +46,7 @@ export class ModulesController extends IController<ModuleService> {
     super(model);
   }
   @Post()
+  @ApiCreateModule()
   @Schemas({ type: 'body', schemas: [ModulesSchema] })
   async Create(@Res() res: Response) {
     try {
@@ -49,6 +59,7 @@ export class ModulesController extends IController<ModuleService> {
 
   @Get()
   @Paginate()
+  @ApiViewModules()
   async View(@Res() res: Response) {
     try {
       const results = await this.model.viewModules();
@@ -59,6 +70,7 @@ export class ModulesController extends IController<ModuleService> {
   }
 
   @Get('selects')
+  @ApiViewSelectModules()
   async ViewSelects(@Res() res: Response) {
     try {
       const results = await this.model.getSelectModules();
@@ -69,6 +81,7 @@ export class ModulesController extends IController<ModuleService> {
   }
 
   @Patch('/:moduleId')
+  @ApiUpdateModule()
   @Schemas({ type: 'body', schemas: [ModulesSchema] })
   async Update(
     @Res() res: Response,
@@ -87,6 +100,7 @@ export class ModulesController extends IController<ModuleService> {
   }
 
   @Delete('/:moduleId')
+  @ApiDeleteModule()
   async Delete(
     @Res() res: Response,
     @Param('moduleId', new ParseIntPipe()) id: number,

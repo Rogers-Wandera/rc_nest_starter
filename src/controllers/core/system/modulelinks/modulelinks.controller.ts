@@ -10,6 +10,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { Paginate } from 'src/app/decorators/pagination.decorator';
 import { Permissions } from 'src/app/decorators/permissions.decorator';
@@ -23,8 +24,15 @@ import {
 } from 'src/services/core/auth/authguards/authguard.guard';
 import { modulelinksschema } from 'src/services/core/system/modulelinks/modulelinks.schema';
 import { ModuleLinksService } from 'src/services/core/system/modulelinks/modulelinks.service';
+import {
+  ApiCreateModuleLink,
+  ApiDeleteModuleLink,
+  ApiUpdateModuleLink,
+  ApiViewModuleLinks,
+} from 'src/swagger/controllers/core/modulelinks';
 
 @Controller('/core/system/modulelinks')
+@ApiTags('Module Links')
 @Roles(Role.ADMIN)
 @UseGuards(JwtGuard, EMailGuard, RolesGuard)
 @Permissions({
@@ -37,6 +45,7 @@ export class ModuleLinksController extends IController<ModuleLinksService> {
     super(model);
   }
   @Post(':moduleId')
+  @ApiCreateModuleLink()
   @Schemas({ type: 'body', schemas: [modulelinksschema] })
   async Create(
     @Res() res: Response,
@@ -51,6 +60,7 @@ export class ModuleLinksController extends IController<ModuleLinksService> {
     }
   }
   @Patch(':linkId')
+  @ApiUpdateModuleLink()
   @Schemas({ type: 'body', schemas: [modulelinksschema] })
   async Update(
     @Res() res: Response,
@@ -69,6 +79,7 @@ export class ModuleLinksController extends IController<ModuleLinksService> {
   }
 
   @Delete(':linkId')
+  @ApiDeleteModuleLink()
   async Delete(
     @Res() res: Response,
     @Param('linkId', new ParseIntPipe()) id: number,
@@ -87,6 +98,7 @@ export class ModuleLinksController extends IController<ModuleLinksService> {
 
   @Paginate()
   @Get(':moduleId')
+  @ApiViewModuleLinks()
   async View(
     @Res() res: Response,
     @Param('moduleId', new ParseIntPipe()) id: number,

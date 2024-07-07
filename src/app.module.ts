@@ -6,10 +6,14 @@ import { UtilsModule } from './app/utils/app.utils.module';
 import { AppContextsModule } from './app/context/app.contexts.module';
 import { DatabaseModule } from './db/database.module';
 import { CoreModules } from './services/core/core.service.module';
-import { APP_FILTER, APP_INTERCEPTOR, DiscoveryModule } from '@nestjs/core';
+import {
+  APP_FILTER,
+  APP_GUARD,
+  APP_INTERCEPTOR,
+  DiscoveryModule,
+} from '@nestjs/core';
 import { AllExceptionsFilter } from './app/context/exceptions/http-exception.filter';
 import { EmailModule } from './app/mailer/mailer.module';
-import { SystemDefaultRolesModule } from './services/core/defaults/roles/roles.module';
 import { TransformPainateQuery } from './app/context/interceptors/jsonparser.interceptor';
 import {
   JoiPaginateValidation,
@@ -21,6 +25,7 @@ import path from 'path';
 import { DecryptData } from './app/context/interceptors/decrypt.interceptor';
 import { ServiceValidator } from './app/context/interceptors/servicevalidator.interceptor';
 import { DefaultsModule } from './services/core/defaults/defaults.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -30,6 +35,23 @@ import { DefaultsModule } from './services/core/defaults/defaults.module';
       load: [envconfig],
       cache: true,
     }),
+    ThrottlerModule.forRoot([
+      {
+        name: 'short',
+        ttl: 1000,
+        limit: 3,
+      },
+      {
+        name: 'medium',
+        ttl: 10000,
+        limit: 20,
+      },
+      {
+        name: 'long',
+        ttl: 60000,
+        limit: 30,
+      },
+    ]),
     DiscoveryModule,
     ServeStaticModule.forRoot({
       rootPath: path.join(__dirname, 'app', 'public'),
@@ -45,6 +67,7 @@ import { DefaultsModule } from './services/core/defaults/defaults.module';
     DefaultsModule,
   ],
   providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
     {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,

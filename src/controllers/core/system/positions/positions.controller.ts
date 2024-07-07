@@ -13,6 +13,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { JoiValidator } from 'src/app/context/interceptors/joi.interceptor';
 import { Paginate } from 'src/app/decorators/pagination.decorator';
@@ -27,8 +28,15 @@ import {
   RolesGuard,
 } from 'src/services/core/auth/authguards/authguard.guard';
 import { PositionService } from 'src/services/core/system/positions/positions.service';
+import {
+  ApiAddPosition,
+  ApiDeletePosition,
+  ApiGetPositions,
+  ApiUpdatePosition,
+} from 'src/swagger/controllers/core/positions';
 
 @Controller('/core/system/positions')
+@ApiTags('Positions')
 @UseGuards(JwtGuard, EMailGuard, RolesGuard)
 @Permissions({
   module: 'User Management',
@@ -40,6 +48,7 @@ export class PositionController extends IController<PositionService> {
     super(model);
   }
   @Post()
+  @ApiAddPosition()
   @UseInterceptors(new JoiValidator(PositionsSchema, 'body'))
   async AddPositions(
     @Body() body: Partial<Position>,
@@ -60,6 +69,7 @@ export class PositionController extends IController<PositionService> {
   }
 
   @Get()
+  @ApiGetPositions()
   @Paginate()
   async GetPositions(@Res() res: Response) {
     try {
@@ -71,6 +81,7 @@ export class PositionController extends IController<PositionService> {
   }
 
   @Patch(':id')
+  @ApiUpdatePosition()
   @UseInterceptors(new JoiValidator(PositionsSchema, 'body'))
   async UpadatePositions(
     @Param('id', new ParseIntPipe())
@@ -92,6 +103,7 @@ export class PositionController extends IController<PositionService> {
   }
 
   @Delete(':id')
+  @ApiDeletePosition()
   async DeletePosition(
     @Param('id', new ParseIntPipe())
     id: number,

@@ -7,6 +7,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { Permissions } from 'src/app/decorators/permissions.decorator';
 import { Role, Roles } from 'src/app/decorators/roles.decorator';
@@ -16,13 +17,19 @@ import {
   RolesGuard,
 } from 'src/services/core/auth/authguards/authguard.guard';
 import { SystemPermissionsService } from 'src/services/core/defaults/permissions/permissions.service';
+import {
+  AddPermissionsDoc,
+  GetPermissionsDoc,
+} from 'src/swagger/controllers/core/defaultcontroller';
 
 @Controller('/core/defaults')
+@ApiTags('Core Configurations')
 @UseGuards(JwtGuard, EMailGuard, RolesGuard)
 @Roles(Role.PROGRAMMER)
 export class DefaultController {
   constructor(private readonly permission: SystemPermissionsService) {}
   @Post('permissions')
+  @AddPermissionsDoc()
   @Permissions({
     module: 'Configurations',
     moduleLink: 'Permissions',
@@ -32,6 +39,7 @@ export class DefaultController {
     res.status(HttpStatus.OK).json(data);
   }
   @Get('permissions')
+  @GetPermissionsDoc()
   @Permissions({
     module: 'Configurations',
     moduleLink: 'Permissions',

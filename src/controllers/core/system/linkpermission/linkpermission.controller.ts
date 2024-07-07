@@ -11,6 +11,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { Paginate } from 'src/app/decorators/pagination.decorator';
 import { Role, Roles } from 'src/app/decorators/roles.decorator';
@@ -26,8 +27,16 @@ import {
 } from 'src/services/core/auth/authguards/authguard.guard';
 import { PermissionSchema } from 'src/services/core/system/linkpermissions/linkpermission.schema';
 import { LinkPermissionService } from 'src/services/core/system/linkpermissions/linkpermissions.service';
+import {
+  ApiCreatePermission,
+  ApiDeletePermission,
+  ApiUpdatePermission,
+  ApiViewPermissions,
+  ApiViewSelectPermissions,
+} from 'src/swagger/controllers/core/linkpermission';
 
 @Controller('/core/system/linkpermission')
+@ApiTags('Link (Module Links) Permissions')
 @UseGuards(JwtGuard, EMailGuard, RolesGuard)
 @Roles(Role.ADMIN)
 export class LinkPermissionController extends IController<LinkPermissionService> {
@@ -35,6 +44,7 @@ export class LinkPermissionController extends IController<LinkPermissionService>
     super(model);
   }
   @Post(':moduleLinkId')
+  @ApiCreatePermission()
   @Schemas({ schemas: [PermissionSchema] })
   @ValidateService([{ entity: ModuleLink, key: 'moduleLinkId' }])
   async Create(@Res() res: Response, @Req() req: Request) {
@@ -47,6 +57,7 @@ export class LinkPermissionController extends IController<LinkPermissionService>
     return res.status(HttpStatus.OK).json({ msg });
   }
   @Patch(':linkId')
+  @ApiUpdatePermission()
   @ValidateService([{ entity: LinkPermission, key: 'linkId' }])
   @Schemas({ schemas: [PermissionSchema] })
   async Update(@Res() res: Response) {
@@ -62,6 +73,7 @@ export class LinkPermissionController extends IController<LinkPermissionService>
   }
   @Paginate()
   @Get(':moduleLinkId')
+  @ApiViewPermissions()
   async View(
     @Res() res: Response,
     @Param('moduleLinkId', new ParseIntPipe()) id: number,
@@ -74,6 +86,7 @@ export class LinkPermissionController extends IController<LinkPermissionService>
     }
   }
   @Get('/view/:moduleLinkId')
+  @ApiViewSelectPermissions()
   async ViewSelects(
     @Res() res: Response,
     @Param('moduleLinkId', new ParseIntPipe()) id: number,
@@ -86,6 +99,7 @@ export class LinkPermissionController extends IController<LinkPermissionService>
     }
   }
   @Delete(':linkId')
+  @ApiDeletePermission()
   @ValidateService([{ entity: LinkPermission, key: 'linkId' }])
   async Delete(@Res() res: Response) {
     try {
