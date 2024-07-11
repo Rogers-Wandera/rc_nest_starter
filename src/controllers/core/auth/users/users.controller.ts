@@ -2,14 +2,18 @@ import {
   Body,
   Controller,
   Delete,
+  FileTypeValidator,
   Get,
   HttpStatus,
   Inject,
+  MaxFileSizeValidator,
   Param,
+  ParseFilePipe,
   ParseUUIDPipe,
   Post,
   Req,
   Res,
+  UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -58,6 +62,9 @@ import {
   ResetUserPasswordDoc,
   VerifyUserDocs,
 } from 'src/swagger/controllers/core/usercontroller';
+import { ValidateService } from 'src/app/decorators/servicevalidate.decorator';
+import { User } from 'src/entity/core/users.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('User Management')
 @Controller('/core/auth/user')
@@ -316,6 +323,35 @@ export class UsersController extends IController<UserService> {
         : 'Something went wrong';
 
       res.status(HttpStatus.OK).json({ msg });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Post('/profile')
+  @UseInterceptors(FileInterceptor('image'))
+  @UseGuards(JwtGuard, EMailGuard, RolesGuard)
+  @Roles(Role.USER)
+  async AddProfileImage(
+    @Res() res: Response,
+    @Req() req: Request,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({
+            maxSize: 5 * 1024 * 1024,
+            message: 'Image size should be less than or equal to 5mbs',
+          }),
+          new FileTypeValidator({ fileType: 'image/jpeg' }),
+        ],
+      }),
+    )
+    image: Express.Multer.File,
+  ) {
+    try {
+      this.userutils.entity.id = req.user.id;
+      const response = await this.userutils.AddUserProfileImage(image);
+      res.status(HttpStatus.OK).json(response);
     } catch (error) {
       throw error;
     }

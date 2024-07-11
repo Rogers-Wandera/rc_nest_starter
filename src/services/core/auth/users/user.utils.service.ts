@@ -8,12 +8,15 @@ import { EnvConfig } from 'src/app/config/configuration';
 import { addHours } from 'date-fns';
 import { TokenService } from '../../system/tokens/tokens.service';
 import { EmailService } from 'src/app/mailer/mailer.service';
+import { UserProfileImageService } from '../userprofileimages/userprofileimages.service';
+import { QueryFailedError } from 'typeorm';
 
 export class UserUtilsService extends EntityModel<User> {
   constructor(
     @Inject(EntityDataSource) source: EntityDataSource,
     @Inject(ConfigService) private configservive: ConfigService<EnvConfig>,
     @Inject(TokenService) private readonly tokens: TokenService,
+    private readonly userprofiles: UserProfileImageService,
     private readonly emailService: EmailService,
   ) {
     super(User, source);
@@ -152,6 +155,23 @@ export class UserUtilsService extends EntityModel<User> {
       await this.tokens.DeactivateUserToken(user.id);
       return results;
     } catch (error) {
+      throw error;
+    }
+  }
+
+  async AddUserProfileImage(image: Express.Multer.File) {
+    try {
+      this.userprofiles.entity.user = this.entity;
+      const response = await this.userprofiles.AddUserprofileimages(image);
+      return response;
+    } catch (error) {
+      if (error instanceof QueryFailedError) {
+        if (error.message.includes('userprofileimages')) {
+          throw new BadRequestException(
+            'The user can only have one profile image',
+          );
+        }
+      }
       throw error;
     }
   }

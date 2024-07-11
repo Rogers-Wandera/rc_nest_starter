@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { envconfig } from './app/config/configuration';
 import { EventsMoule } from './events/events.module';
@@ -26,7 +26,11 @@ import { DecryptData } from './app/context/interceptors/decrypt.interceptor';
 import { ServiceValidator } from './app/context/interceptors/servicevalidator.interceptor';
 import { DefaultsModule } from './services/core/defaults/defaults.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { FileUploadsModule } from './micro/fileuploads/fileuploads.module';
+import { MulterConfigs } from './app/config/multer.configs';
+import { MulterModule } from '@nestjs/platform-express';
 
+@Global()
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -34,6 +38,9 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
       isGlobal: true,
       load: [envconfig],
       cache: true,
+    }),
+    MulterModule.register({
+      ...MulterConfigs,
     }),
     ThrottlerModule.forRoot([
       {
@@ -65,6 +72,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
     EmailModule,
     ModelModule,
     DefaultsModule,
+    FileUploadsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
@@ -84,6 +92,6 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
     { provide: APP_INTERCEPTOR, useClass: ServiceValidator },
     { provide: APP_INTERCEPTOR, useClass: JoiSchemaValidator },
   ],
-  exports: [EventsMoule],
+  exports: [EventsMoule, MulterModule],
 })
 export class AppModule {}

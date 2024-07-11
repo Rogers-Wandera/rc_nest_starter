@@ -28,6 +28,7 @@ export const envconfig = () => ({
     name: process.env.CLOUD_NAME,
     publicKey: process.env.CLOUD_API_KEY,
     privateKey: process.env.CLOUD_API_SECRET,
+    folder: process.env.CLOUD_MAIN_FOLDER,
   },
 });
 
