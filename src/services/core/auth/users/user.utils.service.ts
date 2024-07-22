@@ -10,6 +10,7 @@ import { TokenService } from '../../system/tokens/tokens.service';
 import { EmailService } from 'src/app/mailer/mailer.service';
 import { UserProfileImageService } from '../userprofileimages/userprofileimages.service';
 import { QueryFailedError } from 'typeorm';
+import { RTechNotifier } from '@notify/rtechnotifier';
 
 export class UserUtilsService extends EntityModel<User> {
   constructor(
@@ -18,6 +19,7 @@ export class UserUtilsService extends EntityModel<User> {
     @Inject(TokenService) private readonly tokens: TokenService,
     private readonly userprofiles: UserProfileImageService,
     private readonly emailService: EmailService,
+    private readonly mailservice: RTechNotifier,
   ) {
     super(User, source);
   }
@@ -123,7 +125,8 @@ export class UserUtilsService extends EntityModel<User> {
       this.tokens.entity.expire = expireDate;
       this.tokens.entity.createdBy = user.id;
       await this.tokens.CreateToken();
-      return { link: verify, user };
+      const response = await this.sendVerificationEmail(user, verify);
+      return response;
     } catch (error) {
       throw error;
     }
@@ -174,5 +177,26 @@ export class UserUtilsService extends EntityModel<User> {
       }
       throw error;
     }
+  }
+
+  private async sendVerificationEmail(
+    user: User,
+    link: string,
+    additionalhtml: string | string[] = '',
+  ) {
+    const emailData = {
+      recipientName: user.firstname + ' ' + user.lastname,
+      serverData: 'Please confirm registration',
+      senderName: 'RC-TECH',
+      link: link,
+      moredata: [...additionalhtml],
+    };
+    this.mailservice.mailoptions = {
+      to: user.email,
+      subject: 'Welcome to RC-TECH please confirm your email',
+      template: './verify',
+      context: emailData,
+    };
+    return await this.mailservice.notification('email');
   }
 }

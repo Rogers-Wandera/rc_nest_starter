@@ -238,3 +238,20 @@ export const ResetUserPasswordDoc = () => {
     }),
   );
 };
+
+export const UploadProfileDoc = () => {
+  return applyDecorators(
+    ApiOperation({
+      description: 'This endpoint will upload the user profile image.',
+      summary: 'Upload Profile Image',
+    }),
+    ApiBody({
+      required: true,
+      type: 'Image',
+    }),
+    ApiResponse({
+      status: 200,
+      description: 'Image uploaded successfully',
+    }),
+  );
+};

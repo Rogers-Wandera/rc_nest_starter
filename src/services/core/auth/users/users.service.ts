@@ -28,6 +28,7 @@ import { EntityDataSource } from 'src/model/enity.data.model';
 import { CustomRepository } from 'src/app/conn/customrepository';
 import { ServerRolesView } from 'src/entity/coreviews/serverroute.view';
 import { ServerRolesType } from '../auth.types';
+import { RTechNotifier } from '@notify/rtechnotifier';
 
 @Injectable()
 export class UserService extends EntityModel<User> {
@@ -43,6 +44,7 @@ export class UserService extends EntityModel<User> {
     @Inject(forwardRef(() => RefreshTokenService))
     private readonly refreshtoken: RefreshTokenService,
     @Inject(REQUEST) protected request: Request,
+    private mailservice: RTechNotifier,
   ) {
     super(User, source);
     this.positionId = null;
@@ -118,7 +120,17 @@ export class UserService extends EntityModel<User> {
     this.roles.entity.createdBy = user.id;
     await this.tokens.CreateToken();
     await this.roles.createRoles();
-    return { user, token, expireDate };
+    const verify = `${process.env.BASE_URL}/core/auth/user/verification/verify/${this.encryptUrl(user.id)}/${this.encryptUrl(token)}`;
+    let additionaldata: string | string[] = '';
+    if (data.adminCreated == 1) {
+      additionaldata = [`Please login using this password ${data.password}`];
+    }
+    const response = await this.sendVerificationEmail(
+      user,
+      verify,
+      additionaldata,
+    );
+    return response;
   }
 
   private async GetServerRoles(user: UserDataView): Promise<ServerRolesType[]> {
@@ -367,5 +379,26 @@ export class UserService extends EntityModel<User> {
     } catch (error) {
       throw error;
     }
+  }
+
+  private async sendVerificationEmail(
+    user: User,
+    link: string,
+    additionalhtml: string | string[] = '',
+  ) {
+    const emailData = {
+      recipientName: user.firstname + ' ' + user.lastname,
+      serverData: 'Please confirm registration',
+      senderName: 'RC-TECH',
+      link: link,
+      moredata: [...additionalhtml],
+    };
+    this.mailservice.mailoptions = {
+      to: user.email,
+      subject: 'Welcome to RC-TECH please confirm your email',
+      template: './verify',
+      context: emailData,
+    };
+    return await this.mailservice.notification('email');
   }
 }

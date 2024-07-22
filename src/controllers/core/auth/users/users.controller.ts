@@ -31,7 +31,6 @@ import {
 } from '../../../../services/core/auth/users/users.types';
 import { Request, Response } from 'express';
 
-import { EmailService } from 'src/app/mailer/mailer.service';
 import { EventsGateway } from 'src/events/event.gateway';
 import {
   EMailGuard,
@@ -60,11 +59,11 @@ import {
   ResetLinkDoc,
   ResetPasswordDoc,
   ResetUserPasswordDoc,
+  UploadProfileDoc,
   VerifyUserDocs,
 } from 'src/swagger/controllers/core/usercontroller';
-import { ValidateService } from 'src/app/decorators/servicevalidate.decorator';
-import { User } from 'src/entity/core/users.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { RTechNotifier } from '@notify/rtechnotifier';
 
 @ApiTags('User Management')
 @Controller('/core/auth/user')
@@ -73,7 +72,7 @@ export class UsersController extends IController<UserService> {
     model: UserService,
     private readonly userutils: UserUtilsService,
     @Inject(EventsGateway) private readonly socket: EventsGateway,
-    private readonly emailService: EmailService,
+    private notify: RTechNotifier,
   ) {
     super(model);
   }
@@ -83,18 +82,7 @@ export class UsersController extends IController<UserService> {
   @UseInterceptors(new JoiValidator(UserRegisterSchema, 'body'))
   public async RegisterUser(@Body() body: registertype, @Res() res: Response) {
     try {
-      let additionaldata: string | string[] = '';
-      if (body.adminCreated == 1) {
-        additionaldata = [`Please login using this password ${body.password}`];
-      }
-      const { user, token } = await this.model.createUser(body);
-      const verify = `${process.env.BASE_URL}/core/auth/user/verification/verify/${this.model.encryptUrl(user.id)}/${this.model.encryptUrl(token)}`;
-
-      const response = await this.emailService.sendVerificationEmail(
-        user,
-        verify,
-        additionaldata,
-      );
+      const response = await this.model.createUser(body);
       res
         .status(HttpStatus.OK)
         .json({ msg: 'User created successfully', emailsent: response });
@@ -111,11 +99,7 @@ export class UsersController extends IController<UserService> {
   ) {
     try {
       this.model.entity.id = id;
-      const { user, link } = await this.userutils.RegenerateActivation();
-      const response = await this.emailService.sendVerificationEmail(
-        user,
-        link,
-      );
+      const response = await this.userutils.RegenerateActivation();
       res
         .status(HttpStatus.OK)
         .json({ msg: 'Verification Sent Successfully', emailsent: response });
@@ -329,6 +313,7 @@ export class UsersController extends IController<UserService> {
   }
 
   @Post('/profile')
+  @UploadProfileDoc()
   @UseInterceptors(FileInterceptor('image'))
   @UseGuards(JwtGuard, EMailGuard, RolesGuard)
   @Roles(Role.USER)

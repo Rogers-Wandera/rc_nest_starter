@@ -1,5 +1,8 @@
 import { Global, Module } from '@nestjs/common';
 import { DatabaseService } from './database.provider';
+import { ConfigService } from '@nestjs/config';
+import { EnvConfig } from 'src/app/config/configuration';
+import { FireBaseService } from './firebase.setup';
 
 @Global()
 @Module({
@@ -12,6 +15,17 @@ import { DatabaseService } from './database.provider';
         return datasource;
       },
     },
+    {
+      provide: 'FIREBASE_SERVICE',
+      useFactory: async (config: ConfigService<EnvConfig>) => {
+        const firebase = new FireBaseService(
+          config.get('firebase_web'),
+          config.get('firebaseServiceAccount'),
+        );
+        return firebase;
+      },
+      inject: [ConfigService],
+    },
   ],
   exports: [
     {
@@ -21,6 +35,17 @@ import { DatabaseService } from './database.provider';
         await datasource.initialize();
         return datasource;
       },
+    },
+    {
+      provide: 'FIREBASE_SERVICE',
+      useFactory: async (config: ConfigService<EnvConfig>) => {
+        const firebase = new FireBaseService(
+          config.get('firebase_web'),
+          config.get('firebaseServiceAccount'),
+        );
+        return firebase;
+      },
+      inject: [ConfigService],
     },
   ],
 })

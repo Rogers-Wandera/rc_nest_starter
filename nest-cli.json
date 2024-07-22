@@ -5,8 +5,25 @@
   "compilerOptions": {
     "deleteOutDir": true,
     "assets": [
-      { "include": "**/*.ejs", "watchAssets": true },
-      { "include": "**/*.html" }
-    ]
+      {
+        "include": "**/*.ejs",
+        "watchAssets": true
+      },
+      {
+        "include": "**/*.html"
+      }
+    ],
+    "webpack": false
+  },
+  "projects": {
+    "rtechnotifier": {
+      "type": "library",
+      "root": "libs/rtechnotifier",
+      "entryFile": "index",
+      "sourceRoot": "libs/rtechnotifier/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/rtechnotifier/tsconfig.lib.json"
+      }
+    }
   }
 }

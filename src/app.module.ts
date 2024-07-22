@@ -21,7 +21,7 @@ import {
 } from './app/context/interceptors/joi.interceptor';
 import { ModelModule } from './model/model.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import path from 'path';
+import path, { join } from 'path';
 import { DecryptData } from './app/context/interceptors/decrypt.interceptor';
 import { ServiceValidator } from './app/context/interceptors/servicevalidator.interceptor';
 import { DefaultsModule } from './services/core/defaults/defaults.module';
@@ -29,6 +29,8 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { FileUploadsModule } from './micro/fileuploads/fileuploads.module';
 import { MulterConfigs } from './app/config/multer.configs';
 import { MulterModule } from '@nestjs/platform-express';
+import { RTechNotifierModule } from '@notify/rtechnotifier';
+import { AsyncLocalStorage } from 'async_hooks';
 
 @Global()
 @Module({
@@ -39,6 +41,11 @@ import { MulterModule } from '@nestjs/platform-express';
       load: [envconfig],
       cache: true,
     }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, 'app', 'templates'),
+      serveRoot: '/templates',
+    }),
+    RTechNotifierModule,
     MulterModule.register({
       ...MulterConfigs,
     }),
@@ -75,6 +82,10 @@ import { MulterModule } from '@nestjs/platform-express';
     FileUploadsModule,
   ],
   providers: [
+    {
+      provide: AsyncLocalStorage,
+      useValue: new AsyncLocalStorage(),
+    },
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     {
       provide: APP_FILTER,
@@ -92,6 +103,6 @@ import { MulterModule } from '@nestjs/platform-express';
     { provide: APP_INTERCEPTOR, useClass: ServiceValidator },
     { provide: APP_INTERCEPTOR, useClass: JoiSchemaValidator },
   ],
-  exports: [EventsMoule, MulterModule],
+  exports: [EventsMoule, MulterModule, AsyncLocalStorage],
 })
 export class AppModule {}
