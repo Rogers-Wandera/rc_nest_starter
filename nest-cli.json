@@ -14,16 +14,5 @@
       }
     ],
     "webpack": false
-  },
-  "projects": {
-    "rtechnotifier": {
-      "type": "library",
-      "root": "libs/rtechnotifier",
-      "entryFile": "index",
-      "sourceRoot": "libs/rtechnotifier/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/rtechnotifier/tsconfig.lib.json"
-      }
-    }
   }
 }

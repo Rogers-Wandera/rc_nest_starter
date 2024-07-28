@@ -2,10 +2,10 @@ import { EntityTarget, FindOptionsWhere, ObjectLiteral } from 'typeorm';
 import { Model } from './model';
 import { CustomRepository } from '../app/conn/customrepository';
 import { paginateprops } from '../app/conn/conntypes';
-import { CustomAppError } from '../app/context/app.error';
 import { Utilities } from '../app/utils/app.utils';
 import { ModelClass } from 'src/app/decorators/model.decorators';
 import { EntityDataSource } from './enity.data.model';
+import { BadGatewayException } from '@nestjs/common';
 
 @ModelClass()
 export class EntityModel<T extends ObjectLiteral> extends Utilities {
@@ -34,7 +34,7 @@ export class EntityModel<T extends ObjectLiteral> extends Utilities {
       const data = await this.repository.findOneByConditions(conditions);
       return data;
     } catch (error) {
-      throw new CustomAppError(error.message, 400);
+      throw new BadGatewayException(error.message);
     }
   }
 
@@ -43,7 +43,7 @@ export class EntityModel<T extends ObjectLiteral> extends Utilities {
       const results = await this.repository.find();
       return results;
     } catch (error) {
-      throw new CustomAppError(error.message, 400);
+      throw new BadGatewayException(error.message);
     }
   }
 

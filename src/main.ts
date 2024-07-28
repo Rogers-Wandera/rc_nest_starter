@@ -20,10 +20,10 @@ async function bootstrap() {
   app.setGlobalPrefix(app.get(ConfigService<EnvConfig>).get('baseapi'));
   app.use(new LoggingMiddleware().use);
   app.use(new ServerLogger().use);
-
   setupSwagger(app);
   await app.listen(app.get(ConfigService<EnvConfig>).get('port'), async () => {
     console.log('App running on ' + (await app.getUrl()));
   });
+  app.enableShutdownHooks();
 }
 bootstrap();

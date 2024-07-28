@@ -1,11 +1,15 @@
-import { Injectable, NestMiddleware, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NestMiddleware,
+  Logger,
+  BadRequestException,
+} from '@nestjs/common';
 import { format } from 'date-fns';
 import { Request, Response, NextFunction } from 'express';
 import { existsSync } from 'fs';
 import path from 'path';
 import { v4 as uuid } from 'uuid';
 import fspromises from 'fs/promises';
-import { CustomAppError } from 'src/app/context/app.error';
 
 @Injectable()
 export class LoggingMiddleware implements NestMiddleware {
@@ -43,7 +47,7 @@ export const logEvent = async (message: string, logFile: string) => {
       logTime,
     );
   } catch (error) {
-    throw new CustomAppError(error);
+    throw new BadRequestException(error);
   }
 };
 

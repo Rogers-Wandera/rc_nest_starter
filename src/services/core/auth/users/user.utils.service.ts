@@ -7,10 +7,13 @@ import { ConfigService } from '@nestjs/config';
 import { EnvConfig } from 'src/app/config/configuration';
 import { addHours } from 'date-fns';
 import { TokenService } from '../../system/tokens/tokens.service';
-import { EmailService } from 'src/app/mailer/mailer.service';
+import { MessagingService } from 'src/app/mailer/messaging.service';
 import { UserProfileImageService } from '../userprofileimages/userprofileimages.service';
 import { QueryFailedError } from 'typeorm';
-import { RTechNotifier } from '@notify/rtechnotifier';
+import { RabbitMQService } from 'src/micro/microservices/rabbitmq.service';
+import { NOTIFICATION_PATTERN } from 'src/app/patterns/notification.patterns';
+import { NotifyTypes } from 'src/app/types/notification/notify.types';
+import { EmailTemplates } from 'src/app/types/enums/emailtemplates.enum';
 
 export class UserUtilsService extends EntityModel<User> {
   constructor(
@@ -18,8 +21,8 @@ export class UserUtilsService extends EntityModel<User> {
     @Inject(ConfigService) private configservive: ConfigService<EnvConfig>,
     @Inject(TokenService) private readonly tokens: TokenService,
     private readonly userprofiles: UserProfileImageService,
-    private readonly emailService: EmailService,
-    private readonly mailservice: RTechNotifier,
+    private readonly messagingService: MessagingService,
+    private readonly client: RabbitMQService,
   ) {
     super(User, source);
   }
@@ -49,15 +52,17 @@ export class UserUtilsService extends EntityModel<User> {
       this.tokens.entity.createdBy = user.id;
       this.tokens.entity.token = token;
       const emailData = {
-        content: info,
-        title: `Hello ${user.firstname}, Reset your password`,
-        cta: true,
-        btntext: 'Reset Password',
-        url,
         email: user.email,
         subject: 'Reset Password',
+        context: {
+          content: info,
+          title: `Hello ${user.firstname}, Reset your password`,
+          cta: true,
+          btntext: 'Reset Password',
+          url,
+        },
       };
-      const response = await this.emailService.SendWithMailer2(emailData);
+      const response = await this.messagingService.SendWithMailer2(emailData);
       if (!response) {
         return false;
       }
@@ -191,12 +196,15 @@ export class UserUtilsService extends EntityModel<User> {
       link: link,
       moredata: [...additionalhtml],
     };
-    this.mailservice.mailoptions = {
-      to: user.email,
-      subject: 'Welcome to RC-TECH please confirm your email',
-      template: './verify',
-      context: emailData,
+    const mailoptions: NotifyTypes = {
+      type: 'email',
+      payload: {
+        to: user.email,
+        subject: 'Welcome to RC-TECH please confirm your email',
+        template: EmailTemplates.VERIFY_EMAIL,
+        context: emailData,
+      },
     };
-    return await this.mailservice.notification('email');
+    return this.client.send(NOTIFICATION_PATTERN.NOTIFY, mailoptions);
   }
 }

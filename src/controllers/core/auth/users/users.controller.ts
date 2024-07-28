@@ -63,7 +63,9 @@ import {
   VerifyUserDocs,
 } from 'src/swagger/controllers/core/usercontroller';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { RTechNotifier } from '@notify/rtechnotifier';
+import { RabbitMQService } from 'src/micro/microservices/rabbitmq.service';
+import { NOTIFICATION_PATTERN } from 'src/app/patterns/notification.patterns';
+import { lastValueFrom } from 'rxjs';
 
 @ApiTags('User Management')
 @Controller('/core/auth/user')
@@ -72,7 +74,7 @@ export class UsersController extends IController<UserService> {
     model: UserService,
     private readonly userutils: UserUtilsService,
     @Inject(EventsGateway) private readonly socket: EventsGateway,
-    private notify: RTechNotifier,
+    private readonly rabbitService: RabbitMQService,
   ) {
     super(model);
   }
@@ -134,6 +136,11 @@ export class UsersController extends IController<UserService> {
     try {
       const user = await this.model.UserLogin();
       this.socket.server.emit('login', { userId: user.id });
+      await lastValueFrom(
+        this.rabbitService.emit(NOTIFICATION_PATTERN.USER_LOGGED_IN, {
+          userId: user.id,
+        }),
+      );
       res.status(200).json(user);
     } catch (error) {
       throw error;

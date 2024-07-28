@@ -1,7 +1,6 @@
 import { format, isBefore, parse } from 'date-fns';
-import { CustomAppError } from '../context/app.error';
 import CryptoJs from 'crypto-js';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
 @Injectable()
 export class Utilities {
@@ -12,7 +11,7 @@ export class Utilities {
       const cipherInput = CryptoJs.AES.encrypt(input, secretKey).toString();
       return cipherInput;
     } catch (error) {
-      throw new CustomAppError(error.message, 400);
+      throw new BadRequestException(error.message);
     }
   }
 
@@ -23,7 +22,7 @@ export class Utilities {
       const ciphedInput = bytes.toString(CryptoJs.enc.Utf8);
       return ciphedInput;
     } catch (error) {
-      throw new CustomAppError(error.message, 400);
+      throw new BadRequestException(error.message);
     }
   }
 
@@ -35,7 +34,7 @@ export class Utilities {
       const currentDate = new Date();
       return isBefore(parsedDate, currentDate);
     } catch (error) {
-      throw new CustomAppError(error.message, 400);
+      throw new BadRequestException(error.message);
     }
   }
 

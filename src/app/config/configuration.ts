@@ -3,8 +3,11 @@ export const envconfig = () => ({
   baseUrl: process.env.BASE_URL,
   frontUrl: process.env.BASE_FRONT_URL,
   encrytKey: process.env.ENCRYPTION_KEY,
-  comapny: process.env.COMPANY_NAME,
+  company: process.env.COMPANY_NAME,
   baseapi: process.env.BASE_API,
+  rabbitmqurl: process.env.RMQ_URL,
+  socketurl: process.env.SOCKET_URL,
+  sockettoken: process.env.SOCKET_TOKEN,
   database: {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,

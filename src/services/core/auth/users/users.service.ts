@@ -28,7 +28,10 @@ import { EntityDataSource } from 'src/model/enity.data.model';
 import { CustomRepository } from 'src/app/conn/customrepository';
 import { ServerRolesView } from 'src/entity/coreviews/serverroute.view';
 import { ServerRolesType } from '../auth.types';
-import { RTechNotifier } from '@notify/rtechnotifier';
+import { RabbitMQService } from 'src/micro/microservices/rabbitmq.service';
+import { NotifyTypes } from 'src/app/types/notification/notify.types';
+import { EmailTemplates } from 'src/app/types/enums/emailtemplates.enum';
+import { NOTIFICATION_PATTERN } from 'src/app/patterns/notification.patterns';
 
 @Injectable()
 export class UserService extends EntityModel<User> {
@@ -44,7 +47,7 @@ export class UserService extends EntityModel<User> {
     @Inject(forwardRef(() => RefreshTokenService))
     private readonly refreshtoken: RefreshTokenService,
     @Inject(REQUEST) protected request: Request,
-    private mailservice: RTechNotifier,
+    private client: RabbitMQService,
   ) {
     super(User, source);
     this.positionId = null;
@@ -393,12 +396,15 @@ export class UserService extends EntityModel<User> {
       link: link,
       moredata: [...additionalhtml],
     };
-    this.mailservice.mailoptions = {
-      to: user.email,
-      subject: 'Welcome to RC-TECH please confirm your email',
-      template: './verify',
-      context: emailData,
+    const mailoptions: NotifyTypes = {
+      type: 'email',
+      payload: {
+        to: user.email,
+        subject: 'Welcome to RC-TECH please confirm your email',
+        template: EmailTemplates.VERIFY_EMAIL,
+        context: emailData,
+      },
     };
-    return await this.mailservice.notification('email');
+    return this.client.send(NOTIFICATION_PATTERN.NOTIFY, mailoptions);
   }
 }
