@@ -14,7 +14,7 @@ import { ModuleLinksService } from '../../system/modulelinks/modulelinks.service
 import { LinkPermissionService } from '../../system/linkpermissions/linkpermissions.service';
 import { ModuleLink } from 'src/entity/core/modulelinks.entity';
 
-@Injectable({ scope: Scope.DEFAULT })
+@Injectable()
 export class SystemPermissionsService {
   constructor(
     private readonly reflect: Reflector,

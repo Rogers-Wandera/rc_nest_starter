@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { UserModule } from './users/users.module';
 import { TokenModule } from '../system/tokens/tokens.module';
 import { JwtModule } from '@nestjs/jwt';
@@ -12,6 +12,7 @@ import { LinkRoleModule } from './linkroles/linkroles.module';
 import { RolePermissionModule } from './rolepermissions/rolepermission.module';
 import { ServerRouteRoleModule } from './serverrouteroles/serverrouteroles.module';
 
+@Global()
 @Module({
   imports: [
     UserModule,

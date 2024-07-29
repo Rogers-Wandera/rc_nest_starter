@@ -1,10 +1,10 @@
-import { Injectable, Scope } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ModelService } from '../app/context/model.context';
 import { Model } from '../model/model';
 import { ConfigOptions } from './configs';
 import { EntityTarget, Repository } from 'typeorm';
 
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class DatabaseService {
   private modelServiceInstance: ModelService;
   constructor() {

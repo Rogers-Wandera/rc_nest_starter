@@ -92,7 +92,7 @@ export class DefaultController {
           type: NotificationTypes.INFO,
           recipient: {
             type: 'no broadcast',
-            recipients: ['testuser', 'testagain'],
+            recipients: ['2ff0bcbc-8527-49c2-96ba-af60e441df76', 'testagain'],
           },
           data: {
             title: 'Hello World',

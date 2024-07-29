@@ -3,7 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { envconfig } from '../app/config/configuration';
 import { EventsMoule } from '../events/events.module';
 import { UtilsModule } from '../app/utils/app.utils.module';
-import { AppContextsModule } from '../app/context/app.contexts.module';
 import { DatabaseModule } from '../db/database.module';
 import { CoreModules } from '../services/core/core.service.module';
 import {
@@ -73,7 +72,6 @@ import { RabbitMQModule } from '../micro/microservices/rabbitmq.module';
     }),
     EventsMoule,
     UtilsModule,
-    AppContextsModule,
     DatabaseModule,
     CoreModules,
     MessagingModule,

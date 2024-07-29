@@ -1,4 +1,4 @@
-import { BadRequestException, Inject } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { User } from 'src/entity/core/users.entity';
 import { EntityDataSource } from 'src/model/enity.data.model';
 import { EntityModel } from 'src/model/entity.model';
@@ -15,6 +15,7 @@ import { NOTIFICATION_PATTERN } from 'src/app/patterns/notification.patterns';
 import { NotifyTypes } from 'src/app/types/notification/notify.types';
 import { EmailTemplates } from 'src/app/types/enums/emailtemplates.enum';
 
+@Injectable()
 export class UserUtilsService extends EntityModel<User> {
   constructor(
     @Inject(EntityDataSource) source: EntityDataSource,

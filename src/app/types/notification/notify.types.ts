@@ -35,6 +35,7 @@ export type RTechSystemNotificationType = {
   recipient: NotificationRecipient;
   tags?: NotificationTags;
   link?: string;
+  resendId?: string;
 };
 
 type payLoadWithNoTopic = {

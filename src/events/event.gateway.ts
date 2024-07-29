@@ -29,8 +29,10 @@ export class EventsGateway
   server: Server;
   private logger = new Logger(EventsGateway.name);
   private clients: Map<string, Socket> = new Map();
-  public rmqService: RabbitMQService;
-  constructor(private readonly config: ConfigService<EnvConfig>) {}
+  constructor(
+    private readonly config: ConfigService<EnvConfig>,
+    private readonly rmqService: RabbitMQService,
+  ) {}
 
   afterInit(server: Server) {
     this.logger.log('Initialized');
@@ -66,27 +68,18 @@ export class EventsGateway
 
   async emitToClient(userId: string, data: RTechSystemNotificationType) {
     const client = this.clients.get(userId);
-    console.log(client);
     if (client) {
       client.emit(data.pattern, data);
+      await lastValueFrom(
+        this.rmqService.emit(NOTIFICATION_PATTERN.SYSTEM_NOTIFICATION, data),
+      );
       return true;
     } else {
       this.logger.warn(`User id: ${userId} not loggedIn at the moment`);
       this.logger.log(
         `Automatic Re-scheduling enabled for this user ${userId}`,
       );
-      if (this.rmqService) {
-        const resenddata: RTechSystemNotificationType = {
-          ...data,
-          recipient: { type: 'no broadcast', recipients: [userId] },
-        };
-        await lastValueFrom(
-          this.rmqService.emit(NOTIFICATION_PATTERN.RESEND, resenddata),
-        );
-        this.logger.log(`Resend automatically scheduled`);
-      } else {
-        this.logger.warn(`Resend notification failded`);
-      }
+      return false;
     }
   }
 
