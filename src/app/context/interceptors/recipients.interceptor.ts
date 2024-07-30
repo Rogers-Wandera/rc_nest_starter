@@ -7,6 +7,7 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
+import { PRIORITY_TYPES } from 'src/app/app.types';
 import { RTechSystemNotificationType } from 'src/app/types/notification/notify.types';
 import { DatabaseService } from 'src/db/database.provider';
 import { User } from 'src/entity/core/users.entity';
@@ -25,13 +26,19 @@ export class RecipientsValidator implements NestInterceptor {
       return next.handle();
     }
     const recipients = data.recipient.recipients;
-    const newrecipients: string[] = [];
+    const newrecipients: {
+      to: string;
+      priority?: PRIORITY_TYPES;
+    }[] = [];
     for (const recipient in recipients) {
       const user = await repository.findOne({
-        where: { id: recipients[recipient] },
+        where: { id: recipients[recipient].to },
       });
       if (user) {
-        newrecipients.push(user.id);
+        newrecipients.push({
+          to: user.id,
+          priority: recipients[recipient].priority,
+        });
       } else {
         this.logger.warn(
           `User with recipient id of ${recipients[recipient]} does not exist`,

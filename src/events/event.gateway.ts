@@ -70,9 +70,18 @@ export class EventsGateway
     const client = this.clients.get(userId);
     if (client) {
       client.emit(data.pattern, data);
-      await lastValueFrom(
-        this.rmqService.emit(NOTIFICATION_PATTERN.SYSTEM_NOTIFICATION, data),
-      );
+      if (data.resendId) {
+        await lastValueFrom(
+          this.rmqService.emit(NOTIFICATION_PATTERN.SYSTEM_NOTIFICATION, data),
+        );
+      } else {
+        await lastValueFrom(
+          this.rmqService.emit(
+            NOTIFICATION_PATTERN.SYSTEM_NOTIFICATION_SENT,
+            data,
+          ),
+        );
+      }
       return true;
     } else {
       this.logger.warn(`User id: ${userId} not loggedIn at the moment`);

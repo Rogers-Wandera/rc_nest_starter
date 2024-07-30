@@ -9,6 +9,7 @@ import { mailer2Content } from '../types/notification/mailer.types';
 import { catchError, lastValueFrom, throwError } from 'rxjs';
 import { Address } from '@nestjs-modules/mailer/dist/interfaces/send-mail-options.interface';
 import { NotifyResponse } from '../types/enums/notifyresponse.enum';
+import { PRIORITY_TYPES } from '../app.types';
 
 @Injectable()
 export class MessagingService {
@@ -21,7 +22,7 @@ export class MessagingService {
   }
 
   SendWithMailer2(content: {
-    email: string | string[] | Address;
+    email: { to: string | Address; priority: PRIORITY_TYPES }[];
     subject: string;
     context: mailer2Content['context'];
     company?: string;

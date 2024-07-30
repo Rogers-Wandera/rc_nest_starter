@@ -14,6 +14,7 @@ import { RabbitMQService } from 'src/micro/microservices/rabbitmq.service';
 import { NOTIFICATION_PATTERN } from 'src/app/patterns/notification.patterns';
 import { NotifyTypes } from 'src/app/types/notification/notify.types';
 import { EmailTemplates } from 'src/app/types/enums/emailtemplates.enum';
+import { PRIORITY_TYPES } from 'src/app/app.types';
 
 @Injectable()
 export class UserUtilsService extends EntityModel<User> {
@@ -53,10 +54,10 @@ export class UserUtilsService extends EntityModel<User> {
       this.tokens.entity.createdBy = user.id;
       this.tokens.entity.token = token;
       const emailData = {
-        email: user.email,
+        email: [{ to: user.email, priority: PRIORITY_TYPES.HIGH }],
         subject: 'Reset Password',
         context: {
-          content: info,
+          body: info,
           title: `Hello ${user.firstname}, Reset your password`,
           cta: true,
           btntext: 'Reset Password',
@@ -194,13 +195,13 @@ export class UserUtilsService extends EntityModel<User> {
       recipientName: user.firstname + ' ' + user.lastname,
       serverData: 'Please confirm registration',
       senderName: 'RC-TECH',
-      link: link,
+      body: link,
       moredata: [...additionalhtml],
     };
     const mailoptions: NotifyTypes = {
       type: 'email',
       payload: {
-        to: user.email,
+        to: [{ to: user.email, priority: PRIORITY_TYPES.HIGH }],
         subject: 'Welcome to RC-TECH please confirm your email',
         template: EmailTemplates.VERIFY_EMAIL,
         context: emailData,

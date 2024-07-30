@@ -14,6 +14,7 @@ import { EventsGateway } from './event.gateway';
 import { RabbitMQService } from 'src/micro/microservices/rabbitmq.service';
 import { RecipientsValidator } from 'src/app/context/interceptors/recipients.interceptor';
 import { lastValueFrom } from 'rxjs';
+import { PRIORITY_TYPES } from 'src/app/app.types';
 
 @Injectable()
 @WebSocketGateway({
@@ -33,15 +34,19 @@ export class EventsGateWayService {
     @MessageBody() data: RTechSystemNotificationType,
   ): Promise<WsResponse | undefined> {
     const recipients = data.recipient;
-    const failed: string[] = [];
+    const failed: { to: string; priority?: PRIORITY_TYPES }[] = [];
     if (recipients.type === 'no broadcast') {
       for (const recipient in recipients.recipients) {
         const response = await this.events.emitToClient(
-          recipients.recipients[recipient],
+          recipients.recipients[recipient].to,
           data,
         );
         if (response === false) {
           failed.push(recipients.recipients[recipient]);
+        } else {
+          this.logger.log(
+            `Notification sent to user ${recipients.recipients[recipient].to}`,
+          );
         }
       }
       this.HandleFailed(failed, data);
@@ -57,7 +62,7 @@ export class EventsGateWayService {
   }
 
   private async HandleFailed(
-    recipients: string[],
+    recipients: { to: string; priority?: PRIORITY_TYPES }[],
     data: RTechSystemNotificationType,
   ) {
     if (recipients.length <= 0) {

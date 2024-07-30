@@ -32,6 +32,7 @@ import { RabbitMQService } from 'src/micro/microservices/rabbitmq.service';
 import { NotifyTypes } from 'src/app/types/notification/notify.types';
 import { EmailTemplates } from 'src/app/types/enums/emailtemplates.enum';
 import { NOTIFICATION_PATTERN } from 'src/app/patterns/notification.patterns';
+import { PRIORITY_TYPES } from 'src/app/app.types';
 
 @Injectable()
 export class UserService extends EntityModel<User> {
@@ -393,13 +394,13 @@ export class UserService extends EntityModel<User> {
       recipientName: user.firstname + ' ' + user.lastname,
       serverData: 'Please confirm registration',
       senderName: 'RC-TECH',
-      link: link,
+      body: link,
       moredata: [...additionalhtml],
     };
     const mailoptions: NotifyTypes = {
       type: 'email',
       payload: {
-        to: user.email,
+        to: [{ to: user.email, priority: PRIORITY_TYPES.HIGH }],
         subject: 'Welcome to RC-TECH please confirm your email',
         template: EmailTemplates.VERIFY_EMAIL,
         context: emailData,

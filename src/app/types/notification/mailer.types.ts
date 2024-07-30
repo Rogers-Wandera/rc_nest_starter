@@ -6,7 +6,7 @@ export type mailer2Content = {
     title: string;
     url?: string;
     cta: boolean;
-    content: string;
+    body: string;
     btntext?: string;
     company?: string;
   };
@@ -17,7 +17,7 @@ export type verifyContent = {
   context: {
     recipientName: string;
     serverData: string;
-    link: string;
+    body: string;
     moredata?: string[];
     senderName?: string;
   };
