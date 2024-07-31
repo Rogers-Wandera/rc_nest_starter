@@ -84,6 +84,7 @@ export class DefaultController {
     context: 'before',
     data: {
       type: 'email',
+      createdBy: 'Rogers',
       payload: {
         template: EmailTemplates.MAILER_2,
         priority: 'high',

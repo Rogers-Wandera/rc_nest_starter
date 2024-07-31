@@ -19,7 +19,7 @@ import { NotificationTypes } from 'src/app/types/enums/notifyresponse.enum';
 
 @Entity({ name: 'notifications' })
 export class Notification extends BaseEntityClass {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: number;
   @Column({ type: 'enum', nullable: false, enum: NOTIFICATION_TYPE })
   type: NOTIFICATION_TYPE;
