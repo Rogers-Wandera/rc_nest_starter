@@ -26,6 +26,36 @@
       ],
       "@notify/rtechnotifier/*": [
         "libs/rtechnotifier/src/*"
+      ],
+      "@bridge/data-bridge": [
+        "libs/data-bridge/src"
+      ],
+      "@bridge/data-bridge/*": [
+        "libs/data-bridge/src/*"
+      ],
+      "@services/core-services": [
+        "libs/core-services/src"
+      ],
+      "@services/core-services/*": [
+        "libs/core-services/src/*"
+      ],
+      "@toolkit/core-toolkit": [
+        "libs/core-toolkit/src"
+      ],
+      "@toolkit/core-toolkit/*": [
+        "libs/core-toolkit/src/*"
+      ],
+      "@controller/core-controller": [
+        "libs/core-controller/src"
+      ],
+      "@controller/core-controller/*": [
+        "libs/core-controller/src/*"
+      ],
+      "@entity/entities": [
+        "libs/entities/src"
+      ],
+      "@entity/entities/*": [
+        "libs/entities/src/*"
       ]
     }
   }

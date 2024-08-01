@@ -14,5 +14,52 @@
       }
     ],
     "webpack": false
+  },
+  "projects": {
+    "data-bridge": {
+      "type": "library",
+      "root": "libs/data-bridge",
+      "entryFile": "index",
+      "sourceRoot": "libs/data-bridge/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/data-bridge/tsconfig.lib.json"
+      }
+    },
+    "core-services": {
+      "type": "library",
+      "root": "libs/core-services",
+      "entryFile": "index",
+      "sourceRoot": "libs/core-services/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/core-services/tsconfig.lib.json"
+      }
+    },
+    "core-toolkit": {
+      "type": "library",
+      "root": "libs/core-toolkit",
+      "entryFile": "index",
+      "sourceRoot": "libs/core-toolkit/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/core-toolkit/tsconfig.lib.json"
+      }
+    },
+    "core-controller": {
+      "type": "library",
+      "root": "libs/core-controller",
+      "entryFile": "index",
+      "sourceRoot": "libs/core-controller/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/core-controller/tsconfig.lib.json"
+      }
+    },
+    "entities": {
+      "type": "library",
+      "root": "libs/entities",
+      "entryFile": "index",
+      "sourceRoot": "libs/entities/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/entities/tsconfig.lib.json"
+      }
+    }
   }
 }

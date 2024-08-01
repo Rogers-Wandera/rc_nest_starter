@@ -109,6 +109,12 @@
       "<rootDir>/src/",
       "<rootDir>/libs/"
     ],
-    "moduleNameMapper": {}
+    "moduleNameMapper": {
+      "^@bridge/data-bridge(|/.*)$": "<rootDir>/libs/data-bridge/src/$1",
+      "^@services/core-services(|/.*)$": "<rootDir>/libs/core-services/src/$1",
+      "^@toolkit/core-toolkit(|/.*)$": "<rootDir>/libs/core-toolkit/src/$1",
+      "^@controller/core-controller(|/.*)$": "<rootDir>/libs/core-controller/src/$1",
+      "^@entity/entities(|/.*)$": "<rootDir>/libs/entities/src/$1"
+    }
   }
 }

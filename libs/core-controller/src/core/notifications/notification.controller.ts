@@ -1,0 +1,10 @@
+import { Controller } from '@nestjs/common';
+import { NotificationService } from '@services/core-services/services/notifications/notification.service';
+import { IController } from '@controller/core-controller/controller.interface';
+
+@Controller('/core/notifications')
+export class NotificationController extends IController<NotificationService> {
+  constructor(model: NotificationService) {
+    super(model);
+  }
+}
