@@ -1,6 +1,6 @@
 import Joi from 'joi';
 import { nameRegex } from '@controller/core-controller/schemas/core/user.schema';
-import { ModulesSchemaType } from '../system.types';
+import { ModulesSchemaType } from '@toolkit/core-toolkit/types/coretypes';
 
 const ModulesSchema = Joi.object<ModulesSchemaType>({
   name: Joi.string().regex(nameRegex).min(3).max(30).required().messages({

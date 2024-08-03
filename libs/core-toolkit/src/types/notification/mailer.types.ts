@@ -1,4 +1,4 @@
-import { EmailTemplates } from '../enums/emailtemplates.enum';
+import { EmailTemplates } from '../enums/enums';
 
 export type mailer2Content = {
   template: EmailTemplates.MAILER_2;

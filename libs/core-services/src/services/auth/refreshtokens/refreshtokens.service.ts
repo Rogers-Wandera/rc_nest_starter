@@ -9,9 +9,9 @@ import { UserService } from '../users/users.service';
 import { UserDataView } from '@entity/entities/coreviews/userdata.view';
 import { UserRolesView } from '@entity/entities/coreviews/userroles.view';
 import { ServerRolesView } from '@entity/entities/coreviews/serverroute.view';
-import { ServerRolesType } from '../../../types/auth.types';
 import { EntityModel } from '@bridge/data-bridge/model/entity.model';
 import { EntityDataSource } from '@bridge/data-bridge/model/enity.data.model';
+import { ServerRolesType } from '@toolkit/core-toolkit/types/coretypes';
 
 @Injectable()
 export class RefreshTokenService extends EntityModel<RefreshToken> {

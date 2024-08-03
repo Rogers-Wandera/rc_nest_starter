@@ -1,9 +1,9 @@
 import { Global, Module } from '@nestjs/common';
 import { DataBridgeService } from './data-bridge.service';
 import { ConfigService } from '@nestjs/config';
-import { EnvConfig } from 'src/app/config/configuration';
 import { FireBaseService } from './databuilder/firebase.setup';
 import { EntityDataSource } from './model/enity.data.model';
+import { EnvConfig } from '@toolkit/core-toolkit/config/config';
 
 @Global()
 @Module({

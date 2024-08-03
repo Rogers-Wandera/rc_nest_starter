@@ -4,17 +4,19 @@ import { EntityModel } from '@bridge/data-bridge/model/entity.model';
 import { EntityDataSource } from '@bridge/data-bridge/model/enity.data.model';
 import crypto from 'crypto';
 import { ConfigService } from '@nestjs/config';
-import { EnvConfig } from 'src/app/config/configuration';
 import { addHours } from 'date-fns';
 import { TokenService } from '../../system/tokens/tokens.service';
 import { MessagingService } from '@toolkit/core-toolkit/messaging/messaging.service';
 import { UserProfileImageService } from '../userprofileimages/userprofileimages.service';
 import { QueryFailedError } from 'typeorm';
 import { RabbitMQService } from '@toolkit/core-toolkit/micro/microservices/rabbitmq.service';
-import { NOTIFICATION_PATTERN } from '@services/core-services/types/enums';
 import { NotifyTypes } from '@toolkit/core-toolkit/types/notification/notify.types';
-import { EmailTemplates } from '@services/core-services/types/enums';
-import { PRIORITY_TYPES } from '@services/core-services/types/enums';
+import { EnvConfig } from '@toolkit/core-toolkit/config/config';
+import {
+  EmailTemplates,
+  NOTIFICATION_PATTERN,
+  PRIORITY_TYPES,
+} from '@toolkit/core-toolkit/types/enums/enums';
 
 @Injectable()
 export class UserUtilsService extends EntityModel<User> {

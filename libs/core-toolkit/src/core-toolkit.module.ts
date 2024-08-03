@@ -7,9 +7,9 @@ import { CoreAppProviders } from './providers/providers';
 import { FileUploadsModule } from './micro/fileuploads/fileuploads.module';
 import { MessagingModule } from './messaging/messaging.module';
 import { MulterModule } from '@nestjs/platform-express';
-import { MulterConfigs } from 'src/app/config/multer.configs';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AsyncLocalStorage } from 'async_hooks';
+import { MulterConfigs } from './config/multer.configs';
 
 @Global()
 @Module({

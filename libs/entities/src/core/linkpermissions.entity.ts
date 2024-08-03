@@ -10,15 +10,8 @@ import {
 import { BaseEntityClass } from '../base.entity';
 import { ModuleLink } from './modulelinks.entity';
 import { RolePermission } from './rolepermissions.entity';
+import { METHODS } from '@toolkit/core-toolkit/types/enums/enums';
 
-enum METHODS {
-  GET = 'GET',
-  POST = 'POST',
-  PATCH = 'PATCH',
-  DELETE = 'DELETE',
-  PUT = 'PUT',
-  OPTIONS = 'OPTIONS',
-}
 @Entity({
   name: 'linkpermissions',
 })

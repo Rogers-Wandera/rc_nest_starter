@@ -2,7 +2,6 @@ import { Injectable, RequestMethod } from '@nestjs/common';
 import { METHOD_METADATA, PATH_METADATA } from '@nestjs/common/constants';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
-import { METHODS, PermissionRouteType } from '../../auth/auth.types';
 import { MethodPermissions } from './methodpermissions';
 import { ModuleService } from '../../system/modules/modules.service';
 import { ModuleLinksService } from '../../system/modulelinks/modulelinks.service';
@@ -13,6 +12,8 @@ import {
   PERMISSION_KEY,
   permissiontype,
 } from '@toolkit/core-toolkit/decorators/permissions.decorator';
+import { PermissionRouteType } from '@toolkit/core-toolkit/types/coretypes';
+import { METHODS } from '@toolkit/core-toolkit/types/enums/enums';
 
 @Injectable()
 export class SystemPermissionsService {

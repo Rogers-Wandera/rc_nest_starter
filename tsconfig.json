@@ -56,6 +56,12 @@
       ],
       "@entity/entities/*": [
         "libs/entities/src/*"
+      ],
+      "@auth/auth-guards": [
+        "libs/auth-guards/src"
+      ],
+      "@auth/auth-guards/*": [
+        "libs/auth-guards/src/*"
       ]
     }
   }

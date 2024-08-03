@@ -1,12 +1,12 @@
 import { DataSourceOptions, EntityTarget, ObjectLiteral } from 'typeorm';
 import { MainDBBuilder } from './mainbuilder';
-import {
-  PaginationResults,
-  customquerypaginateprops,
-  paginateprops,
-} from '../config/conntypes';
 import { format } from 'date-fns';
 import { BadRequestException } from '@nestjs/common';
+import {
+  customquerypaginateprops,
+  paginateprops,
+  PaginationResults,
+} from '@toolkit/core-toolkit/types/coretypes';
 
 export class DataExtenderBuilder extends MainDBBuilder {
   constructor(options: DataSourceOptions) {

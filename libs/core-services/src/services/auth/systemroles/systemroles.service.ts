@@ -1,9 +1,9 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { PaginationResults } from '@bridge/data-bridge/config/conntypes';
 import { Systemrole } from '@entity/entities/core/systemroles.entity';
 import { EntityModel } from '@bridge/data-bridge/model/entity.model';
 import { EntityDataSource } from '@bridge/data-bridge/model/enity.data.model';
 import { Not } from 'typeorm';
+import { PaginationResults } from '@toolkit/core-toolkit/types/coretypes';
 
 @Injectable()
 export class SystemRolesService extends EntityModel<Systemrole> {

@@ -1,5 +1,5 @@
+import { systemrolestype } from '@toolkit/core-toolkit/types/coretypes';
 import Joi from 'joi';
-import { systemrolestype } from '@services/core-services/types/auth.types';
 
 export const SystemRolesSchema = Joi.object<systemrolestype>({
   rolename: Joi.string().min(3).max(250).required().messages({

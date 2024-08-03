@@ -1,14 +1,8 @@
 import { ViewColumn, ViewEntity } from 'typeorm';
 import { LinkPermission } from '../core/linkpermissions.entity';
 import { ModuleLinksView } from './modulelinks.view';
-enum METHODS {
-  GET = 'GET',
-  POST = 'POST',
-  PATCH = 'PATCH',
-  DELETE = 'DELETE',
-  PUT = 'PUT',
-  OPTIONS = 'OPTIONS',
-}
+import { METHODS } from '@toolkit/core-toolkit/types/enums/enums';
+
 @ViewEntity({
   name: 'vw_linkpermissions',
   expression: (model) =>

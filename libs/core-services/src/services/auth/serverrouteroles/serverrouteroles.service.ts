@@ -5,7 +5,7 @@ import { EntityDataSource } from '@bridge/data-bridge/model/enity.data.model';
 import { ServerRouteMethodService } from '../serverroutemethods/serverroutemethod.service';
 import { ServerRolesView } from '@entity/entities/coreviews/serverroute.view';
 import { CustomRepository } from '@bridge/data-bridge/ormextender/customrepository';
-import { METHODS } from '@services/core-services/types/auth.types';
+import { METHODS } from '@toolkit/core-toolkit/types/enums/enums';
 
 @Injectable()
 export class ServerRouteRoleService extends EntityModel<ServerRouteRole> {

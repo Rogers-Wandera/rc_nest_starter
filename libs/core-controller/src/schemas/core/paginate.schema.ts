@@ -1,5 +1,5 @@
+import { paginateprops } from '@toolkit/core-toolkit/types/coretypes';
 import Joi, { ObjectSchema } from 'joi';
-import { paginateprops } from '@bridge/data-bridge/config/conntypes';
 
 export const generateDynamicConditionsSchema = (itemSchema: {
   [key: string]: any;

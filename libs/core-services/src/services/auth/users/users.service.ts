@@ -10,7 +10,6 @@ import { User } from '@entity/entities/core/users.entity';
 import { EntityModel } from '@bridge/data-bridge/model/entity.model';
 import { EntityDataSource } from '@bridge/data-bridge/model/enity.data.model';
 import { v4 as uuid } from 'uuid';
-import { addrolestype, registertype } from './users.types';
 import { TokenService } from '../../system/tokens/tokens.service';
 import { addHours, format } from 'date-fns';
 import bcrptjs from 'bcryptjs';
@@ -26,13 +25,19 @@ import { UserRolesView } from '@entity/entities/coreviews/userroles.view';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
 import { ServerRolesView } from '@entity/entities/coreviews/serverroute.view';
-import { ServerRolesType } from '../auth.types';
 import { RabbitMQService } from '@toolkit/core-toolkit/micro/microservices/rabbitmq.service';
 import { NotifyTypes } from '@toolkit/core-toolkit/types/notification/notify.types';
-import { EmailTemplates } from '@services/core-services/types/enums';
-import { NOTIFICATION_PATTERN } from '@services/core-services/types/enums';
-import { PRIORITY_TYPES } from '@services/core-services/types/enums';
 import { CustomRepository } from '@bridge/data-bridge/ormextender/customrepository';
+import {
+  EmailTemplates,
+  NOTIFICATION_PATTERN,
+  PRIORITY_TYPES,
+} from '@toolkit/core-toolkit/types/enums/enums';
+import {
+  addrolestype,
+  registertype,
+  ServerRolesType,
+} from '@toolkit/core-toolkit/types/coretypes';
 
 @Injectable()
 export class UserService extends EntityModel<User> {

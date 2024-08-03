@@ -9,19 +9,12 @@ import {
   Post,
   Req,
   Res,
-  UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import {
-  EMailGuard,
-  JwtGuard,
-  RolesGuard,
-} from '@services/core-services/services/auth/authguards/authguard.guard';
 import { PermissionSchema } from '@services/core-services/services/system/linkpermissions/linkpermission.schema';
 import { LinkPermissionService } from '@services/core-services/services/system/linkpermissions/linkpermissions.service';
 import { Request, Response } from 'express';
 import { Paginate } from '@toolkit/core-toolkit/decorators/pagination.decorator';
-import { Role, Roles } from '@toolkit/core-toolkit/decorators/roles.decorator';
 import { Schemas } from '@toolkit/core-toolkit/decorators/schema.decorator';
 import { ValidateService } from '@toolkit/core-toolkit/decorators/servicevalidate.decorator';
 import { IController } from '@controller/core-controller/controller.interface';
@@ -34,11 +27,12 @@ import {
   ApiViewPermissions,
   ApiViewSelectPermissions,
 } from '@controller/core-controller/swagger/controllers/core/linkpermission';
+import { AuthGuard } from '@auth/auth-guards/guards/auth.guard';
+import { ROLE } from '@toolkit/core-toolkit/types/enums/enums';
 
 @Controller('/core/system/linkpermission')
 @ApiTags('Link (Module Links) Permissions')
-@UseGuards(JwtGuard, EMailGuard, RolesGuard)
-@Roles(Role.ADMIN)
+@AuthGuard(ROLE.ADMIN)
 export class LinkPermissionController extends IController<LinkPermissionService> {
   constructor(model: LinkPermissionService) {
     super(model);

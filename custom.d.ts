@@ -1,4 +1,4 @@
-import { reqUser } from 'src/services/core/auth/users/users.types';
+import { reqUser } from '@toolkit/core-toolkit/types/coretypes';
 import { EntityTarget, ObjectLiteral } from 'typeorm';
 
 declare global {

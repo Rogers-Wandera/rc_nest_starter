@@ -12,7 +12,7 @@ import { modulelinksschema } from '@services/core-services/services/system/modul
 import {
   PaginateDTO,
   paginatepropsDto,
-} from '@bridge/data-bridge/config/conntypes';
+} from '@toolkit/core-toolkit/types/coretypes';
 
 export function ApiCreateModuleLink() {
   return applyDecorators(

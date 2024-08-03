@@ -12,7 +12,7 @@ import { PermissionSchema } from '@services/core-services/services/system/linkpe
 import {
   PaginateDTO,
   paginatepropsDto,
-} from '@bridge/data-bridge/config/conntypes';
+} from '@toolkit/core-toolkit/types/coretypes';
 
 export function ApiCreatePermission() {
   return applyDecorators(

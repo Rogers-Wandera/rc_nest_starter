@@ -1,17 +1,17 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NotifyTypes, SmsPayload } from '../types/notification/notify.types';
-import { EmailTemplates } from '../types/enums/emailtemplates.enum';
 import { mailer2Content } from '../types/notification/mailer.types';
 import { catchError, lastValueFrom, throwError } from 'rxjs';
 import { Address } from '@nestjs-modules/mailer/dist/interfaces/send-mail-options.interface';
-import { NotifyResponse } from '../types/enums/notifyresponse.enum';
-import {
-  NOTIFICATION_PATTERN,
-  PRIORITY_TYPES,
-} from '@services/core-services/types/enums';
 import { RabbitMQService } from '../micro/microservices/rabbitmq.service';
 import { EnvConfig } from '../config/config';
+import {
+  EmailTemplates,
+  NOTIFICATION_PATTERN,
+  NotifyResponse,
+  PRIORITY_TYPES,
+} from '../types/enums/enums';
 
 @Injectable()
 export class MessagingService {

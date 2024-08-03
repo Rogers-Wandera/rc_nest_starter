@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { NOTIFICATION_PATTERN } from 'src/app/patterns/notification.patterns';
+import { NOTIFICATION_PATTERN } from '@toolkit/core-toolkit/types/enums/enums';
 
 @Injectable()
 export class RabbitMQService {

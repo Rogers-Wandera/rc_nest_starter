@@ -9,21 +9,14 @@ import {
   Patch,
   Post,
   Res,
-  UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { Paginate } from '@toolkit/core-toolkit/decorators/pagination.decorator';
-import { Role, Roles } from '@toolkit/core-toolkit/decorators/roles.decorator';
 import { Schemas } from '@toolkit/core-toolkit/decorators/schema.decorator';
 import { SystemRolesSchema } from '@controller/core-controller/schemas/core/auth/systemroles.schema';
 import { IController } from '@controller/core-controller/controller.interface';
 import { Permissions } from '@toolkit/core-toolkit/decorators/permissions.decorator';
 import { ApiTags } from '@nestjs/swagger';
-import {
-  EMailGuard,
-  JwtGuard,
-  RolesGuard,
-} from '@services/core-services/services/auth/authguards/authguard.guard';
 import { SystemRolesService } from '@services/core-services/services/auth/systemroles/systemroles.service';
 import {
   AddSystemRolesDoc,
@@ -32,12 +25,13 @@ import {
   UpdateSystemRolesDoc,
   ViewSystemRolesDoc,
 } from '@controller/core-controller/swagger/controllers/core/systemrolescontroller';
+import { AuthGuard } from '@auth/auth-guards/guards/auth.guard';
+import { ROLE } from '@toolkit/core-toolkit/types/enums/enums';
 
 @Controller('/core/auth/roles')
 @ApiTags('System Roles')
-@UseGuards(JwtGuard, EMailGuard, RolesGuard)
-@Roles(Role.ADMIN)
 @Permissions({ module: 'Configurations', moduleLink: 'Manage Roles' })
+@AuthGuard(ROLE.ADMIN)
 export class SystemRolesController extends IController<SystemRolesService> {
   constructor(model: SystemRolesService) {
     super(model);

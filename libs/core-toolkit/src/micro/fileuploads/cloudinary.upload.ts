@@ -1,13 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { IUpload } from './upload.interface';
 import { ConfigService } from '@nestjs/config';
-import { cloudinaryconfig, EnvConfig } from 'src/app/config/configuration';
 import {
   v2 as cloudinary,
   ConfigOptions,
   ResourceType,
   UploadApiOptions,
 } from 'cloudinary';
+import {
+  cloudinaryconfig,
+  EnvConfig,
+} from '@toolkit/core-toolkit/config/config';
 
 @Injectable()
 export class CloudinaryUpload implements IUpload {

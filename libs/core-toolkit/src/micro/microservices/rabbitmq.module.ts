@@ -2,7 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { RabbitMQService } from './rabbitmq.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
-import { EnvConfig } from 'src/app/config/configuration';
+import { EnvConfig } from '@toolkit/core-toolkit/config/config';
 
 @Global()
 @Module({

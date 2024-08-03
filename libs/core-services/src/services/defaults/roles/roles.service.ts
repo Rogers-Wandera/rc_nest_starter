@@ -1,9 +1,6 @@
-import {
-  SYSTEM_ROLES,
-  rolestype,
-} from '@services/core-services/decorators/roles.decorator';
 import { SystemRolesService } from '../../auth/systemroles/systemroles.service';
 import { Injectable } from '@nestjs/common';
+import { rolestype, SYSTEM_ROLES } from '@toolkit/core-toolkit/types/coretypes';
 
 @Injectable()
 export class SystemDefaultRoles {

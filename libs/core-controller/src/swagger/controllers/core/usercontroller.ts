@@ -10,15 +10,15 @@ import {
 import j2s from 'joi-to-swagger';
 import { UserDataView } from '@entity/entities/coreviews/userdata.view';
 import {
-  PaginateDTO,
-  paginatepropsDto,
-} from '@bridge/data-bridge/config/conntypes';
-import {
   AddRoleSchema,
   LoginSchema,
   ResetSchema,
   UserRegisterSchema,
 } from '@controller/core-controller/schemas/core/user.schema';
+import {
+  PaginateDTO,
+  paginatepropsDto,
+} from '@toolkit/core-toolkit/types/coretypes';
 
 export function RegisterUserDocs() {
   return applyDecorators(

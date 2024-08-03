@@ -24,7 +24,6 @@ import {
   UserRegisterSchema,
 } from '../../../schemas/core/user.schema';
 import { Request, Response } from 'express';
-import { Role, Roles } from '@toolkit/core-toolkit/decorators/roles.decorator';
 import { Schemas } from '@toolkit/core-toolkit/decorators/schema.decorator';
 import { Paginate } from '@toolkit/core-toolkit/decorators/pagination.decorator';
 import { Decrypt } from '@toolkit/core-toolkit/decorators/decrypt.decorator';
@@ -48,26 +47,34 @@ import {
   VerifyUserDocs,
 } from '@controller/core-controller/swagger/controllers/core/usercontroller';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { NOTIFICATION_PATTERN } from 'src/app/patterns/notification.patterns';
 import { lastValueFrom } from 'rxjs';
 import { UserUtilsService } from '@services/core-services/services/auth/users/user.utils.service';
-import {
-  addrolestype,
-  registertype,
-} from '@services/core-services/services/auth/users/users.types';
-import {
-  EMailGuard,
-  JwtGuard,
-  RefreshTokenGuard,
-  RolesGuard,
-} from '@services/core-services/services/auth/authguards/authguard.guard';
 import { UserService } from '@services/core-services/services/auth/users/users.service';
 import { EventsGateway } from '@toolkit/core-toolkit/events/event.gateway';
 import { RabbitMQService } from '@toolkit/core-toolkit/micro/microservices/rabbitmq.service';
 import { JoiValidator } from '@toolkit/core-toolkit/contexts/interceptors/joi.interceptor';
+import { JwtGuard } from '@auth/auth-guards/guards/jwt.guard';
+import { EMailGuard } from '@auth/auth-guards/guards/email.guard';
+import { RefreshTokenGuard } from '@auth/auth-guards/guards/refresh.guard';
+import { RolesGuard } from '@auth/auth-guards/guards/roles.guard';
+import { Roles } from '@auth/auth-guards/decorators/roles.guard';
+import {
+  addrolestype,
+  registertype,
+} from '@toolkit/core-toolkit/types/coretypes';
+import {
+  GUARDS,
+  NOTIFICATION_PATTERN,
+  ROLE,
+} from '@toolkit/core-toolkit/types/enums/enums';
+import { AuthGuard, SkipAllGuards } from '@auth/auth-guards/guards/auth.guard';
+import { SkipGuards } from '@auth/auth-guards/decorators/skip.guard';
+import { UploadFile } from '@toolkit/core-toolkit/decorators/upload.decorator';
+import { File } from '@toolkit/core-toolkit/decorators/param.decorator';
 
 @ApiTags('User Management')
 @Controller('/core/auth/user')
+@AuthGuard(ROLE.ADMIN)
 export class UsersController extends IController<UserService> {
   constructor(
     model: UserService,
@@ -79,6 +86,7 @@ export class UsersController extends IController<UserService> {
   }
 
   @Post('/register')
+  @SkipAllGuards()
   @RegisterUserDocs()
   @UseInterceptors(new JoiValidator(UserRegisterSchema, 'body'))
   public async RegisterUser(@Body() body: registertype, @Res() res: Response) {
@@ -94,6 +102,7 @@ export class UsersController extends IController<UserService> {
 
   @Post('/verification/resend/:userId')
   @GenerateVerificationDocs()
+  @SkipAllGuards()
   async GenerateVerification(
     @Res() res: Response,
     @Param('userId', new ParseUUIDPipe()) id: string,
@@ -111,6 +120,7 @@ export class UsersController extends IController<UserService> {
 
   @Get('/verification/verify/:userId/:token')
   @VerifyUserDocs()
+  @SkipAllGuards()
   @Decrypt({ type: 'params', keys: ['userId', 'token'], decrypttype: 'uri' })
   async VerifyUser(
     @Res() res: Response,
@@ -129,6 +139,7 @@ export class UsersController extends IController<UserService> {
     }
   }
   @Post('/login')
+  @SkipAllGuards()
   @LoginUserDocs()
   @Schemas({ schemas: [LoginSchema], type: 'body' })
   public async LoginUser(@Res() res: Response) {
@@ -146,7 +157,8 @@ export class UsersController extends IController<UserService> {
     }
   }
 
-  @UseGuards(JwtGuard, EMailGuard, RefreshTokenGuard)
+  @UseGuards(RefreshTokenGuard)
+  @SkipGuards(GUARDS.ROLES)
   @Post('/refresh')
   @RefreshTokenDocs()
   async RefreshToken(@Res() res: Response, @Req() req: Request) {
@@ -161,11 +173,9 @@ export class UsersController extends IController<UserService> {
     }
   }
 
-  @UseGuards(JwtGuard, EMailGuard, RolesGuard)
   @Post('/roles')
   @AddRolesDocs()
   @UseInterceptors(new JoiValidator(AddRoleSchema, 'body'))
-  @Roles(Role.ADMIN)
   async AddRoles(
     @Body() body: addrolestype,
     @Res() res: Response,
@@ -181,11 +191,9 @@ export class UsersController extends IController<UserService> {
     }
   }
 
-  @UseGuards(JwtGuard, EMailGuard, RolesGuard)
   @Delete('/roles')
   @RemoveRolesDocs()
   @UseInterceptors(new JoiValidator(AddRoleSchema, 'body'))
-  @Roles(Role.ADMIN)
   async RemoveRoles(
     @Body() body: addrolestype,
     @Res() res: Response,
@@ -204,9 +212,7 @@ export class UsersController extends IController<UserService> {
   @Get()
   @GetUsersDocs()
   @Paginate()
-  @Roles(Role.ADMIN)
   @Permissions({ module: 'User Management', moduleLink: 'Users' })
-  @UseGuards(JwtGuard, EMailGuard, RolesGuard)
   async GetUsers(@Res() res: Response) {
     try {
       const response = await this.model.ViewUsers();
@@ -218,9 +224,7 @@ export class UsersController extends IController<UserService> {
 
   @Delete(':userId')
   @DeleteUserDocs()
-  @Roles(Role.ADMIN)
   @Permissions({ module: 'User Management', moduleLink: 'Users' })
-  @UseGuards(JwtGuard, EMailGuard, RolesGuard)
   async DeleteUser(
     @Res() res: Response,
     @Param('userId', new ParseUUIDPipe()) id: string,
@@ -240,8 +244,7 @@ export class UsersController extends IController<UserService> {
   @Get('view/:userId')
   @GetUserDoc()
   @Permissions({ module: 'User Management', moduleLink: 'Users' })
-  @Roles(Role.ADMIN, Role.USER)
-  @UseGuards(JwtGuard, EMailGuard, RolesGuard)
+  @Roles(ROLE.USER)
   async GetUser(
     @Res() res: Response,
     @Param('userId', new ParseUUIDPipe()) id: string,
@@ -256,6 +259,7 @@ export class UsersController extends IController<UserService> {
   }
 
   @Post('/resetlink/:userId')
+  @SkipAllGuards()
   @ResetLinkDoc()
   async ResetLink(
     @Res() res: Response,
@@ -275,6 +279,7 @@ export class UsersController extends IController<UserService> {
 
   @Get('/resetpassword/:userId/:token')
   @ResetPasswordDoc()
+  @SkipAllGuards()
   @Decrypt({ type: 'params', keys: ['userId', 'token'], decrypttype: 'uri' })
   async ResetPassword(
     @Res() res: Response,
@@ -299,8 +304,7 @@ export class UsersController extends IController<UserService> {
   @Post('/reset/:userId')
   @ResetUserPasswordDoc()
   @Schemas({ type: 'body', schemas: [ResetSchema] })
-  @UseGuards(JwtGuard, EMailGuard, RolesGuard)
-  @Roles(Role.USER)
+  @Roles(ROLE.USER)
   async ResetUserPassword(
     @Res() res: Response,
     @Param('userId', new ParseUUIDPipe()) id: string,
@@ -320,29 +324,17 @@ export class UsersController extends IController<UserService> {
 
   @Post('/profile')
   @UploadProfileDoc()
-  @UseInterceptors(FileInterceptor('image'))
-  @UseGuards(JwtGuard, EMailGuard, RolesGuard)
-  @Roles(Role.USER)
+  @UploadFile({ type: 'single', source: 'image' })
+  @Roles(ROLE.USER)
   async AddProfileImage(
     @Res() res: Response,
     @Req() req: Request,
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({
-            maxSize: 5 * 1024 * 1024,
-            message: 'Image size should be less than or equal to 5mbs',
-          }),
-          new FileTypeValidator({ fileType: 'image/jpeg' }),
-        ],
-      }),
-    )
-    image: Express.Multer.File,
+    @File() image: Express.Multer.File,
   ) {
     try {
       this.userutils.entity.id = req.user.id;
       const response = await this.userutils.AddUserProfileImage(image);
-      res.status(HttpStatus.OK).json(response);
+      return res.status(HttpStatus.OK).json(response);
     } catch (error) {
       throw error;
     }

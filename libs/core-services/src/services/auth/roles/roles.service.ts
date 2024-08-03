@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Role } from '@entity/entities/core/roles.entity';
 import { UserRolesView } from '@entity/entities/coreviews/userroles.view';
-import { addrolestype } from '../users/users.types';
 import { EntityModel } from '@bridge/data-bridge/model/entity.model';
 import { EntityDataSource } from '@bridge/data-bridge/model/enity.data.model';
+import { addrolestype } from '@toolkit/core-toolkit/types/coretypes';
 
 @Injectable()
 export class RoleService extends EntityModel<Role> {

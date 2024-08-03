@@ -3,15 +3,7 @@ import { ServerRouteMethod } from '../core/serverroutemethods.entity';
 import { ServerRouteRole } from '../core/serverrouteroles.entity';
 import { User } from '../core/users.entity';
 import { BaseEntityView } from '../baseview';
-
-enum METHODS {
-  GET = 'GET',
-  POST = 'POST',
-  PATCH = 'PATCH',
-  DELETE = 'DELETE',
-  PUT = 'PUT',
-  OPTIONS = 'OPTIONS',
-}
+import { METHODS } from '@toolkit/core-toolkit/types/enums/enums';
 
 @ViewEntity({
   name: 'vw_serverroles',

@@ -7,12 +7,12 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { catchError, map, mergeMap, throwError, timeout } from 'rxjs';
-import { NOTIFICATION_PATTERN } from 'src/app/patterns/notification.patterns';
 import { RabbitMQService } from '@toolkit/core-toolkit/micro/microservices/rabbitmq.service';
 import {
   NOTIFICATION_KEY,
   NotificationTypes,
 } from '@toolkit/core-toolkit/decorators/notification.decorator';
+import { NOTIFICATION_PATTERN } from '@toolkit/core-toolkit/types/enums/enums';
 
 @Injectable()
 export class NotificationSender implements NestInterceptor {

@@ -10,23 +10,16 @@ import {
   Post,
   Req,
   Res,
-  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { Paginate } from '@toolkit/core-toolkit/decorators/pagination.decorator';
 import { Permissions } from '@toolkit/core-toolkit/decorators/permissions.decorator';
-import { Role, Roles } from '@toolkit/core-toolkit/decorators/roles.decorator';
 import { IController } from '@controller/core-controller/controller.interface';
 import { Position } from '@entity/entities/core/positions.entity';
 import { PositionsSchema } from '@controller/core-controller/schemas/core/system/positions.schema';
 import { PositionService } from '@services/core-services/services/system/positions/positions.service';
-import {
-  EMailGuard,
-  JwtGuard,
-  RolesGuard,
-} from '@services/core-services/services/auth/authguards/authguard.guard';
 import { JoiValidator } from '@toolkit/core-toolkit/contexts/interceptors/joi.interceptor';
 import {
   ApiAddPosition,
@@ -34,15 +27,16 @@ import {
   ApiGetPositions,
   ApiUpdatePosition,
 } from '@controller/core-controller/swagger/controllers/core/positions';
+import { AuthGuard } from '@auth/auth-guards/guards/auth.guard';
+import { ROLE } from '@toolkit/core-toolkit/types/enums/enums';
 
 @Controller('/core/system/positions')
 @ApiTags('Positions')
-@UseGuards(JwtGuard, EMailGuard, RolesGuard)
 @Permissions({
   module: 'User Management',
   moduleLink: 'Positions',
 })
-@Roles(Role.ADMIN)
+@AuthGuard(ROLE.ADMIN)
 export class PositionController extends IController<PositionService> {
   constructor(model: PositionService) {
     super(model);

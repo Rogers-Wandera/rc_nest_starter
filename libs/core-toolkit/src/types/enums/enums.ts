@@ -39,3 +39,51 @@ export enum NotificationDeliveryTypes {
   EMAIL_DELIVERY = 'email_delivery',
   PUSH_DELIVERY = 'push_delivery',
 }
+
+export enum NotifyResponse {
+  EMAIL = 'Email sent successfully',
+  PUSH = 'Push Notification sent successfully',
+  SMS_SUCCESS = 'Sms sent successfully',
+  SMS_FAILURE = 'Failed to send to number',
+}
+
+export enum NotificationTypes {
+  INFO = 'info',
+  WARNING = 'warning',
+  ERROR = 'error',
+  SUCCESS = 'success',
+  CUSTOM = 'custom',
+}
+
+export enum MediaTypes {
+  IMAGE = 'image',
+  VIDEO = 'video',
+  AUDIO = 'audio',
+}
+export enum ROLE {
+  ADMIN = 5150,
+  USER = 2001,
+  PROGRAMMER = 1982,
+  EDITOR = 1845,
+}
+
+export enum METHODS {
+  GET = 'GET',
+  POST = 'POST',
+  PATCH = 'PATCH',
+  DELETE = 'DELETE',
+  PUT = 'PUT',
+  OPTIONS = 'OPTIONS',
+}
+
+export enum EmailTemplates {
+  VERIFY_EMAIL = 'verify',
+  MAILER_2 = 'mailer2',
+}
+
+export enum GUARDS {
+  JWT = 'JWT',
+  EMAIL = 'EMAIL',
+  REFRESH = 'REFRESH',
+  ROLES = 'ROLES',
+}

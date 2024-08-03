@@ -1,11 +1,11 @@
 import { EntityTarget, FindOptionsWhere, ObjectLiteral } from 'typeorm';
 import { CustomRepository } from '../ormextender/customrepository';
-import { paginateprops } from '../config/conntypes';
 import { ModelClass } from '../decorators/model.decorator';
 import { EntityDataSource } from './enity.data.model';
 import { BadGatewayException } from '@nestjs/common';
 import { DataUtils } from '../databuilder/data.util';
 import { Model } from './model';
+import { paginateprops } from '@toolkit/core-toolkit/types/coretypes';
 
 @ModelClass()
 export class EntityModel<T extends ObjectLiteral> extends DataUtils {

@@ -11,12 +11,12 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EnvConfig } from 'src/app/config/configuration';
 import { corsOptions } from '../config/corsoptions';
 import { NOTIFICATION_PATTERN } from '../types/enums/enums';
 import { RTechSystemNotificationType } from '../types/notification/notify.types';
 import { RabbitMQService } from '../micro/microservices/rabbitmq.service';
 import { lastValueFrom } from 'rxjs';
+import { EnvConfig } from '../config/config';
 
 @Injectable()
 @WebSocketGateway({

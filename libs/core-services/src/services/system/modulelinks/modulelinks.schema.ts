@@ -1,5 +1,5 @@
+import { Modulelinksschematype } from '@toolkit/core-toolkit/types/coretypes';
 import Joi from 'joi';
-import { Modulelinksschematype } from '../system.types';
 
 export const modulelinksschema = Joi.object<Modulelinksschematype>({
   linkname: Joi.string().required().min(3).max(30).messages({

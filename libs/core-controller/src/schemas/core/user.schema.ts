@@ -2,7 +2,7 @@ import {
   addrolestype,
   registertype,
   resetpasswordtype,
-} from '@services/core-services/services/auth/users/users.types';
+} from '@toolkit/core-toolkit/types/coretypes';
 import Joi from 'joi';
 
 const prefixes = ['+256', '+254', '+255'];

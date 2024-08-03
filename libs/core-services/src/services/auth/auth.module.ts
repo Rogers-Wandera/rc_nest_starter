@@ -2,7 +2,6 @@ import { Global, Module } from '@nestjs/common';
 import { UserModule } from './users/users.module';
 import { TokenModule } from '../system/tokens/tokens.module';
 import { JwtModule } from '@nestjs/jwt';
-import { EnvConfig, jwtconfig } from 'src/app/config/configuration';
 import { RoleModule } from './roles/roles.module';
 import { RefreshTokenModule } from './refreshtokens/refreshtokens.module';
 import { SystemRolesModule } from './systemroles/systemroles.module';
@@ -11,6 +10,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LinkRoleModule } from './linkroles/linkroles.module';
 import { RolePermissionModule } from './rolepermissions/rolepermission.module';
 import { ServerRouteRoleModule } from './serverrouteroles/serverrouteroles.module';
+import { EnvConfig, jwtconfig } from '@toolkit/core-toolkit/config/config';
 
 @Global()
 @Module({

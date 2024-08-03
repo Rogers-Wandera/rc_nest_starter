@@ -7,15 +7,7 @@ import {
 } from 'typeorm';
 import { BaseEntityClass } from '../base.entity';
 import { ServerRouteRole } from './serverrouteroles.entity';
-
-enum METHODS {
-  GET = 'GET',
-  POST = 'POST',
-  PATCH = 'PATCH',
-  DELETE = 'DELETE',
-  PUT = 'PUT',
-  OPTIONS = 'OPTIONS',
-}
+import { METHODS } from '@toolkit/core-toolkit/types/enums/enums';
 
 @Entity({
   name: 'serverroutemethods',

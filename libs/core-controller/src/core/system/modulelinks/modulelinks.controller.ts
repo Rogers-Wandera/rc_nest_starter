@@ -8,20 +8,13 @@ import {
   Patch,
   Post,
   Res,
-  UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import {
-  EMailGuard,
-  JwtGuard,
-  RolesGuard,
-} from '@services/core-services/services/auth/authguards/authguard.guard';
 import { modulelinksschema } from '@services/core-services/services/system/modulelinks/modulelinks.schema';
 import { ModuleLinksService } from '@services/core-services/services/system/modulelinks/modulelinks.service';
 import { Response } from 'express';
 import { Paginate } from '@toolkit/core-toolkit/decorators/pagination.decorator';
 import { Permissions } from '@toolkit/core-toolkit/decorators/permissions.decorator';
-import { Role, Roles } from '@toolkit/core-toolkit/decorators/roles.decorator';
 import { Schemas } from '@toolkit/core-toolkit/decorators/schema.decorator';
 import { IController } from '@controller/core-controller/controller.interface';
 import {
@@ -30,16 +23,17 @@ import {
   ApiUpdateModuleLink,
   ApiViewModuleLinks,
 } from '@controller/core-controller/swagger/controllers/core/modulelinks';
+import { AuthGuard } from '@auth/auth-guards/guards/auth.guard';
+import { ROLE } from '@toolkit/core-toolkit/types/enums/enums';
 
 @Controller('/core/system/modulelinks')
 @ApiTags('Module Links')
-@Roles(Role.ADMIN)
-@UseGuards(JwtGuard, EMailGuard, RolesGuard)
 @Permissions({
   module: 'Modules',
   moduleLink: 'Manage Modules',
   name: 'Links',
 })
+@AuthGuard(ROLE.ADMIN)
 export class ModuleLinksController extends IController<ModuleLinksService> {
   constructor(model: ModuleLinksService) {
     super(model);

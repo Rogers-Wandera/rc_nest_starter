@@ -12,7 +12,7 @@ import j2s from 'joi-to-swagger';
 import {
   PaginateDTO,
   paginatepropsDto,
-} from '@bridge/data-bridge/config/conntypes';
+} from '@toolkit/core-toolkit/types/coretypes';
 
 export const ViewSystemRolesDoc = () => {
   return applyDecorators(

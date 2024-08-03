@@ -5,9 +5,9 @@ import {
   MulticastMessage,
 } from 'firebase-admin/lib/messaging/messaging-api';
 import { EmailContent } from './mailer.types';
-import { NotificationTypes } from '../enums/notifyresponse.enum';
 import { Address } from '@nestjs-modules/mailer/dist/interfaces/send-mail-options.interface';
 import { NOTIFICATION_PATTERN, PRIORITY_TYPES } from '../enums/enums';
+import { NotificationTypes } from '@toolkit/core-toolkit/decorators/notification.decorator';
 
 type mediaTypes = {
   type: 'image' | 'video' | 'audio';

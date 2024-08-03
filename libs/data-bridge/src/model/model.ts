@@ -1,10 +1,10 @@
 import { DataSourceOptions, ObjectLiteral } from 'typeorm';
 import { DataExtenderBuilder } from '../ormextender/extenderbuilder';
-import {
-  PaginationResults,
-  customquerypaginateprops,
-} from '../config/conntypes';
 import { Request } from 'express';
+import {
+  customquerypaginateprops,
+  PaginationResults,
+} from '@toolkit/core-toolkit/types/coretypes';
 
 export class Model extends DataExtenderBuilder {
   constructor(options: DataSourceOptions) {

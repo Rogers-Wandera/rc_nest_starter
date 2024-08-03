@@ -6,7 +6,7 @@ import { QueryFailedError } from 'typeorm';
 import { ModuleLinksView } from '@entity/entities/coreviews/modulelinks.view';
 import { EntityModel } from '@bridge/data-bridge/model/entity.model';
 import { EntityDataSource } from '@bridge/data-bridge/model/enity.data.model';
-import { UserModuleRes } from '../auth.types';
+import { UserModuleRes } from '@toolkit/core-toolkit/types/coretypes';
 
 @Injectable()
 export class LinkRoleService extends EntityModel<LinkRole> {

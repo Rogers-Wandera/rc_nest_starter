@@ -8,19 +8,12 @@ import {
   Patch,
   Post,
   Res,
-  UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import {
-  EMailGuard,
-  JwtGuard,
-  RolesGuard,
-} from '@services/core-services/services/auth/authguards/authguard.guard';
 import { ModulesSchema } from '@services/core-services/services/system/modules/module.schema';
 import { ModuleService } from '@services/core-services/services/system/modules/modules.service';
 import { Paginate } from '@toolkit/core-toolkit/decorators/pagination.decorator';
 import { Permissions } from '@toolkit/core-toolkit/decorators/permissions.decorator';
-import { Role, Roles } from '@toolkit/core-toolkit/decorators/roles.decorator';
 import { Schemas } from '@toolkit/core-toolkit/decorators/schema.decorator';
 import { Response } from 'express';
 import { IController } from '@controller/core-controller/controller.interface';
@@ -31,16 +24,17 @@ import {
   ApiViewModules,
   ApiViewSelectModules,
 } from '@controller/core-controller/swagger/controllers/core/modulescontroller';
+import { AuthGuard } from '@auth/auth-guards/guards/auth.guard';
+import { ROLE } from '@toolkit/core-toolkit/types/enums/enums';
 
 @Controller('/core/system/modules')
 @ApiTags('Modules')
-@Roles(Role.ADMIN)
 @Permissions({
   module: 'Modules',
   moduleLink: 'Manage Modules',
   name: 'Modules',
 })
-@UseGuards(JwtGuard, EMailGuard, RolesGuard)
+@AuthGuard(ROLE.ADMIN)
 export class ModulesController extends IController<ModuleService> {
   constructor(model: ModuleService) {
     super(model);

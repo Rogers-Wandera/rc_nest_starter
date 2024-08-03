@@ -11,15 +11,18 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { SystemPermissionsService } from '@services/core-services/services/defaults/permissions/permissions.service';
 import { Request, Response } from 'express';
-import { PRIORITY_TYPES } from '@toolkit/core-toolkit/types/enums/enums';
+import {
+  EmailTemplates,
+  PRIORITY_TYPES,
+  ROLE,
+} from '@toolkit/core-toolkit/types/enums/enums';
 import { Notification } from '@toolkit/core-toolkit/decorators/notification.decorator';
 import { Permissions } from '@toolkit/core-toolkit/decorators/permissions.decorator';
-import { Role, Roles } from '@toolkit/core-toolkit/decorators/roles.decorator';
-import { EmailTemplates } from '@toolkit/core-toolkit/types/enums/emailtemplates.enum';
 import {
   AddPermissionsDoc,
   GetPermissionsDoc,
 } from '@controller/core-controller/swagger/controllers/core/defaultcontroller';
+import { Roles } from '@auth/auth-guards/decorators/roles.guard';
 
 @Controller('/core/defaults')
 @ApiTags('Core Configurations')
@@ -28,7 +31,7 @@ import {
 export class DefaultController {
   constructor(private readonly permission: SystemPermissionsService) {}
   @Post('permissions')
-  @Roles(Role.PROGRAMMER)
+  @Roles(ROLE.PROGRAMMER)
   @AddPermissionsDoc()
   @Permissions({
     module: 'Configurations',
@@ -39,7 +42,7 @@ export class DefaultController {
     res.status(HttpStatus.OK).json(data);
   }
   @Get('permissions')
-  @Roles(Role.PROGRAMMER)
+  @Roles(ROLE.PROGRAMMER)
   @GetPermissionsDoc()
   @Permissions({
     module: 'Configurations',
@@ -50,7 +53,7 @@ export class DefaultController {
   }
 
   @Post('/push/tokens')
-  @Roles(Role.USER)
+  @Roles(ROLE.USER)
   @Permissions({
     module: 'Configurations',
     moduleLink: 'Permissions',

@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { BaseEntityClass } from '../base.entity';
 import { NotificationBody } from './notificationbody.entity';
-import { MediaTypes } from 'src/app/patterns/notification.patterns';
+import { MediaTypes } from '@toolkit/core-toolkit/types/enums/enums';
 
 @Entity({ name: 'notificationmedias' })
 export class NotificationMedia extends BaseEntityClass {

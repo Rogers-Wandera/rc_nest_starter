@@ -11,14 +11,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import {
-  EMailGuard,
-  JwtGuard,
-  RolesGuard,
-} from '@services/core-services/services/auth/authguards/authguard.guard';
 import { RolePermissionService } from '@services/core-services/services/auth/rolepermissions/rolepermission.service';
 import { Request, Response } from 'express';
-import { Role, Roles } from '@toolkit/core-toolkit/decorators/roles.decorator';
 import { ValidateService } from '@toolkit/core-toolkit/decorators/servicevalidate.decorator';
 import { IController } from '@controller/core-controller/controller.interface';
 import { LinkPermission } from '@entity/entities/core/linkpermissions.entity';
@@ -30,11 +24,12 @@ import {
   ApiDeletePermission,
   ApiViewPermissions,
 } from '@controller/core-controller/swagger/controllers/core/linkpermission';
+import { AuthGuard } from '@auth/auth-guards/guards/auth.guard';
+import { ROLE } from '@toolkit/core-toolkit/types/enums/enums';
 
 @Controller('/core/auth/permissions')
 @ApiTags('Role Permissions')
-@UseGuards(JwtGuard, EMailGuard, RolesGuard)
-@Roles(Role.ADMIN)
+@AuthGuard(ROLE.ADMIN)
 export class RolePermissionController extends IController<RolePermissionService> {
   constructor(model: RolePermissionService) {
     super(model);
