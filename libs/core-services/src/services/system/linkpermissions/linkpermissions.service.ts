@@ -23,6 +23,10 @@ export class LinkPermissionService extends EntityModel<LinkPermission> {
             'The Permission already exists on ' +
               this.entity.ModuleLink.linkname,
           );
+        } else if (error.message.includes('Data too long')) {
+          throw new BadRequestException(
+            `[${this.entity.accessName}] accessName too long please, make sure value does not exceed length of 50`,
+          );
         }
       }
       throw error;

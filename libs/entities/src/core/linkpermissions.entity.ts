@@ -25,9 +25,9 @@ export class LinkPermission extends BaseEntityClass {
   })
   @JoinColumn({ name: 'moduleLinkId' })
   ModuleLink: ModuleLink;
-  @Column({ nullable: false, length: 20 })
-  accessName: string;
   @Column({ nullable: false, length: 50 })
+  accessName: string;
+  @Column({ nullable: false, length: 100 })
   accessRoute: string;
   @Column('enum', { nullable: false, enum: METHODS })
   method: METHODS;

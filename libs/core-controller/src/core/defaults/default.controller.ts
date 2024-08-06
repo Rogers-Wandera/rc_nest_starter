@@ -23,15 +23,14 @@ import {
   GetPermissionsDoc,
 } from '@controller/core-controller/swagger/controllers/core/defaultcontroller';
 import { Roles } from '@auth/auth-guards/decorators/roles.guard';
+import { AuthGuard } from '@auth/auth-guards/guards/auth.guard';
 
 @Controller('/core/defaults')
 @ApiTags('Core Configurations')
-// @UseGuards(JwtGuard, EMailGuard, RolesGuard)
-// @Roles(Role.PROGRAMMER)
+@AuthGuard(ROLE.PROGRAMMER)
 export class DefaultController {
   constructor(private readonly permission: SystemPermissionsService) {}
   @Post('permissions')
-  @Roles(ROLE.PROGRAMMER)
   @AddPermissionsDoc()
   @Permissions({
     module: 'Configurations',
@@ -42,7 +41,6 @@ export class DefaultController {
     res.status(HttpStatus.OK).json(data);
   }
   @Get('permissions')
-  @Roles(ROLE.PROGRAMMER)
   @GetPermissionsDoc()
   @Permissions({
     module: 'Configurations',

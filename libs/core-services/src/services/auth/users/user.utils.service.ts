@@ -17,6 +17,7 @@ import {
   NOTIFICATION_PATTERN,
   PRIORITY_TYPES,
 } from '@toolkit/core-toolkit/types/enums/enums';
+import { UserService } from './users.service';
 
 @Injectable()
 export class UserUtilsService extends EntityModel<User> {
@@ -27,17 +28,17 @@ export class UserUtilsService extends EntityModel<User> {
     private readonly userprofiles: UserProfileImageService,
     private readonly messagingService: MessagingService,
     private readonly client: RabbitMQService,
+    private readonly service: UserService,
   ) {
     super(User, source);
   }
 
   async ResetPasswordLink() {
     try {
-      const user = await this.repository.findOneBy({ id: this.entity.id });
-      if (!user) {
-        throw new BadRequestException('No user found');
-      }
-      const checktoken = await this.tokens.FindOne({ user: user, isActive: 1 });
+      const checktoken = await this.tokens.FindOne({
+        user: { id: this.entity.id },
+        isActive: 1,
+      });
       if (checktoken) {
         const expired = this.checkExpireDate(checktoken.expire);
         if (!expired) {
@@ -47,20 +48,20 @@ export class UserUtilsService extends EntityModel<User> {
         }
       }
       const token = crypto.randomBytes(64).toString('hex');
-      const baseurl = this.configservive.get<string>('baseUrl');
-      const url = `${baseurl}/core/auth/user/resetpassword/${this.encryptUrl(user.id)}/${this.encryptUrl(token)}`;
-      const info = this.ResetMessage(user);
+      const baseurl = this.configservive.get<string>('frontUrl');
+      const url = `${baseurl}/resetpassword/${this.encryptUrl(this.entity.id)}/${this.encryptUrl(token)}`;
+      const info = this.ResetMessage(this.entity);
       const expireDate = addHours(new Date(), 1);
-      this.tokens.entity.user = user;
+      this.tokens.entity.user = this.entity;
       this.tokens.entity.expire = expireDate;
-      this.tokens.entity.createdBy = user.id;
+      this.tokens.entity.createdBy = this.entity.id;
       this.tokens.entity.token = token;
       const emailData = {
-        email: [{ to: user.email, priority: PRIORITY_TYPES.HIGH }],
+        email: [{ to: this.entity.email, priority: PRIORITY_TYPES.HIGH }],
         subject: 'Reset Password',
         context: {
           body: info,
-          title: `Hello ${user.firstname}, Reset your password`,
+          title: `Hello ${this.entity.firstname}, Reset your password`,
           cta: true,
           btntext: 'Reset Password',
           url,
@@ -102,6 +103,9 @@ export class UserUtilsService extends EntityModel<User> {
       if (usertoken.isExpired) {
         throw new BadRequestException('The token has already expired');
       }
+      this.service.entity.id = this.entity.id;
+      this.service.entity.password = this.entity.password;
+      await this.service.ResetUserPassword();
       return usertoken;
     } catch (error) {
       throw error;

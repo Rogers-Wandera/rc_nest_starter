@@ -2,24 +2,21 @@ import {
   Body,
   Controller,
   Delete,
-  FileTypeValidator,
   Get,
   HttpStatus,
   Inject,
-  MaxFileSizeValidator,
   Param,
-  ParseFilePipe,
   ParseUUIDPipe,
   Post,
   Req,
   Res,
-  UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import {
   AddRoleSchema,
   LoginSchema,
+  ResetLinkSchema,
   ResetSchema,
   UserRegisterSchema,
 } from '../../../schemas/core/user.schema';
@@ -46,17 +43,13 @@ import {
   UploadProfileDoc,
   VerifyUserDocs,
 } from '@controller/core-controller/swagger/controllers/core/usercontroller';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { lastValueFrom } from 'rxjs';
 import { UserUtilsService } from '@services/core-services/services/auth/users/user.utils.service';
 import { UserService } from '@services/core-services/services/auth/users/users.service';
 import { EventsGateway } from '@toolkit/core-toolkit/events/event.gateway';
 import { RabbitMQService } from '@toolkit/core-toolkit/micro/microservices/rabbitmq.service';
 import { JoiValidator } from '@toolkit/core-toolkit/contexts/interceptors/joi.interceptor';
-import { JwtGuard } from '@auth/auth-guards/guards/jwt.guard';
-import { EMailGuard } from '@auth/auth-guards/guards/email.guard';
 import { RefreshTokenGuard } from '@auth/auth-guards/guards/refresh.guard';
-import { RolesGuard } from '@auth/auth-guards/guards/roles.guard';
 import { Roles } from '@auth/auth-guards/decorators/roles.guard';
 import {
   addrolestype,
@@ -70,7 +63,13 @@ import {
 import { AuthGuard, SkipAllGuards } from '@auth/auth-guards/guards/auth.guard';
 import { SkipGuards } from '@auth/auth-guards/decorators/skip.guard';
 import { UploadFile } from '@toolkit/core-toolkit/decorators/upload.decorator';
-import { File } from '@toolkit/core-toolkit/decorators/param.decorator';
+import {
+  File,
+  Service,
+} from '@toolkit/core-toolkit/decorators/param.decorator';
+import { ValidateService } from '@toolkit/core-toolkit/decorators/servicevalidate.decorator';
+import { User } from '@entity/entities/core/users.entity';
+import { CheckMicroService } from '@toolkit/core-toolkit/decorators/microservice.decorator';
 
 @ApiTags('User Management')
 @Controller('/core/auth/user')
@@ -86,6 +85,7 @@ export class UsersController extends IController<UserService> {
   }
 
   @Post('/register')
+  @CheckMicroService()
   @SkipAllGuards()
   @RegisterUserDocs()
   @UseInterceptors(new JoiValidator(UserRegisterSchema, 'body'))
@@ -101,6 +101,7 @@ export class UsersController extends IController<UserService> {
   }
 
   @Post('/verification/resend/:userId')
+  @CheckMicroService()
   @GenerateVerificationDocs()
   @SkipAllGuards()
   async GenerateVerification(
@@ -258,18 +259,18 @@ export class UsersController extends IController<UserService> {
     }
   }
 
-  @Post('/resetlink/:userId')
+  @Post('/resetlink')
+  @CheckMicroService()
   @SkipAllGuards()
+  @Schemas({ schemas: [ResetLinkSchema] })
+  @ValidateService([{ entity: User, type: 'body', field: 'email' }])
   @ResetLinkDoc()
-  async ResetLink(
-    @Res() res: Response,
-    @Param('userId', new ParseUUIDPipe()) id: string,
-  ) {
+  async ResetLink(@Res() res: Response, @Service('user') user: User) {
     try {
-      this.userutils.entity.id = id;
+      this.userutils.entity = user;
       const response = await this.userutils.ResetPasswordLink();
       const msg = response
-        ? 'Please check Check your email for a password reset link'
+        ? 'Please Check your email for a password reset link'
         : 'Something went wrong';
       res.status(HttpStatus.OK).json({ msg });
     } catch (error) {
@@ -277,24 +278,23 @@ export class UsersController extends IController<UserService> {
     }
   }
 
-  @Get('/resetpassword/:userId/:token')
+  @Post('/resetpassword/:userId/:token')
   @ResetPasswordDoc()
   @SkipAllGuards()
+  @Schemas({ type: 'body', schemas: [ResetSchema] })
   @Decrypt({ type: 'params', keys: ['userId', 'token'], decrypttype: 'uri' })
   async ResetPassword(
     @Res() res: Response,
     @Param('userId', new ParseUUIDPipe()) id: string,
     @Param('token') token: string,
+    @Body() body: { password: string },
   ) {
     try {
       this.userutils.entity.id = id;
-      const response = await this.userutils.ResetUserPassword(token);
+      this.userutils.entity.password = body.password;
+      await this.userutils.ResetUserPassword(token);
       res.status(HttpStatus.OK).json({
-        msg: 'You will be redirected to the reset page',
-        data: {
-          link: '/dashboard/core/auth/user/resetpassword',
-          tempToken: response.token.token,
-        },
+        msg: 'Your Password has been reset successfully',
       });
     } catch (error) {
       throw error;

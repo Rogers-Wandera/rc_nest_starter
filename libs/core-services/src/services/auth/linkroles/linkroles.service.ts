@@ -89,8 +89,8 @@ export class LinkRoleService extends EntityModel<LinkRole> {
             name: item.name,
             linkname: item.linkname,
             route: item.route,
-            expired: item.expired,
-            render: item.render,
+            expired: Number(item.expired),
+            render: Number(item.render),
           });
           return acc;
         }, {});
@@ -98,6 +98,7 @@ export class LinkRoleService extends EntityModel<LinkRole> {
       }
       return {};
     } catch (error) {
+      //
       throw error;
     }
   }

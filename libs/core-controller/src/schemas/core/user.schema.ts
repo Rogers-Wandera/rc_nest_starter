@@ -140,4 +140,21 @@ const ResetSchema = Joi.object<resetpasswordtype>({
   }),
 });
 
-export { UserRegisterSchema, LoginSchema, AddRoleSchema, ResetSchema };
+const ResetLinkSchema = Joi.object<registertype>({
+  email: Joi.string()
+    .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
+    .required()
+    .messages({
+      'string.email': 'Invalid email address',
+      'any.required': 'Email is required',
+      'string.empty': 'Email is required',
+    }),
+});
+
+export {
+  UserRegisterSchema,
+  LoginSchema,
+  AddRoleSchema,
+  ResetSchema,
+  ResetLinkSchema,
+};

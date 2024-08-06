@@ -38,8 +38,16 @@ export class ServiceValidator implements NestInterceptor {
         const name = service.name || 'Record';
         const field = service.field || 'id';
         let key = service?.key;
+        if (Object.keys(request[type]).length <= 0) {
+          throw new BadRequestException(`No data found in request [${type}]`);
+        }
         if (!service.key) {
           key = Object.keys(request[type])[0];
+        }
+        if (!request[type][key]) {
+          throw new BadRequestException(
+            `Service validator could not find the key specified [${key}]`,
+          );
         }
         const repository = this.source.getRepository(service.entity);
         const exists = await repository.findOne({
@@ -53,6 +61,7 @@ export class ServiceValidator implements NestInterceptor {
         const classname = repository.metadata.name;
         if (classname === parentClassName) {
           this.parentClass.model.entity = exists;
+          entityobj[classname.toLowerCase()] = exists;
         } else {
           entityobj[key] = exists;
         }

@@ -117,6 +117,7 @@ export class JoiSchemaValidator implements NestInterceptor {
           entity['createdBy'] = request.user.id;
           entity['updatedBy'] = request.user.id;
         }
+
         this.parentClass.model.entity = { ...entity, ...value };
       }
     }

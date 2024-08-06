@@ -146,13 +146,11 @@ export type SingleUploadType = {
   type: 'single';
   source: 'image' | 'audio' | 'video' | 'file';
   maxSize?: number;
-  fileType?: string | RegExp;
 };
 export type MultipleUploadType = {
   type: 'multiple';
   source: 'image' | 'audio' | 'video' | 'file';
   fileCount?: number;
   maxSize?: number;
-  fileType?: string | RegExp | string[];
 };
 export type FileUploadType = SingleUploadType | MultipleUploadType;

@@ -11,12 +11,14 @@ import {
 } from '../contexts/interceptors/joi.interceptor';
 import { ServiceValidator } from '../contexts/interceptors/servicevalidator.interceptor';
 import { NotificationSender } from '../contexts/interceptors/notification.interceptor';
+import { MicroServiceRunningGuard } from '../contexts/guards/microservice.guard';
 
 export const CoreAppProviders: Provider[] = [
   {
     provide: AsyncLocalStorage,
     useValue: new AsyncLocalStorage(),
   },
+  { provide: APP_GUARD, useClass: MicroServiceRunningGuard },
   { provide: APP_GUARD, useClass: ThrottlerGuard },
   {
     provide: APP_FILTER,
