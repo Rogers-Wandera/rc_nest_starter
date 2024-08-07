@@ -5,8 +5,8 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { BaseEntityClass } from '../base.entity';
-import { Notification } from './notification.entity';
+import { BaseEntityClass } from '../../base.entity';
+import { Notification } from './notification';
 import {
   NOTIFICATION_STATUS,
   PRIORITY_TYPES,
@@ -16,8 +16,10 @@ import {
 export class NotificationRecipient extends BaseEntityClass {
   @PrimaryGeneratedColumn()
   id: number;
-  @Column()
+  @Column({ nullable: false })
   recipient: string;
+  @Column({ nullable: false })
+  recipientHash: string;
   @ManyToOne(() => Notification, (notification) => notification.recipients, {
     nullable: false,
     eager: true,

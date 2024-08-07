@@ -5,8 +5,8 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { BaseEntityClass } from '../base.entity';
-import { NotificationBody } from './notificationbody.entity';
+import { BaseEntityClass } from '../../base.entity';
+import { NotificationBody } from './notificationbody';
 import { MediaTypes } from '@toolkit/core-toolkit/types/enums/enums';
 
 @Entity({ name: 'notificationmedias' })

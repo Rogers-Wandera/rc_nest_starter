@@ -7,7 +7,7 @@ import {
 import { EmailContent } from './mailer.types';
 import { Address } from '@nestjs-modules/mailer/dist/interfaces/send-mail-options.interface';
 import { NOTIFICATION_PATTERN, PRIORITY_TYPES } from '../enums/enums';
-import { NotificationTypes } from '@toolkit/core-toolkit/decorators/notification.decorator';
+import { NotificationTypes } from '../enums/enums';
 
 type mediaTypes = {
   type: 'image' | 'video' | 'audio';

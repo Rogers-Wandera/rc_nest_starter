@@ -41,7 +41,7 @@ export class RecipientsValidator implements NestInterceptor {
         });
       } else {
         this.logger.warn(
-          `User with recipient id of ${recipients[recipient]} does not exist`,
+          `User with recipient id of ${recipients[recipient].to} does not exist`,
         );
       }
     }

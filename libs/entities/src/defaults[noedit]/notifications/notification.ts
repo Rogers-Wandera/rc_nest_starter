@@ -1,17 +1,17 @@
 import { Column, Entity, OneToMany, OneToOne, PrimaryColumn } from 'typeorm';
-import { BaseEntityClass } from '../base.entity';
+import { BaseEntityClass } from '../../base.entity';
 import {
   NOTIFICATION_PATTERN,
   NotificationTypes,
   PRIORITY_TYPES,
 } from '@toolkit/core-toolkit/types/enums/enums';
-import { NotificationBody } from './notificationbody.entity';
-import { NotificationRecipient } from './notificationrecipient.entity';
+import { NotificationBody } from './notificationbody';
 import {
   NOTIFICATION_STATUS,
   NOTIFICATION_TYPE,
   NotificationDeliveryTypes,
 } from '@toolkit/core-toolkit/types/enums/enums';
+import { NotificationRecipient } from './notificationrecipient';
 
 @Entity({ name: 'notifications' })
 export class Notification extends BaseEntityClass {

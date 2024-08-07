@@ -12,7 +12,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { SystemPermissionsService } from '@services/core-services/services/defaults/permissions/permissions.service';
 import { Request, Response } from 'express';
 import {
-  EmailTemplates,
+  NOTIFICATION_PATTERN,
+  NotificationTypes,
   PRIORITY_TYPES,
   ROLE,
 } from '@toolkit/core-toolkit/types/enums/enums';
@@ -23,7 +24,7 @@ import {
   GetPermissionsDoc,
 } from '@controller/core-controller/swagger/controllers/core/defaultcontroller';
 import { Roles } from '@auth/auth-guards/decorators/roles.guard';
-import { AuthGuard } from '@auth/auth-guards/guards/auth.guard';
+import { AuthGuard, SkipAllGuards } from '@auth/auth-guards/guards/auth.guard';
 
 @Controller('/core/defaults')
 @ApiTags('Core Configurations')
@@ -67,53 +68,42 @@ export class DefaultController {
     }
   }
   @Get('send-notification')
+  @SkipAllGuards()
   @Notification({
     context: 'before',
     data: {
-      type: 'email',
-      createdBy: 'Rogers',
+      type: 'push',
       payload: {
-        template: EmailTemplates.MAILER_2,
-        priority: 'high',
-        subject: 'Rogers',
-        to: [{ to: 'rogerrisha@gmail.com', priority: PRIORITY_TYPES.HIGH }],
-        context: {
-          body: 'Hello world did i say am testing everything',
-          title: 'Come on men',
-          cta: false,
+        type: 'system',
+        payload: {
+          priority: PRIORITY_TYPES.HIGH,
+          pattern: NOTIFICATION_PATTERN.ANNOUNCEMENTS,
+          type: NotificationTypes.INFO,
+          recipient: {
+            type: 'no broadcast',
+            recipients: [
+              {
+                to: '2ff0bcbc-8527-49c2-96ba-af60e441df76',
+                priority: PRIORITY_TYPES.HIGH,
+              },
+              {
+                to: '6fdc2362-2033-489c-963e-ddf0a8e6cc57',
+                priority: PRIORITY_TYPES.LOW,
+              },
+            ],
+          },
+          data: {
+            title: 'Hello World',
+            message: 'This is an introduction to RTECH software systems',
+            timestamp: new Date(),
+            meta: { Urgent: true, 'Reply To': 'Rogers' },
+            mediaUrl: [
+              { imageUrl: 'https://test.com', type: 'image' },
+              { imageUrl: 'https://test2.com', type: 'audio' },
+            ],
+          },
         },
       },
-      // payload: {
-      //   type: 'system',
-      //   payload: {
-      //     priority: PRIORITY_TYPES.HIGH,
-      //     pattern: NOTIFICATION_PATTERN.ANNOUNCEMENTS,
-      //     type: NotificationTypes.INFO,
-      //     recipient: {
-      //       type: 'no broadcast',
-      //       recipients: [
-      //         {
-      //           to: '2ff0bcbc-8527-49c2-96ba-af60e441df76',
-      //           priority: PRIORITY_TYPES.HIGH,
-      //         },
-      //         {
-      //           to: '6fdc2362-2033-489c-963e-ddf0a8e6cc57',
-      //           priority: PRIORITY_TYPES.LOW,
-      //         },
-      //       ],
-      //     },
-      //     data: {
-      //       title: 'Hello World',
-      //       message: 'This is an introduction to RTECH software systems',
-      //       timestamp: new Date(),
-      //       meta: { Urgent: true, 'Reply To': 'Rogers' },
-      //       mediaUrl: [
-      //         { imageUrl: 'https://test.com', type: 'image' },
-      //         { imageUrl: 'https://test2.com', type: 'audio' },
-      //       ],
-      //     },
-      //   },
-      // },
     },
   })
   sendNotification() {

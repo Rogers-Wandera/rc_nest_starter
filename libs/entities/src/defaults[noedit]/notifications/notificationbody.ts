@@ -6,10 +6,10 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { BaseEntityClass } from '../base.entity';
-import { Notification } from './notification.entity';
-import { NotificationMeta } from './notificationmeta.entity';
-import { NotificationMedia } from './notificationmedia.entity';
+import { BaseEntityClass } from '../../base.entity';
+import { Notification } from './notification';
+import { NotificationMeta } from './notificationmeta';
+import { NotificationMedia } from './notificationmedia.';
 
 @Entity({ name: 'notificationbody' })
 export class NotificationBody extends BaseEntityClass {
