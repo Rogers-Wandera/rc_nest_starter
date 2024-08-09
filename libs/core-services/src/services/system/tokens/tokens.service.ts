@@ -12,7 +12,11 @@ export class TokenService extends EntityModel<Token> {
   async CreateToken() {
     try {
       const activeTokens = await this.repository.find({
-        where: { user: { id: this.entity.user.id }, isActive: 1 },
+        where: {
+          user: { id: this.entity.user.id },
+          isActive: 1,
+          tokenType: this.entity.tokenType,
+        },
       });
       if (activeTokens.length > 0) {
         const promises = activeTokens.map((token) => {
@@ -35,6 +39,7 @@ export class TokenService extends EntityModel<Token> {
         user: { id: userId },
         isActive: 1,
         token: this.entity.token,
+        tokenType: this.entity.tokenType,
       });
       if (token) {
         token.isActive = 0;
@@ -52,6 +57,7 @@ export class TokenService extends EntityModel<Token> {
         user: { id: this.entity.user.id },
         isActive: 1,
         token: this.entity.token,
+        tokenType: this.entity.tokenType,
       });
       if (token) {
         const isTokenExpired = this.checkExpireDate(token.expire);
@@ -65,7 +71,11 @@ export class TokenService extends EntityModel<Token> {
 
   async GetUserToken(userId: string) {
     const token = await this.repository.findOne({
-      where: { user: { id: userId }, isActive: 1 },
+      where: {
+        user: { id: userId },
+        isActive: 1,
+        tokenType: this.entity.tokenType,
+      },
     });
     if (!token) {
       throw new BadRequestException('No token found for this user');

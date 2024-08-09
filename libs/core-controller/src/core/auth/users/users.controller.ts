@@ -92,6 +92,7 @@ export class UsersController extends IController<UserService> {
   public async RegisterUser(@Body() body: registertype, @Res() res: Response) {
     try {
       const response = await this.model.createUser(body);
+      console.log('res', response);
       res
         .status(HttpStatus.OK)
         .json({ msg: 'User created successfully', emailsent: response });
@@ -109,7 +110,7 @@ export class UsersController extends IController<UserService> {
     @Param('userId', new ParseUUIDPipe()) id: string,
   ) {
     try {
-      this.model.entity.id = id;
+      this.userutils.entity.id = id;
       const response = await this.userutils.RegenerateActivation();
       res
         .status(HttpStatus.OK)
@@ -119,7 +120,7 @@ export class UsersController extends IController<UserService> {
     }
   }
 
-  @Get('/verification/verify/:userId/:token')
+  @Post('/verification/verify/:userId/:token')
   @VerifyUserDocs()
   @SkipAllGuards()
   @Decrypt({ type: 'params', keys: ['userId', 'token'], decrypttype: 'uri' })

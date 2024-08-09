@@ -32,12 +32,16 @@ import {
   EmailTemplates,
   NOTIFICATION_PATTERN,
   PRIORITY_TYPES,
+  TOKEN_TYPES,
 } from '@toolkit/core-toolkit/types/enums/enums';
 import {
   addrolestype,
   registertype,
   ServerRolesType,
 } from '@toolkit/core-toolkit/types/coretypes';
+import { ConfigService } from '@nestjs/config';
+import { EnvConfig } from '@toolkit/core-toolkit/config/config';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class UserService extends EntityModel<User> {
@@ -54,6 +58,7 @@ export class UserService extends EntityModel<User> {
     private readonly refreshtoken: RefreshTokenService,
     @Inject(REQUEST) protected request: Request,
     private client: RabbitMQService,
+    private configservice: ConfigService<EnvConfig>,
   ) {
     super(User, source);
     this.positionId = null;
@@ -127,19 +132,16 @@ export class UserService extends EntityModel<User> {
     this.roles.entity.user = user;
     this.roles.entity.systemRole = userrole;
     this.roles.entity.createdBy = user.id;
+    this.tokens.entity.tokenType = TOKEN_TYPES.VERIFY;
     await this.tokens.CreateToken();
     await this.roles.createRoles();
-    const verify = `${process.env.BASE_URL}/core/auth/user/verification/verify/${this.encryptUrl(user.id)}/${this.encryptUrl(token)}`;
+    const verify = `${this.configservice.get<string>('frontUrl')}/verifyaccount/${this.encryptUrl(user.id)}/${this.encryptUrl(token)}`;
     let additionaldata: string | string[] = '';
     if (data.adminCreated == 1) {
       additionaldata = [`Please login using this password ${data.password}`];
     }
-    const response = await this.sendVerificationEmail(
-      user,
-      verify,
-      additionaldata,
-    );
-    return response;
+    await this.sendVerificationEmail(user, verify, additionaldata);
+    return `An email with verification link has been sent, please note it may take 1-2 minutes for the email to reach`;
   }
 
   private async GetServerRoles(user: UserDataView): Promise<ServerRolesType[]> {
@@ -394,7 +396,7 @@ export class UserService extends EntityModel<User> {
     user: User,
     link: string,
     additionalhtml: string | string[] = '',
-  ) {
+  ): Promise<string> {
     const emailData = {
       recipientName: user.firstname + ' ' + user.lastname,
       serverData: 'Please confirm registration',
@@ -411,6 +413,8 @@ export class UserService extends EntityModel<User> {
         context: emailData,
       },
     };
-    return this.client.send(NOTIFICATION_PATTERN.NOTIFY, mailoptions);
+    return lastValueFrom(
+      this.client.send(NOTIFICATION_PATTERN.NOTIFY, mailoptions),
+    );
   }
 }

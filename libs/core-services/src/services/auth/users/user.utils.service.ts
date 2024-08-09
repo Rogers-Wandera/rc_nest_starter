@@ -16,8 +16,10 @@ import {
   EmailTemplates,
   NOTIFICATION_PATTERN,
   PRIORITY_TYPES,
+  TOKEN_TYPES,
 } from '@toolkit/core-toolkit/types/enums/enums';
 import { UserService } from './users.service';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class UserUtilsService extends EntityModel<User> {
@@ -71,6 +73,7 @@ export class UserUtilsService extends EntityModel<User> {
       if (!response) {
         return false;
       }
+      this.tokens.entity.tokenType = TOKEN_TYPES.RESET;
       const res = await this.tokens.CreateToken();
       return res.id > 0;
     } catch (error) {
@@ -99,6 +102,7 @@ export class UserUtilsService extends EntityModel<User> {
       }
       this.tokens.entity.user = user;
       this.tokens.entity.token = token;
+      this.tokens.entity.tokenType = TOKEN_TYPES.RESET;
       const usertoken = await this.tokens.CheckTokenExpiry();
       if (usertoken.isExpired) {
         throw new BadRequestException('The token has already expired');
@@ -123,6 +127,8 @@ export class UserUtilsService extends EntityModel<User> {
       if (user.verified === 1) {
         throw new BadRequestException('User already verified');
       }
+      const baseurl = this.configservive.get<string>('frontUrl');
+      this.tokens.entity.tokenType = TOKEN_TYPES.VERIFY;
       const token = await this.tokens.GetUserToken(user.id);
       const expired = this.checkExpireDate(token.expire);
       if (!expired) {
@@ -132,14 +138,15 @@ export class UserUtilsService extends EntityModel<User> {
       }
       const newtoken = require('crypto').randomBytes(64).toString('hex');
       const expireDate = addHours(new Date(), 1);
-      const verify = `${process.env.BASE_URL}/core/auth/user/verification/verify/${this.encryptUrl(user.id)}/${this.encryptUrl(newtoken)}`;
+      const verify = `${baseurl}/verifyaccount/${this.encryptUrl(user.id)}/${this.encryptUrl(newtoken)}`;
       this.tokens.entity.token = newtoken;
       this.tokens.entity.user = user;
       this.tokens.entity.expire = expireDate;
       this.tokens.entity.createdBy = user.id;
+      this.tokens.entity.tokenType = TOKEN_TYPES.VERIFY;
       await this.tokens.CreateToken();
-      const response = await this.sendVerificationEmail(user, verify);
-      return response;
+      await this.sendVerificationEmail(user, verify);
+      return `An email with verification link has been sent, please note it may take 1-2 minutes for the email to reach`;
     } catch (error) {
       throw error;
     }
@@ -158,6 +165,7 @@ export class UserUtilsService extends EntityModel<User> {
       }
       this.tokens.entity.user = user;
       this.tokens.entity.token = token;
+      this.tokens.entity.tokenType = TOKEN_TYPES.VERIFY;
       const usertoken = await this.tokens.CheckTokenExpiry();
       if (usertoken.isExpired) {
         throw new BadRequestException(
@@ -196,7 +204,7 @@ export class UserUtilsService extends EntityModel<User> {
     user: User,
     link: string,
     additionalhtml: string | string[] = '',
-  ) {
+  ): Promise<string> {
     const emailData = {
       recipientName: user.firstname + ' ' + user.lastname,
       serverData: 'Please confirm registration',
@@ -213,6 +221,8 @@ export class UserUtilsService extends EntityModel<User> {
         context: emailData,
       },
     };
-    return this.client.send(NOTIFICATION_PATTERN.NOTIFY, mailoptions);
+    return lastValueFrom(
+      this.client.send(NOTIFICATION_PATTERN.NOTIFY, mailoptions),
+    );
   }
 }

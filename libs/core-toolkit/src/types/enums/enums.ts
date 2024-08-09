@@ -88,3 +88,8 @@ export enum GUARDS {
   REFRESH = 'REFRESH',
   ROLES = 'ROLES',
 }
+
+export enum TOKEN_TYPES {
+  RESET = 'reset',
+  VERIFY = 'verify',
+}
