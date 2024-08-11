@@ -53,6 +53,7 @@
     "joi-to-swagger": "^6.2.0",
     "mysql2": "^3.10.0",
     "nodemailer": "^6.9.13",
+    "rctechv3": "file:",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
     "twilio": "^5.2.2",
@@ -109,6 +110,13 @@
       "<rootDir>/src/",
       "<rootDir>/libs/"
     ],
-    "moduleNameMapper": {}
+    "moduleNameMapper": {
+      "^@bridge/data-bridge(|/.*)$": "<rootDir>/libs/data-bridge/src/$1",
+      "^@services/core-services(|/.*)$": "<rootDir>/libs/core-services/src/$1",
+      "^@toolkit/core-toolkit(|/.*)$": "<rootDir>/libs/core-toolkit/src/$1",
+      "^@controller/core-controller(|/.*)$": "<rootDir>/libs/core-controller/src/$1",
+      "^@entity/entities(|/.*)$": "<rootDir>/libs/entities/src/$1",
+      "^@auth/auth-guards(|/.*)$": "<rootDir>/libs/auth-guards/src/$1"
+    }
   }
 }

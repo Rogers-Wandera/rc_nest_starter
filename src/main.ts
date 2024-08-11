@@ -2,14 +2,14 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
-import { EnvConfig } from './app/config/configuration';
+import { credentials } from './app/config/credentials';
+import { corsOptions } from './app/config/corsoptions';
 import {
   LoggingMiddleware,
   ServerLogger,
-} from './middlewares/logger.middleware';
-import { credentials } from './app/config/credentials';
-import { corsOptions } from './app/config/corsoptions';
-import { setupSwagger } from './swagger/swagger';
+} from '@toolkit/core-toolkit/middlewares/logger.middleware';
+import { setupSwagger } from '@controller/core-controller/swagger/swagger';
+import { EnvConfig } from '@toolkit/core-toolkit/config/config';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
