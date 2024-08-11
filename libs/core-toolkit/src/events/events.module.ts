@@ -18,17 +18,6 @@ import { EnvConfig } from '../config/config';
     },
     EventsGateWayService,
   ],
-  exports: [
-    EventsGateway,
-    {
-      provide: 'EventsGateway',
-      useFactory: (
-        config: ConfigService<EnvConfig>,
-        rabbitmq: RabbitMQService,
-      ) => new EventsGateway(config, rabbitmq),
-      inject: [ConfigService, RabbitMQService],
-    },
-    EventsGateWayService,
-  ],
+  exports: [EventsGateway, 'EventsGateway', EventsGateWayService],
 })
 export class EventsModule {}

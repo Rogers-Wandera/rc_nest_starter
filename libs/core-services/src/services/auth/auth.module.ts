@@ -11,6 +11,9 @@ import { LinkRoleModule } from './linkroles/linkroles.module';
 import { RolePermissionModule } from './rolepermissions/rolepermission.module';
 import { ServerRouteRoleModule } from './serverrouteroles/serverrouteroles.module';
 import { EnvConfig, jwtconfig } from '@toolkit/core-toolkit/config/config';
+import { UserGroupModule } from './usergroups/usergroup.module';
+import { UserGroupMemberModule } from './usergroupmembers/usergroupmember.module';
+import { UserGroupSupervisorModule } from './usergroupsupervisor/usergroupsupervisor.module';
 
 @Global()
 @Module({
@@ -36,6 +39,9 @@ import { EnvConfig, jwtconfig } from '@toolkit/core-toolkit/config/config';
     LinkRoleModule,
     RolePermissionModule,
     ServerRouteRoleModule,
+    UserGroupModule,
+    UserGroupMemberModule,
+    UserGroupSupervisorModule,
   ],
   exports: [
     UserModule,
@@ -45,6 +51,9 @@ import { EnvConfig, jwtconfig } from '@toolkit/core-toolkit/config/config';
     RoleModule,
     RolePermissionModule,
     LinkRoleModule,
+    UserGroupModule,
+    UserGroupMemberModule,
+    UserGroupSupervisorModule,
   ],
 })
 export class AuthModule {}

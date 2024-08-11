@@ -17,6 +17,9 @@ import { UserProfileImage } from './userprofileimages.entity';
 import { LinkRole } from './linkroles.entity';
 import { RolePermission } from './rolepermissions.entity';
 import { ServerRouteRole } from './serverrouteroles.entity';
+import { UserGroupMember } from './usergroupmembers.entity';
+import { UserGroupSupervisors } from './usergroupsupervisors.entity';
+
 @Entity({ name: 'users' })
 export class User extends BaseEntityClass {
   @PrimaryColumn({ nullable: false, type: 'varchar', length: 100 })
@@ -64,4 +67,8 @@ export class User extends BaseEntityClass {
   rolepermissions: RolePermission[];
   @OneToMany(() => ServerRouteRole, (role) => role.user)
   serverrouteroles: ServerRouteRole[];
+  @OneToMany(() => UserGroupMember, (group) => group.user)
+  usergroups: UserGroupMember[];
+  @OneToMany(() => UserGroupSupervisors, (group) => group.user)
+  supervisor: UserGroupSupervisors[];
 }

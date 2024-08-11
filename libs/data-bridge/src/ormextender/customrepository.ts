@@ -9,12 +9,13 @@ import {
   UpdateResult,
 } from 'typeorm';
 import { DataUtility } from './datautility';
-import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { Request } from 'express';
 import { UnauthorizedException } from '@nestjs/common';
 import { MyRepository, validateWhereOptions } from './repository';
+import { QueryDeepPartial } from '../types/queryfix_orm';
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
-export class CustomRepository<T> extends MyRepository<T> {
+export class CustomRepository<T extends ObjectLiteral> extends MyRepository<T> {
   public request: Request;
   constructor(
     target: EntityTarget<T>,
@@ -76,7 +77,7 @@ export class CustomRepository<T> extends MyRepository<T> {
 
   FindOneAndUpdate = async (
     conditions: FindOptionsWhere<T>,
-    data: QueryDeepPartialEntity<T>,
+    data: QueryDeepPartial<T>,
   ) => {
     try {
       const exists = await this.findOneBy(conditions);
@@ -84,10 +85,16 @@ export class CustomRepository<T> extends MyRepository<T> {
         throw new Error(`No ${this.metadata.tableName} found`);
       }
       if (this.request.user) {
-        data['updatedBy'] = this.request.user.id;
-        data['updateDate'] = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
+        (data as Record<string, any>)['updatedBy'] = this.request.user.id;
+        (data as Record<string, any>)['updateDate'] = format(
+          new Date(),
+          'yyyy-MM-dd HH:mm:ss',
+        );
       }
-      const response = await this.update(conditions, data);
+      const response = await this.update(
+        conditions,
+        data as QueryDeepPartialEntity<T>,
+      );
       if (response) {
         return true;
       }
@@ -110,11 +117,11 @@ export class CustomRepository<T> extends MyRepository<T> {
         throw new Error(`No ${this.metadata.tableName} found`);
       }
       const id: string = (exists as unknown as ObjectLiteral).id;
-      const updateCriteria: QueryDeepPartialEntity<ObjectLiteral> = {
+      const updateCriteria = {
         deletedAt: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
         isActive: 0,
         deletedBy: this.request.user.id,
-      };
+      } as unknown as QueryDeepPartialEntity<T>;
       await datautility.saveRecycleBin(
         this.metadata.tableName,
         id,
@@ -129,7 +136,7 @@ export class CustomRepository<T> extends MyRepository<T> {
 
   async restoreDelete(
     criteria: FindOptionsWhere<T>,
-    data?: QueryDeepPartialEntity<T>,
+    data?: QueryDeepPartial<T>,
   ): Promise<UpdateResult> {
     try {
       await validateWhereOptions(criteria);
@@ -233,7 +240,7 @@ export class CustomRepository<T> extends MyRepository<T> {
   }
 }
 
-export const repositoryextender = <T extends ObjectLiteral>(
+export const repositoryextender = <T>(
   entity: EntityTarget<T>,
   manager: EntityManager,
   request: Request,

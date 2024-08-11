@@ -4,18 +4,18 @@
   "sourceRoot": "src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "assets": [
-      {
-        "include": "**/*.ejs",
-        "watchAssets": true
-      },
-      {
-        "include": "**/*.html"
-      }
-    ],
     "webpack": false
   },
   "projects": {
+    "auth-guards": {
+      "type": "library",
+      "root": "libs/auth-guards",
+      "entryFile": "index",
+      "sourceRoot": "libs/auth-guards/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/auth-guards/tsconfig.lib.json"
+      }
+    },
     "data-bridge": {
       "type": "library",
       "root": "libs/data-bridge",
@@ -59,15 +59,6 @@
       "sourceRoot": "libs/entities/src",
       "compilerOptions": {
         "tsConfigPath": "libs/entities/tsconfig.lib.json"
-      }
-    },
-    "auth-guards": {
-      "type": "library",
-      "root": "libs/auth-guards",
-      "entryFile": "index",
-      "sourceRoot": "libs/auth-guards/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/auth-guards/tsconfig.lib.json"
       }
     }
   }

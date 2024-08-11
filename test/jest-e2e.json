@@ -11,8 +11,8 @@
     "^.+\\.(t|j)s$": "ts-jest"
   },
   "moduleNameMapper": {
-    "@notify/rtechnotifier/(.*)": "<rootDir>/../libs/rtechnotifier/src/$1",
-    "@notify/rtechnotifier": "<rootDir>/../libs/rtechnotifier/src",
+    "@auth/auth-guards/(.*)": "<rootDir>/../libs/auth-guards/src/$1",
+    "@auth/auth-guards": "<rootDir>/../libs/auth-guards/src",
     "@bridge/data-bridge/(.*)": "<rootDir>/../libs/data-bridge/src/$1",
     "@bridge/data-bridge": "<rootDir>/../libs/data-bridge/src",
     "@services/core-services/(.*)": "<rootDir>/../libs/core-services/src/$1",
@@ -22,8 +22,6 @@
     "@controller/core-controller/(.*)": "<rootDir>/../libs/core-controller/src/$1",
     "@controller/core-controller": "<rootDir>/../libs/core-controller/src",
     "@entity/entities/(.*)": "<rootDir>/../libs/entities/src/$1",
-    "@entity/entities": "<rootDir>/../libs/entities/src",
-    "@auth/auth-guards/(.*)": "<rootDir>/../libs/auth-guards/src/$1",
-    "@auth/auth-guards": "<rootDir>/../libs/auth-guards/src"
+    "@entity/entities": "<rootDir>/../libs/entities/src"
   }
 }

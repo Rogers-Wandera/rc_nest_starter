@@ -93,3 +93,8 @@ export enum TOKEN_TYPES {
   RESET = 'reset',
   VERIFY = 'verify',
 }
+
+export enum UserGroupStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+}
