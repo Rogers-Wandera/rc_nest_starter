@@ -60,6 +60,15 @@
       "compilerOptions": {
         "tsConfigPath": "libs/entities/tsconfig.lib.json"
       }
+    },
+    "bridge-listeners": {
+      "type": "library",
+      "root": "libs/bridge-listeners",
+      "entryFile": "index",
+      "sourceRoot": "libs/bridge-listeners/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/bridge-listeners/tsconfig.lib.json"
+      }
     }
   }
 }

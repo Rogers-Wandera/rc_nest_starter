@@ -22,6 +22,8 @@
     "@controller/core-controller/(.*)": "<rootDir>/../libs/core-controller/src/$1",
     "@controller/core-controller": "<rootDir>/../libs/core-controller/src",
     "@entity/entities/(.*)": "<rootDir>/../libs/entities/src/$1",
-    "@entity/entities": "<rootDir>/../libs/entities/src"
+    "@entity/entities": "<rootDir>/../libs/entities/src",
+    "@listener/bridge-listeners/(.*)": "<rootDir>/../libs/bridge-listeners/src/$1",
+    "@listener/bridge-listeners": "<rootDir>/../libs/bridge-listeners/src"
   }
 }

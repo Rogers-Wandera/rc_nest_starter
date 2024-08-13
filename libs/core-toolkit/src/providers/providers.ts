@@ -1,5 +1,5 @@
 import { Provider } from '@nestjs/common';
-import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { AsyncLocalStorage } from 'async_hooks';
 import { AllExceptionsFilter } from '../contexts/exceptions/http-exception.filter';
@@ -12,6 +12,8 @@ import {
 import { ServiceValidator } from '../contexts/interceptors/servicevalidator.interceptor';
 import { NotificationSender } from '../contexts/interceptors/notification.interceptor';
 import { MicroServiceRunningGuard } from '../contexts/guards/microservice.guard';
+import { ClassValidationPipe } from '../contexts/pipes/classvalidator.pipe';
+import { ClassValidatorInterceptor } from '../contexts/interceptors/classvalidator.interceptor';
 
 export const CoreAppProviders: Provider[] = [
   {
@@ -32,8 +34,10 @@ export const CoreAppProviders: Provider[] = [
     provide: APP_INTERCEPTOR,
     useClass: TransformPainateQuery,
   },
+  { provide: APP_INTERCEPTOR, useClass: ClassValidatorInterceptor },
   { provide: APP_INTERCEPTOR, useClass: JoiPaginateValidation },
   { provide: APP_INTERCEPTOR, useClass: ServiceValidator },
   { provide: APP_INTERCEPTOR, useClass: JoiSchemaValidator },
   { provide: APP_INTERCEPTOR, useClass: NotificationSender },
+  { provide: APP_PIPE, useClass: ClassValidationPipe },
 ];

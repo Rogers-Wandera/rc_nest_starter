@@ -107,7 +107,8 @@
       "^@services/core-services(|/.*)$": "<rootDir>/libs/core-services/src/$1",
       "^@toolkit/core-toolkit(|/.*)$": "<rootDir>/libs/core-toolkit/src/$1",
       "^@controller/core-controller(|/.*)$": "<rootDir>/libs/core-controller/src/$1",
-      "^@entity/entities(|/.*)$": "<rootDir>/libs/entities/src/$1"
+      "^@entity/entities(|/.*)$": "<rootDir>/libs/entities/src/$1",
+      "^@listener/bridge-listeners(|/.*)$": "<rootDir>/libs/bridge-listeners/src/$1"
     }
   }
 }

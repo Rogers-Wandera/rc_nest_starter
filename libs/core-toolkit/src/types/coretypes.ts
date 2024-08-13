@@ -4,6 +4,8 @@ import { ModuleLink } from '@entity/entities/core/modulelinks.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { METHODS } from './enums/enums';
 
+export type Constructor<T> = new (...args: unknown[]) => T;
+
 export type Paramstype = 'body' | 'params' | 'query';
 export type rolestype = 'ADMIN' | 'USER' | 'PROGRAMMER' | 'EDITOR';
 export type decrypttype = {
@@ -154,3 +156,8 @@ export type MultipleUploadType = {
   maxSize?: number;
 };
 export type FileUploadType = SingleUploadType | MultipleUploadType;
+
+export type ClassValidatorType = {
+  classDTO: Constructor<any>;
+  type?: Paramstype;
+};
