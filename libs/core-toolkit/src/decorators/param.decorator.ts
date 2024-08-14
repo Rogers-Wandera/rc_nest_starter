@@ -18,9 +18,16 @@ export const Files = createParamDecorator(
 );
 
 export const Service = createParamDecorator(
-  (data: string, ctx: ExecutionContext) => {
+  (data: string | null, ctx: ExecutionContext) => {
     const request: Request = ctx.switchToHttp().getRequest();
-    const entity = request.entities[data] as EntityTarget<unknown>;
+    let entity: EntityTarget<unknown> | null = null;
+    if (data) {
+      entity = request.entities[data] as EntityTarget<unknown>;
+    } else {
+      entity = request.entities[
+        Object.keys(request.entities)[0]
+      ] as EntityTarget<unknown>;
+    }
     return entity;
   },
 );

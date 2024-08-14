@@ -22,7 +22,15 @@ export class DataExtenderBuilder extends MainDBBuilder {
       }
       const page = data.page > 0 ? data.page : 1;
       const repository = this.getRepository(entity);
+      const relations = repository.metadata.relations.map(
+        (rel) => rel.propertyName,
+      );
       const queryBuilder = repository.createQueryBuilder('entity');
+      if(relations.length > 0) {
+        relations.forEach((relation) => {
+          queryBuilder.leftJoinAndSelect(`entity.${relation}`, relation);
+        });
+      }
       if (data?.conditions) {
         Object.entries(data.conditions).forEach(([key, value]) => {
           queryBuilder.andWhere(`entity.${key} = :${key}`, { [key]: value });

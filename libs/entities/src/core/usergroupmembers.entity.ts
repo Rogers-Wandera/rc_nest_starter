@@ -16,9 +16,14 @@ export class UserGroupMember extends BaseEntityClass {
   id: string;
   @ManyToOne(() => UserGroup, (group) => group.members, {
     nullable: false,
+    eager: true,
   })
+  @JoinColumn({ name: 'groupId' })
   group: UserGroup;
-  @ManyToOne(() => User, (user) => user.usergroups, { nullable: false })
+  @ManyToOne(() => User, (user) => user.usergroups, {
+    nullable: false,
+    eager: true,
+  })
   @JoinColumn({ name: 'userId' })
   user: User;
 }

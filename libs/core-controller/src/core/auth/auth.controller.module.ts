@@ -4,6 +4,7 @@ import { SystemRolesController } from './systemroles/systemroles.controller';
 import { RolePermissionController } from './rolepermissions/rolepermissions.controller';
 import { LinkRoleController } from './linkroles/linkroles.controller';
 import { UserGroupController } from './usergroups/usergroups.controller';
+import { UserGroupMemberController } from './usergroupmembers/usergroupmember.controller';
 
 @Module({
   controllers: [
@@ -12,6 +13,7 @@ import { UserGroupController } from './usergroups/usergroups.controller';
     RolePermissionController,
     LinkRoleController,
     UserGroupController,
+    UserGroupMemberController,
   ],
 })
 export class AuthControllerModule {}

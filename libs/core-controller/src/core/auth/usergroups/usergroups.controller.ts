@@ -14,8 +14,10 @@ import { ROLE } from '@toolkit/core-toolkit/types/enums/enums';
 import { UserGroupDTO } from './usergroup.dto';
 import { ClassValidator } from '@toolkit/core-toolkit/decorators/classvalidator.decorator';
 import { Paginate } from '@toolkit/core-toolkit/decorators/pagination.decorator';
+import { Permissions } from '@toolkit/core-toolkit/decorators/permissions.decorator';
 
 @Controller('/core/auth/usergroups')
+@Permissions({ module: 'User Management', moduleLink: 'User Groups' })
 @AuthGuard(ROLE.ADMIN)
 export class UserGroupController extends IController<UserGroupService> {
   constructor(model: UserGroupService) {
