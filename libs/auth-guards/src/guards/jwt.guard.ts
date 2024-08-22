@@ -11,12 +11,28 @@ import { GUARDS } from '@toolkit/core-toolkit/types/enums/enums';
 import { Request } from 'express';
 import { SKIP_GUARD_KEY } from '../decorators/skip.guard';
 
+/**
+ * A guard that checks if the request is authorized based on a JWT token.
+ * Implements the `CanActivate` interface to determine if a route can be activated.
+ */
 @Injectable()
 export class JwtGuard implements CanActivate {
+  /**
+   * Creates an instance of JwtGuard.
+   * @param {JwtService} jwtService - Service to handle JWT operations.
+   * @param {Reflector} reflector - Reflector to get metadata.
+   */
   constructor(
     private readonly jwtService: JwtService,
     private reflector: Reflector,
   ) {}
+
+  /**
+   * Determines if the current request is allowed to proceed based on the JWT token.
+   * @param {ExecutionContext} context - The execution context containing request and metadata.
+   * @returns {Promise<boolean>} - A promise that resolves to `true` if the route can be activated, `false` otherwise.
+   * @throws {UnauthorizedException} - If no token is provided, if the token is expired, or if there are issues with token verification.
+   */
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: Request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
@@ -41,6 +57,12 @@ export class JwtGuard implements CanActivate {
     }
     return true;
   }
+
+  /**
+   * Extracts the JWT token from the `Authorization` header of the request.
+   * @param {Request} request - The HTTP request object.
+   * @returns {string | undefined} - The extracted token if present, otherwise `undefined`.
+   */
   private extractTokenFromHeader(request: Request): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;

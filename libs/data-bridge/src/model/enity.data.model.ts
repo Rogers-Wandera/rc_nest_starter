@@ -15,7 +15,7 @@ export class EntityDataSource {
     this.request = request;
     this.model = model;
   }
-  public getRepository<T>(entity: EntityTarget<T>): Repository<T> {
+  public getRepository<T>(entity: EntityTarget<T>) {
     return this.model.GetRepository(entity);
   }
 }

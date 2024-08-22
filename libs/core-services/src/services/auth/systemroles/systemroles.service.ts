@@ -12,10 +12,7 @@ export class SystemRolesService extends EntityModel<Systemrole> {
   }
   async ViewSystemroles(): Promise<PaginationResults<Systemrole>> {
     try {
-      const results = await this.model.findPaginate<Systemrole>(
-        Systemrole,
-        this.pagination,
-      );
+      const results = await this.repository.Paginate(this.pagination);
       return results;
     } catch (error) {
       throw new BadRequestException(error);

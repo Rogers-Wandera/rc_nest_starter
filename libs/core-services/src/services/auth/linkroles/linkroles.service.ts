@@ -114,9 +114,8 @@ export class LinkRoleService extends EntityModel<LinkRole> {
 
   async getAssignedRoles() {
     try {
-      const pagination = this.transformPaginateProps<ModuleRolesView>();
-      pagination.conditions = { userId: this.entity.User.id };
-      const data = await this.model.findPaginate(ModuleRolesView, pagination);
+      const conditions = { userId: this.entity.User.id };
+      const data = await this.PaginateView(ModuleRolesView, conditions);
       return data;
     } catch (error) {
       throw error;

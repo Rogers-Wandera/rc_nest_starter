@@ -13,7 +13,7 @@ import { UserGroup } from './usergroups.entity';
 @Unique('UQ_USERGROUPMEMBERS', ['group', 'user'])
 export class UserGroupMember extends BaseEntityClass {
   @PrimaryGeneratedColumn()
-  id: string;
+  id: number;
   @ManyToOne(() => UserGroup, (group) => group.members, {
     nullable: false,
     eager: true,

@@ -12,7 +12,7 @@ export class PositionService extends EntityModel<Position> {
 
   async ViewPositions(): Promise<PaginationResults<Position>> {
     try {
-      const results = await this.model.findPaginate(Position, this.pagination);
+      const results = await this.repository.Paginate(this.pagination);
       return results;
     } catch (error) {
       throw new Error(error.message);

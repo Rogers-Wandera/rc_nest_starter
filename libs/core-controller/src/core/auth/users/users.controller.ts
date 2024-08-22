@@ -42,7 +42,7 @@ import {
   ResetUserPasswordDoc,
   UploadProfileDoc,
   VerifyUserDocs,
-} from '@controller/core-controller/swagger/controllers/core/usercontroller';
+} from '@controller/core-controller/core/auth/users/users.swagger';
 import { lastValueFrom } from 'rxjs';
 import { UserUtilsService } from '@services/core-services/services/auth/users/user.utils.service';
 import { UserService } from '@services/core-services/services/auth/users/users.service';

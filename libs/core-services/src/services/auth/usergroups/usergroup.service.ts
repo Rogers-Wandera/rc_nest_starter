@@ -12,10 +12,7 @@ export class UserGroupService extends EntityModel<UserGroup> {
   }
 
   async ViewGroups() {
-    const results = await this.model.findPaginate<UserGroup>(
-      UserGroup,
-      this.pagination,
-    );
+    const results = await this.repository.Paginate(this.pagination);
     return results;
   }
 

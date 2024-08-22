@@ -11,12 +11,28 @@ import { UPLOAD_KEY } from '@toolkit/core-toolkit/metakeys/metakeys';
 import { FileUploadType } from '@toolkit/core-toolkit/types/coretypes';
 import { Request } from 'express';
 
+/**
+ * Interceptor that handles file upload validation.
+ * Validates file size, MIME type, and file count according to the provided metadata.
+ * @see {@link FileUploadType}
+ */
 @Injectable()
 export class UploadFileInterceptor implements NestInterceptor {
+  /**
+   * Creates an instance of UploadFileInterceptor.
+   * @param {Reflector} reflector - Reflector to get metadata.
+   * @param {CoreToolkitService} utils - Utility service for file type checking.
+   */
   constructor(
     private reflector: Reflector,
     private utils: CoreToolkitService,
   ) {}
+
+  /**
+   * Intercepts the request and performs file validation.
+   * @param {ExecutionContext} context - The execution context.
+   * @param {CallHandler<any>} next - The next handler in the pipeline.
+   */
   intercept(context: ExecutionContext, next: CallHandler<any>) {
     const request: Request = context.switchToHttp().getRequest();
     const check = this.reflector.getAllAndOverride<FileUploadType>(UPLOAD_KEY, [
@@ -32,14 +48,20 @@ export class UploadFileInterceptor implements NestInterceptor {
     return next.handle();
   }
 
+  /**
+   * Validates the size of the uploaded file(s).
+   * @param {Request} req - The HTTP request containing the file(s).
+   * @param {FileUploadType} check - The file upload type metadata.
+   * @throws {BadRequestException} If the file size exceeds the limit.
+   */
   private SizeValidator(req: Request, check: FileUploadType) {
-    const maxSize = check.maxSize || 5 * 1024 * 1024; // 5mbs;
+    const maxSize = check.maxSize || 5 * 1024 * 1024; // 5MB
     if (check.type === 'single') {
       const file = req.file as Express.Multer.File;
       const check = file.size <= maxSize;
       if (!check) {
         throw new BadRequestException(
-          `File size should not exceed ${Math.round(maxSize / (1024 * 1024))}mbs, Got ${Math.round(file.size / (1024 * 1024))}mbs`,
+          `File size should not exceed ${Math.round(maxSize / (1024 * 1024))}MB, Got ${Math.round(file.size / (1024 * 1024))}MB`,
         );
       }
     } else {
@@ -47,13 +69,19 @@ export class UploadFileInterceptor implements NestInterceptor {
       const checker = files.every((file) => file.size <= maxSize);
       if (!checker) {
         throw new BadRequestException(
-          `One or more files exceeds the required size of  ${Math.round(maxSize / (1024 * 1024))} mbs`,
+          `One or more files exceed the required size of ${Math.round(maxSize / (1024 * 1024))}MB`,
         );
       }
     }
     return true;
   }
 
+  /**
+   * Validates the MIME type of the uploaded file(s).
+   * @param {Request} req - The HTTP request containing the file(s).
+   * @param {FileUploadType} check - The file upload type metadata.
+   * @throws {BadRequestException} If the file type is not allowed.
+   */
   private MimeTypeValidator(req: Request, check: FileUploadType) {
     if (check.type === 'single') {
       const file = req.file as Express.Multer.File;
@@ -69,13 +97,19 @@ export class UploadFileInterceptor implements NestInterceptor {
       });
       if (!validate) {
         throw new BadRequestException(
-          `One or more File has unsupported extension`,
+          `One or more files have unsupported extensions`,
         );
       }
     }
     return true;
   }
 
+  /**
+   * Validates the number of uploaded files.
+   * @param {Request} req - The HTTP request containing the file(s).
+   * @param {FileUploadType} check - The file upload type metadata.
+   * @throws {BadRequestException} If the number of files exceeds the allowed limit.
+   */
   private FilesCountValidator(req: Request, check: FileUploadType) {
     if (check.type === 'multiple') {
       const files = req.files as Express.Multer.File[];

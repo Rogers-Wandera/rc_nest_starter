@@ -85,7 +85,7 @@ export class ModuleService extends EntityModel<Module> {
 
   async viewModules() {
     try {
-      const results = await this.model.findPaginate(Module, this.pagination);
+      const results = await this.repository.Paginate(this.pagination);
       console.log(this.pagination);
       return results;
     } catch (error) {

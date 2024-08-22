@@ -10,6 +10,9 @@ import {
 } from '@toolkit/core-toolkit/middlewares/logger.middleware';
 import { setupSwagger } from '@controller/core-controller/swagger/swagger';
 import { EnvConfig } from '@toolkit/core-toolkit/config/config';
+import { AuthguardsService } from 'rtechnestlibscore';
+const service = new AuthguardsService();
+console.log(service.getHello());
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {

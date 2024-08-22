@@ -120,7 +120,8 @@ export class ModuleLinksService extends EntityModel<ModuleLink> {
     try {
       const pagination = this.transformPaginateProps<ModuleLinksView>();
       pagination.conditions = { moduleId: moduleId };
-      return this.model.findPaginate(ModuleLinksView, pagination);
+      const repository = this.model.getRepository(ModuleLinksView);
+      return repository.Paginate(pagination);
     } catch (error) {
       throw error;
     }

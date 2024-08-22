@@ -22,7 +22,7 @@ import { Permissions } from '@toolkit/core-toolkit/decorators/permissions.decora
 import {
   AddPermissionsDoc,
   GetPermissionsDoc,
-} from '@controller/core-controller/swagger/controllers/core/defaultcontroller';
+} from '@controller/core-controller/core/defaults/default.swagger';
 import { Roles } from '@auth/auth-guards/decorators/roles.guard';
 import { AuthGuard, SkipAllGuards } from '@auth/auth-guards/guards/auth.guard';
 

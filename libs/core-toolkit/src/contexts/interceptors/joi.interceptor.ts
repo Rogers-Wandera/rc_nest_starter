@@ -24,6 +24,14 @@ import {
 
 type schema<R> = ObjectSchema<R>;
 
+/**
+ * Custom pipe for validating data using Joi schemas.
+ *
+ * @class JoiValidationPipe
+ * @implements {PipeTransform}
+ * @template T - The type of the data to validate.
+ */
+
 export class JoiValidationPipe<T> implements PipeTransform {
   constructor(private schema: schema<T>) {}
   transform(value: any) {
@@ -36,12 +44,34 @@ export class JoiValidationPipe<T> implements PipeTransform {
   }
 }
 
+/**
+ * Interceptor for validating pagination query parameters using Joi.
+ *
+ * @class JoiPaginateValidation
+ * @implements {NestInterceptor}
+ * @template T - The type of the pagination parameters.
+ */
+
 @Injectable({ scope: Scope.REQUEST })
 export class JoiPaginateValidation<T> implements NestInterceptor {
+  /**
+   * Creates an instance of `JoiPaginateValidation`.
+   *
+   * @param {Reflector} reflector - The Reflector instance for retrieving metadata.
+   * @param {ControllerInterface} parentClass - The parent controller interface.
+   */
   constructor(
     private reflector: Reflector,
     @Inject(INQUIRER) private parentClass: ControllerInterface,
   ) {}
+
+  /**
+   * Intercepts the request and validates pagination parameters using Joi.
+   *
+   * @param {ExecutionContext} context - The context of the current request.
+   * @param {CallHandler} next - The handler to call after the interception.
+   * @throws {BadRequestException} - If validation fails.
+   */
   intercept(context: ExecutionContext, next: CallHandler) {
     const paginate = this.reflector.getAllAndOverride<string>(PAGINATE_KEY, [
       context.getHandler(),
@@ -65,6 +95,13 @@ export class JoiPaginateValidation<T> implements NestInterceptor {
   }
 }
 
+/**
+ * Interceptor for validating request data using a Joi schema.
+ *
+ * @class JoiValidator
+ * @implements {NestInterceptor}
+ * @template T - The type of the request data.
+ */
 @Injectable({ scope: Scope.REQUEST })
 export class JoiValidator<T> implements NestInterceptor {
   constructor(
@@ -86,6 +123,12 @@ export class JoiValidator<T> implements NestInterceptor {
   }
 }
 
+/**
+ * Interceptor for validating request data against multiple Joi schemas.
+ *
+ * @class JoiSchemaValidator
+ * @implements {NestInterceptor}
+ */
 @Injectable({ scope: Scope.REQUEST })
 export class JoiSchemaValidator implements NestInterceptor {
   constructor(

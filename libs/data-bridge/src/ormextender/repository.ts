@@ -1,6 +1,7 @@
 import {
   BaseEntity,
   EntityManager,
+  EntityMetadata,
   EntityTarget,
   FindManyOptions,
   FindOneOptions,

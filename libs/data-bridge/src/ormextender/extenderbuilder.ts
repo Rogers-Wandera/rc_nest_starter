@@ -1,10 +1,8 @@
-import { DataSourceOptions, EntityTarget, ObjectLiteral } from 'typeorm';
+import { DataSourceOptions, ObjectLiteral } from 'typeorm';
 import { MainDBBuilder } from './mainbuilder';
-import { format } from 'date-fns';
 import { BadRequestException } from '@nestjs/common';
 import {
   customquerypaginateprops,
-  paginateprops,
   PaginationResults,
 } from '@toolkit/core-toolkit/types/coretypes';
 
@@ -12,79 +10,15 @@ export class DataExtenderBuilder extends MainDBBuilder {
   constructor(options: DataSourceOptions) {
     super(options);
   }
-  async findPaginate<T extends ObjectLiteral>(
-    entity: EntityTarget<T>,
-    data: paginateprops<T>,
-  ): Promise<PaginationResults<T>> {
-    try {
-      if (Object.keys(data).length <= 0) {
-        throw new BadRequestException('Pagination should be provided');
-      }
-      const page = data.page > 0 ? data.page : 1;
-      const repository = this.getRepository(entity);
-      const relations = repository.metadata.relations.map(
-        (rel) => rel.propertyName,
-      );
-      const queryBuilder = repository.createQueryBuilder('entity');
-      if(relations.length > 0) {
-        relations.forEach((relation) => {
-          queryBuilder.leftJoinAndSelect(`entity.${relation}`, relation);
-        });
-      }
-      if (data?.conditions) {
-        Object.entries(data.conditions).forEach(([key, value]) => {
-          queryBuilder.andWhere(`entity.${key} = :${key}`, { [key]: value });
-        });
-      }
 
-      //   global filter
-      if (data?.globalFilter) {
-        const columns = repository.metadata.columns.map(
-          (col) => col.propertyName,
-        );
-        const globalFilterConditions = columns
-          .map((column) => `entity.${column} LIKE :globalFilter`)
-          .join(' OR ');
-        queryBuilder.andWhere(`(${globalFilterConditions})`, {
-          globalFilter: `%${data.globalFilter}%`,
-        });
-      }
-
-      //   filters
-      if (data.filters?.length > 0) {
-        data.filters.forEach((filter) => {
-          const value = filter.id.toString().toLowerCase().includes('date')
-            ? `%${format(new Date(filter.value), 'yyyy-MM-dd')}%`
-            : `%${filter.value}%`;
-          queryBuilder.andWhere(
-            `entity.${filter.id.toString()} LIKE :${filter.id.toString()}`,
-            { [filter.id]: value },
-          );
-        });
-      }
-
-      //   add sorting
-      if (data?.sortBy.length > 0) {
-        const sort = data.sortBy[0].id;
-        const sortOrder = data.sortBy[0].desc ? 'DESC' : 'ASC';
-        queryBuilder.orderBy(`entity.${String(sort)}`, sortOrder);
-      }
-
-      //   add pagination
-      queryBuilder.skip((page - 1) * data.limit).take(data.limit);
-      const [docs, totalDocs] = await queryBuilder.getManyAndCount();
-      const totalPages = Math.ceil(totalDocs / data.limit);
-      return {
-        docs,
-        totalDocs,
-        totalPages,
-        page: data.page,
-      };
-    } catch (error) {
-      throw new BadRequestException(error);
-    }
-  }
-
+  /**
+   * Executes a custom SQL query with pagination, sorting, filtering, and global search.
+   *
+   * @template T - The type of the entities being queried.
+   * @param {customquerypaginateprops<T>} data - The parameters for pagination, filtering, sorting, and the query itself.
+   * @returns {Promise<PaginationResults<T>>} A promise that resolves to the paginated results.
+   * @throws {BadRequestException} If an error occurs during query execution.
+   */
   async customQueryPaginate<T extends ObjectLiteral>(
     data: customquerypaginateprops<T>,
   ): Promise<PaginationResults<T>> {
@@ -152,11 +86,15 @@ export class DataExtenderBuilder extends MainDBBuilder {
         this.getTotalDocs(sql, queryValues),
       ]);
       const totalPages = Math.ceil(totalDocs / limit);
+      const hasNextPage = page < totalPages;
+      const hasPrevPage = page > 1;
       return {
         docs,
         totalDocs,
         totalPages,
-        page: data.page,
+        page: page,
+        hasNextPage,
+        hasPrevPage,
       };
     } catch (error) {
       throw new BadRequestException(error.message);

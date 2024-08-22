@@ -26,9 +26,10 @@ import {
   ApiUpdatePermission,
   ApiViewPermissions,
   ApiViewSelectPermissions,
-} from '@controller/core-controller/swagger/controllers/core/linkpermission';
+} from '@controller/core-controller/core/system/linkpermission/linkpermission.swagger';
 import { AuthGuard } from '@auth/auth-guards/guards/auth.guard';
 import { ROLE } from '@toolkit/core-toolkit/types/enums/enums';
+import { Service } from '@toolkit/core-toolkit/decorators/param.decorator';
 
 @Controller('/core/system/linkpermission')
 @ApiTags('Link (Module Links) Permissions')
@@ -41,8 +42,10 @@ export class LinkPermissionController extends IController<LinkPermissionService>
   @ApiCreatePermission()
   @Schemas({ schemas: [PermissionSchema] })
   @ValidateService([{ entity: ModuleLink, key: 'moduleLinkId' }])
-  async Create(@Res() res: Response, @Req() req: Request) {
-    const modulelink: ModuleLink = req.entities['moduleLinkId'];
+  async Create(
+    @Res() res: Response,
+    @Service('modulelink') modulelink: ModuleLink,
+  ) {
     this.model.entity.ModuleLink = modulelink;
     const response = await this.model.AddPermission();
     const msg = response

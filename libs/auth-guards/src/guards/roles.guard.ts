@@ -15,14 +15,31 @@ import { SYSTEM_ROLES } from '@toolkit/core-toolkit/types/coretypes';
 import { GUARDS, ROLE } from '@toolkit/core-toolkit/types/enums/enums';
 import { SKIP_GUARD_KEY } from '../decorators/skip.guard';
 
+/**
+ * A guard that checks if the request is authorized based on user roles.
+ * Implements the `CanActivate` interface to determine if a route can be activated based on the roles of the user.
+ */
 @Injectable()
 export class RolesGuard implements CanActivate {
+  /**
+   * Creates an instance of RolesGuard.
+   * @param {Reflector} reflector - Reflector to get metadata.
+   * @param {SystemDefaultRoles} systemroles - Service to get system default roles.
+   * @param {ConfigService<EnvConfig>} configservice - Service to get configuration values.
+   */
   constructor(
     private reflector: Reflector,
     private systemroles: SystemDefaultRoles,
     private configservice: ConfigService<EnvConfig>,
   ) {}
-  async canActivate(context: ExecutionContext) {
+
+  /**
+   * Determines if the current request is allowed to proceed based on user roles.
+   * @param {ExecutionContext} context - The execution context containing request and metadata.
+   * @returns {Promise<boolean>} - A promise that resolves to `true` if the route can be activated, `false` otherwise.
+   * @throws {UnauthorizedException} - If user roles are not available, if system roles are not specified, or if the user is not authorized.
+   */
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const roles = this.reflector.getAllAndOverride<ROLE[]>(ROLES_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -48,9 +65,7 @@ export class RolesGuard implements CanActivate {
     }
     const systemroles = await this.systemroles.getRoles();
     if (Object.keys(systemroles).length <= 0) {
-      throw new UnauthorizedException(
-        'Please no roles specified contact admin',
-      );
+      throw new UnauthorizedException('No roles specified, contact admin');
     }
     const response = await this.matchRoles(context, systemroles, roles);
     const checkserverrole = this.MatchServerRoles(context);
@@ -58,9 +73,19 @@ export class RolesGuard implements CanActivate {
     if (response || checkserverrole) {
       return true;
     }
-    throw new UnauthorizedException('Your not authorized to view this route');
+    throw new UnauthorizedException(
+      'You are not authorized to view this route',
+    );
   }
 
+  /**
+   * Matches user roles with the required roles for the route.
+   * @param {ExecutionContext} context - The execution context containing request and metadata.
+   * @param {SYSTEM_ROLES} systemroles - The system roles.
+   * @param {ROLE[]} roles - The required roles for the route.
+   * @returns {Promise<boolean>} - A promise that resolves to `true` if the user roles match the required roles, `false` otherwise.
+   * @throws {UnauthorizedException} - If the user is not authorized to view the route.
+   */
   async matchRoles(
     context: ExecutionContext,
     systemroles: SYSTEM_ROLES,
@@ -72,14 +97,21 @@ export class RolesGuard implements CanActivate {
       return Object.values(systemroles).find((val) => val === role);
     });
     if (actualroles.length <= 0) {
-      throw new UnauthorizedException('Your not authorized to view this route');
+      throw new UnauthorizedException(
+        'You are not authorized to view this route',
+      );
     }
     const results = userroles.map((role) => actualroles.includes(role));
     const checkResults = results.find((val) => val === true);
     return checkResults;
   }
 
-  MatchServerRoles(context: ExecutionContext) {
+  /**
+   * Checks if the user's server roles match the route path and method.
+   * @param {ExecutionContext} context - The execution context containing request and metadata.
+   * @returns {boolean} - `true` if the server roles match the route path and method, `false` otherwise.
+   */
+  MatchServerRoles(context: ExecutionContext): boolean {
     const req: Request = context.switchToHttp().getRequest();
     const baseapi = this.configservice.get<string>('baseapi');
     const method = req.method;
@@ -90,18 +122,19 @@ export class RolesGuard implements CanActivate {
         const fullroute = `${baseapi}${role.roleValue}`;
         return fullroute === urlpath && role.method === method;
       });
-      if (!exists) {
-        return false;
-      }
-      return true;
+      return exists ? true : false;
     }
     return false;
   }
 
-  async LogAccessEvent(req: Request) {
+  /**
+   * Logs an access event including user information and the accessed route.
+   * @param {Request} req - The request object containing user and route information.
+   */
+  async LogAccessEvent(req: Request): Promise<void> {
     const urlpath = `${req.baseUrl}${req.route.path}`;
     const usercred = `Name: ${req.user.displayName}, Id: ${req.user.id} `;
-    const accessroute = ` Method: ${req.method}, Route: ${urlpath}`;
+    const accessroute = `Method: ${req.method}, Route: ${urlpath}`;
     await logEvent(usercred + accessroute, 'accesslog.md');
   }
 }

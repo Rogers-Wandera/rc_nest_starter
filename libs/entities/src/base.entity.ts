@@ -1,11 +1,19 @@
+import { applyDecorators } from '@nestjs/common';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
+  PrimaryColumn,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
-export abstract class BaseEntityClass {
+type PrimaryKeyType<T> = T extends string
+  ? typeof PrimaryColumn
+  : typeof PrimaryGeneratedColumn;
+
+export abstract class BaseEntityClass<T extends string | number = number> {
+  abstract id: T;
   @CreateDateColumn({
     type: 'datetime',
   })

@@ -4,7 +4,7 @@ import { EntityModel } from '@bridge/data-bridge/model/entity.model';
 import { EntityDataSource } from '@bridge/data-bridge/model/enity.data.model';
 
 @Injectable()
-export class NotificationService extends EntityModel<Notification> {
+export class NotificationService extends EntityModel<Notification, string> {
   constructor(datasource: EntityDataSource) {
     super(Notification, datasource);
   }

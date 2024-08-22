@@ -4,7 +4,7 @@
   "description": "",
   "author": "",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"libs/**/*.ts\"",
@@ -49,6 +49,7 @@
     "joi-to-swagger": "^6.2.0",
     "mysql2": "^3.11.0",
     "reflect-metadata": "^0.2.0",
+    "rtechnestlibscore": "^0.1.4",
     "rxjs": "^7.8.1",
     "socket.io": "^4.7.5",
     "typeorm": "^0.3.20",

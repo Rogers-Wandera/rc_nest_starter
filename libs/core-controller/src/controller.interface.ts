@@ -1,7 +1,8 @@
 import { EntityModel } from '@bridge/data-bridge/model/entity.model';
+import { BaseEntityClass } from '@entity/entities/base.entity';
 
 export interface ControllerInterface {
-  model: EntityModel<unknown>;
+  model: EntityModel<BaseEntityClass>;
 }
 
 export abstract class IController<T extends EntityModel<any>> {

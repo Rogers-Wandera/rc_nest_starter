@@ -12,11 +12,25 @@ import {
   EnvConfig,
 } from '@toolkit/core-toolkit/config/config';
 
+/**
+ * Service for handling file uploads to Cloudinary.
+ * Implements the `IUpload` interface to provide methods for single and multiple file uploads,
+ * as well as file deletions.
+ *
+ * @class CloudinaryUpload
+ * @implements {IUpload}
+ */
 @Injectable()
 export class CloudinaryUpload implements IUpload {
   private readonly config: ConfigOptions;
   private readonly cloudenv: cloudinaryconfig;
   public options: UploadApiOptions;
+
+  /**
+   * Creates an instance of `CloudinaryUpload`.
+   *
+   * @param {ConfigService<EnvConfig>} configService - Service for accessing configuration values.
+   */
   constructor(private readonly configService: ConfigService<EnvConfig>) {
     this.cloudenv = this.configService.get('cloudinary');
     this.config = {
@@ -28,6 +42,14 @@ export class CloudinaryUpload implements IUpload {
     this.options = {};
     cloudinary.config(this.config);
   }
+
+  /**
+   * Uploads a single file to Cloudinary.
+   *
+   * @param {Express.Multer.File} file - The file to be uploaded
+   * @throws {Error} - Throws an error if the upload fails.
+   * @private
+   */
   private async upload(file: Express.Multer.File) {
     try {
       if (this.options.folder) {
@@ -53,6 +75,11 @@ export class CloudinaryUpload implements IUpload {
     }
   }
 
+  /**
+   * Uploads a single file to Cloudinary.
+   *
+   * @param {Express.Multer.File} file - The file to be uploaded.
+   */
   async singleUpload(file: Express.Multer.File) {
     try {
       const response = await this.upload(file);
@@ -61,6 +88,13 @@ export class CloudinaryUpload implements IUpload {
       throw error;
     }
   }
+
+  /**
+   * Uploads multiple files to Cloudinary.
+   *
+   * @param {Express.Multer.File[]} files - An array of files to be uploaded.
+   * @throws {Error} - Throws an error if any of the uploads fail.
+   */
   async multipleUploads(files: Express.Multer.File[]) {
     try {
       const promises = files.map(async (file) => {
@@ -74,6 +108,13 @@ export class CloudinaryUpload implements IUpload {
     }
   }
 
+  /**
+   * Deletes a file from Cloudinary.
+   *
+   * @param {string} public_id - The public ID of the file to be deleted.
+   * @param {ResourceType} [type='image'] - The type of resource to be deleted (e.g., 'image', 'video').
+   * @throws {Error} - Throws an error if the deletion fails.
+   */
   async deleteUpload(public_id: string, type: ResourceType = 'image') {
     try {
       const response = await cloudinary.uploader.destroy(public_id, {

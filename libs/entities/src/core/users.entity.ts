@@ -5,7 +5,6 @@ import {
   JoinColumn,
   OneToMany,
   PrimaryColumn,
-  Generated,
   ManyToOne,
 } from 'typeorm';
 import { Position } from './positions.entity';
@@ -21,9 +20,8 @@ import { UserGroupMember } from './usergroupmembers.entity';
 import { UserGroupSupervisors } from './usergroupsupervisors.entity';
 
 @Entity({ name: 'users' })
-export class User extends BaseEntityClass {
+export class User extends BaseEntityClass<string> {
   @PrimaryColumn({ nullable: false, type: 'varchar', length: 100 })
-  @Generated('uuid')
   id: string;
   @Column({ nullable: false })
   firstname: string;

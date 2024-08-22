@@ -24,7 +24,7 @@ import {
   ApiGetUnassignedRoles,
   ApiGetUserModules,
   ApiUpdateLinkRole,
-} from '@controller/core-controller/swagger/controllers/core/linkrolescontroller';
+} from '@controller/core-controller/core/auth/linkroles/linkroles.swagger';
 import { LinkRoleService } from '@services/core-services/services/auth/linkroles/linkroles.service';
 import {
   linkrolesSchema,
@@ -33,6 +33,7 @@ import {
 import { AuthGuard } from '@auth/auth-guards/guards/auth.guard';
 import { Roles } from '@auth/auth-guards/decorators/roles.guard';
 import { ROLE } from '@toolkit/core-toolkit/types/enums/enums';
+import { Service } from '@toolkit/core-toolkit/decorators/param.decorator';
 
 @Controller('/core/auth/linkroles')
 @ApiTags('Link Roles (Module Link Roles)')
@@ -48,10 +49,12 @@ export class LinkRoleController extends IController<LinkRoleService> {
     { entity: User, key: 'userId', type: 'body' },
     { entity: ModuleLink, key: 'linkId', type: 'body' },
   ])
-  async Create(@Res() res: Response, @Req() req: Request) {
+  async Create(
+    @Res() res: Response,
+    @Service('modulelink') modulelink: ModuleLink,
+    @Service('user') user: User,
+  ) {
     try {
-      const modulelink: ModuleLink = req.entities['linkId'];
-      const user: User = req.entities['userId'];
       this.model.entity.User = user;
       this.model.entity.ModuleLink = modulelink;
       const response = await this.model.AddLinkroles();
@@ -96,9 +99,9 @@ export class LinkRoleController extends IController<LinkRoleService> {
   @Roles(ROLE.USER)
   @ApiGetUserModules()
   @ValidateService([{ entity: User, key: 'userId' }])
-  async GetUserModules(@Res() res: Response, @Req() req: Request) {
+  async GetUserModules(@Res() res: Response, @Service('user') user: User) {
     try {
-      this.model.entity.User = req.entities['userId'];
+      this.model.entity.User = user;
       const data = await this.model.getUserModules();
       res.status(HttpStatus.OK).json(data);
     } catch (error) {
@@ -110,9 +113,9 @@ export class LinkRoleController extends IController<LinkRoleService> {
   @ApiGetAssignedRoles()
   @Paginate()
   @ValidateService([{ entity: User, key: 'userId' }])
-  async GetAssignedRoles(@Res() res: Response, @Req() req: Request) {
+  async GetAssignedRoles(@Res() res: Response, @Service('user') user: User) {
     try {
-      this.model.entity.User = req.entities['userId'];
+      this.model.entity.User = user;
       const data = await this.model.getAssignedRoles();
       res.status(HttpStatus.OK).json(data);
     } catch (error) {
@@ -123,9 +126,9 @@ export class LinkRoleController extends IController<LinkRoleService> {
   @Get('/user/unassigned/:userId')
   @ApiGetUnassignedRoles()
   @ValidateService([{ entity: User, key: 'userId' }])
-  async GetUnAssignedRoles(@Res() res: Response, @Req() req: Request) {
+  async GetUnAssignedRoles(@Res() res: Response, @Service('user') user: User) {
     try {
-      this.model.entity.User = req.entities['userId'];
+      this.model.entity.User = user;
       const data = await this.model.getToAssignRoles();
       res.status(HttpStatus.OK).json(data);
     } catch (error) {

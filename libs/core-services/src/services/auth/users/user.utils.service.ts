@@ -22,7 +22,7 @@ import { UserService } from './users.service';
 import { lastValueFrom } from 'rxjs';
 
 @Injectable()
-export class UserUtilsService extends EntityModel<User> {
+export class UserUtilsService extends EntityModel<User, string> {
   constructor(
     @Inject(EntityDataSource) source: EntityDataSource,
     @Inject(ConfigService) private configservive: ConfigService<EnvConfig>,

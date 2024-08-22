@@ -21,51 +21,21 @@
     "emitDeclarationOnly": false,
     "esModuleInterop": true,
     "paths": {
-      "@auth/auth-guards": [
-        "libs/auth-guards/src"
-      ],
-      "@auth/auth-guards/*": [
-        "libs/auth-guards/src/*"
-      ],
-      "@bridge/data-bridge": [
-        "libs/data-bridge/src"
-      ],
-      "@bridge/data-bridge/*": [
-        "libs/data-bridge/src/*"
-      ],
-      "@services/core-services": [
-        "libs/core-services/src"
-      ],
-      "@services/core-services/*": [
-        "libs/core-services/src/*"
-      ],
-      "@toolkit/core-toolkit": [
-        "libs/core-toolkit/src"
-      ],
-      "@toolkit/core-toolkit/*": [
-        "libs/core-toolkit/src/*"
-      ],
-      "@controller/core-controller": [
-        "libs/core-controller/src"
-      ],
-      "@controller/core-controller/*": [
-        "libs/core-controller/src/*"
-      ],
-      "@entity/entities": [
-        "libs/entities/src"
-      ],
-      "@entity/entities/*": [
-        "libs/entities/src/*"
-      ],
-      "@bridgeevent/data-bridge-events": [
-        "libs/data-bridge-events/src"
-      ],
-      "@listener/bridge-listeners": [
-        "libs/bridge-listeners/src"
-      ],
-      "@listener/bridge-listeners/*": [
-        "libs/bridge-listeners/src/*"
-      ]
+      "@auth/auth-guards": ["libs/auth-guards/src"],
+      "@auth/auth-guards/*": ["libs/auth-guards/src/*"],
+      "@bridge/data-bridge": ["libs/data-bridge/src"],
+      "@bridge/data-bridge/*": ["libs/data-bridge/src/*"],
+      "@services/core-services": ["libs/core-services/src"],
+      "@services/core-services/*": ["libs/core-services/src/*"],
+      "@toolkit/core-toolkit": ["libs/core-toolkit/src"],
+      "@toolkit/core-toolkit/*": ["libs/core-toolkit/src/*"],
+      "@controller/core-controller": ["libs/core-controller/src"],
+      "@controller/core-controller/*": ["libs/core-controller/src/*"],
+      "@entity/entities": ["libs/entities/src"],
+      "@entity/entities/*": ["libs/entities/src/*"],
+      "@bridgeevent/data-bridge-events": ["libs/data-bridge-events/src"],
+      "@listener/bridge-listeners": ["libs/bridge-listeners/src"],
+      "@listener/bridge-listeners/*": ["libs/bridge-listeners/src/*"]
     }
   }
 }

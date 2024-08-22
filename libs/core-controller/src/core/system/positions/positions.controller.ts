@@ -26,7 +26,7 @@ import {
   ApiDeletePosition,
   ApiGetPositions,
   ApiUpdatePosition,
-} from '@controller/core-controller/swagger/controllers/core/positions';
+} from '@controller/core-controller/core/system/positions/positions.swagger';
 import { AuthGuard } from '@auth/auth-guards/guards/auth.guard';
 import { ROLE } from '@toolkit/core-toolkit/types/enums/enums';
 

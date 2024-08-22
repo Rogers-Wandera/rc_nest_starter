@@ -64,8 +64,9 @@ export class LinkPermissionService extends EntityModel<LinkPermission> {
 
   async ViewPermissions(linkId: number) {
     const pagination = this.transformPaginateProps<LinkPermissionView>();
+    const repository = this.model.getRepository(LinkPermissionView);
     pagination.conditions = { moduleLinkId: linkId };
-    return this.model.findPaginate(LinkPermissionView, pagination);
+    return repository.Paginate(pagination);
   }
 
   async ViewSelectPermissions(linkId: number) {

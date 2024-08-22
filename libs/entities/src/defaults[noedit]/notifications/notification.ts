@@ -14,7 +14,7 @@ import {
 import { NotificationRecipient } from './notificationrecipient';
 
 @Entity({ name: 'notifications' })
-export class Notification extends BaseEntityClass {
+export class Notification extends BaseEntityClass<string> {
   @PrimaryColumn()
   id: string;
   @Column({ type: 'enum', nullable: false, enum: NOTIFICATION_TYPE })

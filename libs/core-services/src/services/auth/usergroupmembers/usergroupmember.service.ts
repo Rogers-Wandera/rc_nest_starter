@@ -10,8 +10,11 @@ export class UserGroupMemberService extends EntityModel<UserGroupMember> {
     super(UserGroupMember, source);
   }
 
-  ViewGroupMember() {
-    return this.model.findPaginate(UserGroupMember, this.pagination);
+  async ViewGroupMember() {
+    this.pagination.conditions = {
+      group: { id: this.entity.group.id },
+    };
+    return this.repository.Paginate(this.pagination);
   }
 
   async AddGroupMember() {

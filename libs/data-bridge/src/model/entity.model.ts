@@ -6,9 +6,13 @@ import { BadGatewayException } from '@nestjs/common';
 import { DataUtils } from '../databuilder/data.util';
 import { Model } from './model';
 import { paginateprops } from '@toolkit/core-toolkit/types/coretypes';
+import { BaseEntityClass } from '@entity/entities/base.entity';
 
 @ModelClass()
-export class EntityModel<T extends ObjectLiteral> extends DataUtils {
+export class EntityModel<
+  T extends BaseEntityClass<R>,
+  R extends string | number = number,
+> extends DataUtils {
   protected model: Model;
   protected repository: CustomRepository<T>;
   public pagination: paginateprops<T>;
@@ -72,5 +76,15 @@ export class EntityModel<T extends ObjectLiteral> extends DataUtils {
     const pagination: paginateprops<R> = this
       .pagination as unknown as paginateprops<R>;
     return pagination;
+  }
+
+  protected PaginateView<R extends ObjectLiteral>(
+    view: EntityTarget<R>,
+    conditions?: FindOptionsWhere<R>,
+  ) {
+    const paginate = this.transformPaginateProps<R>();
+    paginate.conditions = conditions;
+    const repository = this.model.getRepository(view);
+    return repository.Paginate(paginate);
   }
 }

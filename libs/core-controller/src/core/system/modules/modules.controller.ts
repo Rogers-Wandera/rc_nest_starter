@@ -23,7 +23,7 @@ import {
   ApiUpdateModule,
   ApiViewModules,
   ApiViewSelectModules,
-} from '@controller/core-controller/swagger/controllers/core/modulescontroller';
+} from '@controller/core-controller/core/system/modules/modules.swagger';
 import { AuthGuard } from '@auth/auth-guards/guards/auth.guard';
 import { ROLE } from '@toolkit/core-toolkit/types/enums/enums';
 

@@ -22,7 +22,7 @@ import {
   ApiDeleteModuleLink,
   ApiUpdateModuleLink,
   ApiViewModuleLinks,
-} from '@controller/core-controller/swagger/controllers/core/modulelinks';
+} from '@controller/core-controller/core/system/modulelinks/modulelinks.swagger';
 import { AuthGuard } from '@auth/auth-guards/guards/auth.guard';
 import { ROLE } from '@toolkit/core-toolkit/types/enums/enums';
 

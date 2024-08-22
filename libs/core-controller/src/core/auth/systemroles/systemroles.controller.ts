@@ -24,7 +24,7 @@ import {
   GetUnassignedRolesDoc,
   UpdateSystemRolesDoc,
   ViewSystemRolesDoc,
-} from '@controller/core-controller/swagger/controllers/core/systemrolescontroller';
+} from '@controller/core-controller/core/auth/systemroles/systemroles.swagger';
 import { AuthGuard } from '@auth/auth-guards/guards/auth.guard';
 import { ROLE } from '@toolkit/core-toolkit/types/enums/enums';
 

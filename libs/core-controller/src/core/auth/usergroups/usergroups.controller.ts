@@ -15,16 +15,25 @@ import { UserGroupDTO } from './usergroup.dto';
 import { ClassValidator } from '@toolkit/core-toolkit/decorators/classvalidator.decorator';
 import { Paginate } from '@toolkit/core-toolkit/decorators/pagination.decorator';
 import { Permissions } from '@toolkit/core-toolkit/decorators/permissions.decorator';
+import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiCreateUserGroup,
+  ApiRemoveUserGroup,
+  ApiUpdateUserGroup,
+  ApiViewUserGroups,
+} from './usergroup.swagger';
 
 @Controller('/core/auth/usergroups')
 @Permissions({ module: 'User Management', moduleLink: 'User Groups' })
 @AuthGuard(ROLE.ADMIN)
+@ApiTags('User Groups')
 export class UserGroupController extends IController<UserGroupService> {
   constructor(model: UserGroupService) {
     super(model);
   }
 
   @Get()
+  @ApiViewUserGroups()
   @Paginate()
   async View() {
     try {
@@ -35,6 +44,7 @@ export class UserGroupController extends IController<UserGroupService> {
   }
 
   @Post()
+  @ApiCreateUserGroup()
   @ClassValidator({ classDTO: UserGroupDTO })
   async Create(@Body() body: UserGroupDTO) {
     try {
@@ -47,6 +57,7 @@ export class UserGroupController extends IController<UserGroupService> {
 
   @Patch(':id')
   @ClassValidator({ classDTO: UserGroupDTO })
+  @ApiUpdateUserGroup()
   async Update(@Body() body: UserGroupDTO, @Param('id') id: number) {
     try {
       this.model.entity.id = id;
@@ -58,6 +69,7 @@ export class UserGroupController extends IController<UserGroupService> {
   }
 
   @Delete(':id')
+  @ApiRemoveUserGroup()
   async Delete(@Param('id') id: number) {
     try {
       this.model.entity.id = id;

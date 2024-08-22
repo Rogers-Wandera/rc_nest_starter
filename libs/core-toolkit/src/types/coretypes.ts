@@ -3,6 +3,7 @@ import { permissiontype } from '../decorators/permissions.decorator';
 import { ModuleLink } from '@entity/entities/core/modulelinks.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { METHODS } from './enums/enums';
+import { FindOptionsWhere } from 'typeorm';
 
 export type Constructor<T> = new (...args: unknown[]) => T;
 
@@ -18,7 +19,7 @@ export type paginateprops<T> = {
   limit: number;
   page: number;
   sortBy: { id: keyof T; desc?: boolean }[];
-  conditions?: Partial<T> | null;
+  conditions?: FindOptionsWhere<T> | null;
   filters?: { id: keyof T; value: string }[];
   globalFilter?: string | null;
 };
@@ -111,6 +112,8 @@ export interface PaginationResults<T> {
   totalDocs: number;
   totalPages: number;
   page: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
 }
 
 export class PaginateDTO<T> {
@@ -125,6 +128,12 @@ export class PaginateDTO<T> {
 
   @ApiProperty()
   page: number;
+
+  @ApiProperty()
+  hasNextPage: boolean;
+
+  @ApiProperty()
+  hasPrevPage: boolean;
 }
 
 export class paginatepropsDto<T> {
@@ -160,4 +169,24 @@ export type FileUploadType = SingleUploadType | MultipleUploadType;
 export type ClassValidatorType = {
   classDTO: Constructor<any>;
   type?: Paramstype;
+};
+
+export type columntypes =
+  | 'text'
+  | 'autocomplete'
+  | 'checkbox'
+  | 'date'
+  | 'date-range'
+  | 'datetime'
+  | 'datetime-range'
+  | 'multi-select'
+  | 'range'
+  | 'range-slider'
+  | 'select'
+  | 'time'
+  | 'time-range';
+export type ColumnConfigTypes = {
+  name: string;
+  type?: columntypes;
+  visible?: true | false;
 };

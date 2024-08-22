@@ -44,7 +44,7 @@ import { EnvConfig } from '@toolkit/core-toolkit/config/config';
 import { lastValueFrom } from 'rxjs';
 
 @Injectable()
-export class UserService extends EntityModel<User> {
+export class UserService extends EntityModel<User, string> {
   public positionId: number;
   private userviewrepo: CustomRepository<UserDataView>;
   constructor(
