@@ -4,15 +4,12 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
 import { credentials } from './app/config/credentials';
 import { corsOptions } from './app/config/corsoptions';
+import { EnvConfig } from '@core/maincore/coretoolkit/config/config';
 import {
   LoggingMiddleware,
   ServerLogger,
-} from '@toolkit/core-toolkit/middlewares/logger.middleware';
-import { setupSwagger } from '@controller/core-controller/swagger/swagger';
-import { EnvConfig } from '@toolkit/core-toolkit/config/config';
-import { AuthguardsService } from 'rtechnestlibscore';
-const service = new AuthguardsService();
-console.log(service.getHello());
+} from '@core/maincore/coretoolkit/middlewares/logger.middleware';
+import { setupSwagger } from '@core/maincore/corecontroller/swagger/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
