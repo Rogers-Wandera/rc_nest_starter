@@ -36,7 +36,6 @@ export class ServerRouteRoleService extends EntityModel<ServerRouteRole> {
       const response = await this.serverview.findOne({
         where: {
           permissionId: this.entity.rolepermission.id,
-          userId: this.entity.rolepermission.user.id,
           method: this.entity.rolepermission.linkpermission.method,
           roleValue: this.entity.rolepermission.linkpermission.accessRoute,
           isActive: 1,
@@ -63,7 +62,6 @@ export class ServerRouteRoleService extends EntityModel<ServerRouteRole> {
       const response = await this.serverview.findOne({
         where: {
           permissionId: this.entity.rolepermission.id,
-          userId: this.entity.rolepermission.user.id,
           method: this.entity.rolepermission.linkpermission.method,
           roleValue: this.entity.rolepermission.linkpermission.accessRoute,
         },

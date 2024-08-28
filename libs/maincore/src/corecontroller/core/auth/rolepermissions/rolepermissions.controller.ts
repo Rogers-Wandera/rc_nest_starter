@@ -6,12 +6,11 @@ import {
   Param,
   ParseIntPipe,
   Post,
-  Req,
   Res,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { RolePermissionService } from '../../../../coreservices/services/auth/rolepermissions/rolepermission.service';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { ValidateService } from '../../../../coretoolkit/decorators/servicevalidate.decorator';
 import { IController } from '../../../controller.interface';
 import { LinkPermission } from '../../../../entities/core/linkpermissions.entity';
@@ -34,31 +33,24 @@ export class RolePermissionController extends IController<RolePermissionService>
   constructor(model: RolePermissionService) {
     super(model);
   }
-  @Post(':roleId/:permissionId/:userId')
+  @Post(':roleId/:permissionId')
   @ApiCreatePermission()
   @ValidateService([
-    { entity: User, key: 'userId' },
     { entity: LinkRole, key: 'roleId' },
     { entity: LinkPermission, key: 'permissionId' },
   ])
   async Create(
-    @Res() res: Response,
-    @Req() req: Request,
     @Service('linkrole') linkrole: LinkRole,
     @Service('linkpermission') linkpermission: LinkPermission,
-    @Service('user') user: User,
   ) {
     try {
-      this.model.entity.createdBy = req.user.id;
-      this.model.entity.updatedBy = req.user.id;
       this.model.entity.linkrole = linkrole;
-      this.model.entity.user = user;
       this.model.entity.linkpermission = linkpermission;
       const response = await this.model.AddPermission();
       const msg = response
         ? 'Permission added successsfully'
         : 'Something went wrong';
-      res.status(200).json({ msg });
+      return { msg };
     } catch (error) {
       throw error;
     }
@@ -89,8 +81,7 @@ export class RolePermissionController extends IController<RolePermissionService>
     @Service('user') user: User,
   ) {
     try {
-      this.model.entity.user = user;
-      const response = await this.model.ViewRolepermissions(linkId);
+      const response = await this.model.ViewRolepermissions(linkId, user.id);
       res.status(HttpStatus.OK).json(response);
     } catch (error) {
       throw error;

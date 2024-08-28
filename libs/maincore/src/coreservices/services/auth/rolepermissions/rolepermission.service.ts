@@ -6,6 +6,7 @@ import { ServerRouteRoleService } from '../serverrouteroles/serverrouteroles.ser
 import { QueryFailedError } from 'typeorm';
 import { LinkPermissionView } from '../../../../entities/coreviews/linkpermissions.view';
 import { ModuleRolesView } from '../../../../entities/coreviews/moduleroles.view';
+import { RolePermissionsData } from './type';
 
 @Injectable()
 export class RolePermissionService extends EntityModel<RolePermission> {
@@ -16,19 +17,24 @@ export class RolePermissionService extends EntityModel<RolePermission> {
     super(RolePermission, source);
   }
 
-  async ViewRolepermissions(linkId: number) {
+  async ViewRolepermissions(linkId: number, userId: string) {
     try {
-      const result = await this.repository
+      const result: RolePermissionsData[] = await this.repository
         .createQueryBuilder()
         .select('lp.*')
         .addSelect(
           'rp.roleId,rp.id as rpId,mr.userId,CASE WHEN mr.id IS NULL THEN 0 ELSE 1 END AS checked',
         )
+        .addSelect('mr.groupId as groupId, mr.groupName as groupName')
+        .addSelect('mr.memberId as memberId, mr.userName as userName')
+        .addSelect(
+          "CASE WHEN mr.memberId IS NULL THEN 'user' ELSE 'group' END AS permissionType",
+        )
         .from(LinkPermissionView, 'lp')
         .leftJoin(
           RolePermission,
           'rp',
-          'rp.permissionId = lp.id AND rp.isActive = 1 AND rp.userId = :userId',
+          'rp.permissionId = lp.id AND rp.isActive = 1',
         )
         .leftJoin(
           ModuleRolesView,
@@ -36,7 +42,7 @@ export class RolePermissionService extends EntityModel<RolePermission> {
           'mr.id = rp.roleId AND mr.userId = :userId',
         )
         .where('lp.moduleLinkId = :moduleLinkId')
-        .setParameter('userId', this.entity.user.id)
+        .setParameter('userId', userId)
         .setParameter('moduleLinkId', linkId)
         .getRawMany();
       return result;
@@ -46,22 +52,12 @@ export class RolePermissionService extends EntityModel<RolePermission> {
   }
 
   private ValidateSave() {
-    if (this.entity.user.id !== this.entity.linkrole.User.id) {
-      throw new BadRequestException(
-        'Cannot set a role of another user to this user',
-      );
-    }
     if (
       this.entity.linkrole.ModuleLink.id !==
       this.entity.linkpermission.ModuleLink.id
     ) {
       throw new BadRequestException(
-        'The permission does not belong to this link',
-      );
-    }
-    if (!this.entity.linkrole.expireDate) {
-      throw new BadRequestException(
-        'The expiredate cannot be null, please check the date set on the role',
+        'The permission does not belong to this route',
       );
     }
   }
@@ -86,7 +82,6 @@ export class RolePermissionService extends EntityModel<RolePermission> {
       this.ValidateSave();
       const exists = await this.repository.findOne({
         where: {
-          user: { id: this.entity.user.id },
           linkrole: { id: this.entity.linkrole.id },
           linkpermission: { id: this.entity.linkpermission.id },
         },
@@ -94,6 +89,7 @@ export class RolePermissionService extends EntityModel<RolePermission> {
       });
       if (exists) {
         if (exists.isActive === 0 && exists.deletedAt !== null) {
+          this.entity = { ...exists, ...this.entity };
           const response = await this.HandleDeleted(exists.id);
           return response;
         }
@@ -101,7 +97,6 @@ export class RolePermissionService extends EntityModel<RolePermission> {
       this.serverroute.entity.roleName = this.entity.linkpermission.accessName;
       this.serverroute.entity.roleValue =
         this.entity.linkpermission.accessRoute;
-      this.serverroute.entity.user = this.entity.user;
       this.serverroute.entity.description =
         this.entity.linkpermission.description;
       this.serverroute.entity.expireTime = this.entity.linkrole.expireDate;
@@ -117,8 +112,9 @@ export class RolePermissionService extends EntityModel<RolePermission> {
     } catch (error) {
       if (error instanceof QueryFailedError) {
         if (error.message.includes('UQ_ROLE')) {
+          const isgroup = this.entity.linkrole?.group ? 'group' : 'user';
           throw new BadRequestException(
-            `The permission already exists on this user`,
+            `The permission already exists on this ${isgroup}`,
           );
         }
       }

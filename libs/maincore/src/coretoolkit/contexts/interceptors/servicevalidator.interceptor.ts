@@ -16,6 +16,7 @@ import {
 import { Request } from 'express';
 import { ControllerInterface } from '../../../corecontroller/controller.interface';
 import { BaseEntityClass } from '../../../entities/base.entity';
+import { EntityTarget } from 'typeorm';
 
 @Injectable({ scope: Scope.REQUEST })
 export class ServiceValidator implements NestInterceptor {
@@ -33,25 +34,23 @@ export class ServiceValidator implements NestInterceptor {
       const entity: BaseEntityClass = this.parentClass.model.entity;
       const parentClassName = entity.constructor.name;
       const request: Request = context.switchToHttp().getRequest();
-      if (Array.isArray(services)) {
-        const promises = services.map(async (service) => {
-          await this.ValidateService(
-            service,
-            request,
-            parentClassName,
-            entityobj,
-          );
-        });
-        await Promise.all(promises);
-      } else {
+      const validations = Array.isArray(services) ? services : [services];
+      for (const service of validations) {
         await this.ValidateService(
-          services,
+          service,
           request,
           parentClassName,
           entityobj,
+          context,
         );
       }
       request.entities = entityobj;
+      if (request.user) {
+        if (this.parentClass) {
+          this.parentClass.model.entity['createdBy'] = request.user.id;
+          this.parentClass.model.entity['updatedBy'] = request.user.id;
+        }
+      }
     }
     return next.handle();
   }
@@ -61,11 +60,13 @@ export class ServiceValidator implements NestInterceptor {
     request: Request,
     parentClassName: string,
     entityobj: { [key: string]: any },
+    context: ExecutionContext,
   ) {
     const type = service.type || 'params';
-    const name = service.name || 'Record';
+
     const field = service.field || 'id';
-    let key = service?.key;
+    let key =
+      typeof service.key === 'function' ? service.key(context) : service.key;
     if (Object.keys(request[type]).length <= 0) {
       throw new BadRequestException(`No data found in request [${type}]`);
     }
@@ -77,7 +78,12 @@ export class ServiceValidator implements NestInterceptor {
         `Service validator could not find the key specified [${key}]`,
       );
     }
-    const repository = this.source.getRepository(service.entity);
+    const entitytarget = this.isEntityFunction(service.entity)
+      ? service.entity(context)
+      : service.entity;
+    const repository = this.source.getRepository(entitytarget);
+    const classname = repository.metadata.name;
+    const name = service.name || classname.toLowerCase();
     const exists = await repository.findOne({
       where: { [field]: request[type][key] },
     });
@@ -86,13 +92,18 @@ export class ServiceValidator implements NestInterceptor {
         `No ${name} found with ${key} of ${request[type][key]}`,
       );
     }
-    const classname = repository.metadata.name;
+
     if (classname === parentClassName) {
       this.parentClass.model.entity = exists;
       entityobj[classname.toLowerCase()] = exists;
     } else {
-      // entityobj[key] = exists;
       entityobj[classname.toLowerCase()] = exists;
     }
+  }
+
+  private isEntityFunction<T>(
+    entity: EntityTarget<T> | ((context: ExecutionContext) => EntityTarget<T>),
+  ): entity is (context: ExecutionContext) => EntityTarget<T> {
+    return typeof entity === 'function' && entity.length === 1;
   }
 }

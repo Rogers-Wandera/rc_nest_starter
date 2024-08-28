@@ -5,6 +5,9 @@ import { audioRegex, filesRegex, imageRegex, videoRegex } from './regex/regex';
 
 @Injectable()
 export class CoreToolkitService extends DataUtils {
+  capitalizeWord(string: string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
   checktype(file: Express.Multer.File, check: FileUploadType) {
     let checker = false;
     let message = '';

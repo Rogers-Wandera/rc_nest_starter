@@ -1,4 +1,4 @@
-import { SetMetadata } from '@nestjs/common';
+import { ExecutionContext, SetMetadata } from '@nestjs/common';
 import { EntityTarget } from 'typeorm';
 import { Paramstype } from '../types/coretypes';
 import { BaseEntityClass } from '../../entities/base.entity';
@@ -20,8 +20,8 @@ export type servicevalidate<
   T extends BaseEntityClass<R>,
   R extends number | string = number,
 > = {
-  entity: EntityTarget<T>;
-  key?: string;
+  entity: EntityTarget<T> | ((context: ExecutionContext) => EntityTarget<T>);
+  key?: string | ((context: ExecutionContext) => string);
   type?: Paramstype;
   field?: string;
   name?: string;
@@ -33,5 +33,6 @@ export type servicevalidate<
  *
  * @param {servicevalidate<unknown>[]} data - An array of service validation configurations.
  */
-export const ValidateService = (data: servicevalidate<BaseEntityClass>[]) =>
-  SetMetadata(VALIDATE_SERVICE, data);
+export const ValidateService = (
+  data: servicevalidate<BaseEntityClass>[] | servicevalidate<BaseEntityClass>,
+) => SetMetadata(VALIDATE_SERVICE, data);

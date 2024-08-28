@@ -1,9 +1,10 @@
 import { ViewColumn, ViewEntity } from 'typeorm';
 import { ServerRouteMethod } from '../core/serverroutemethods.entity';
 import { ServerRouteRole } from '../core/serverrouteroles.entity';
-import { User } from '../core/users.entity';
 import { BaseEntityView } from '../baseview';
 import { METHODS } from '../../coretoolkit/types/enums/enums';
+import { ModuleRolesView } from './moduleroles.view';
+import { RolePermission } from '../core/rolepermissions.entity';
 
 @ViewEntity({
   name: 'vw_serverroles',
@@ -17,16 +18,18 @@ import { METHODS } from '../../coretoolkit/types/enums/enums';
         'srr.roleName as roleName, srr.roleValue as roleValue, srr.description as description',
       )
       .addSelect(
-        'srr.expireTime as expireTime, srr.userId as userId, srr.isActive as srrActive, srr.permissionId',
+        'srr.expireTime as expireTime, srr.isActive as srrActive, srr.permissionId',
       )
-      .addSelect("CONCAT(`u`.`firstname`, ' ', `u`.`lastname`) AS `userName`")
+      .addSelect('mrv.userName AS `userName`')
+      .addSelect('mrv.userId as userId, mrv.groupId as groupId')
+      .addSelect('mrv.memberId as memberId, mrv.groupName as groupName')
       .addSelect(
         'CASE WHEN (CAST(srr.expireTime AS DATE) <= CURDATE()) THEN 1 ELSE 0 END AS expired',
       )
       .addSelect('TO_DAYS(srr.expireTime) - TO_DAYS(CURDATE()) AS days_left')
       .innerJoin(ServerRouteRole, 'srr', 'srr.id = srm.serverRouteId')
-      .withDeleted()
-      .innerJoin(User, 'u', 'u.id = srr.userId')
+      .innerJoin(RolePermission, 'lpv', 'lpv.id = srr.permissionId')
+      .innerJoin(ModuleRolesView, 'mrv', 'mrv.id = lpv.roleId')
       .withDeleted(),
 })
 export class ServerRolesView extends BaseEntityView {
@@ -47,7 +50,7 @@ export class ServerRolesView extends BaseEntityView {
   @ViewColumn()
   srrActive: number;
   @ViewColumn()
-  expired: number;
+  expired: number | null;
   @ViewColumn()
   days_left: number | null;
   @ViewColumn()
@@ -56,4 +59,10 @@ export class ServerRolesView extends BaseEntityView {
   method: METHODS;
   @ViewColumn()
   serverRouteId: number;
+  @ViewColumn()
+  groupId: string;
+  @ViewColumn()
+  memberId: string;
+  @ViewColumn()
+  groupName: string;
 }

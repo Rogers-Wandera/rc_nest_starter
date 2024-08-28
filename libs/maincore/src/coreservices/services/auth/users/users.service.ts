@@ -24,7 +24,6 @@ import { UserDataView } from '../../../../entities/coreviews/userdata.view';
 import { UserRolesView } from '../../../../entities/coreviews/userroles.view';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
-import { ServerRolesView } from '../../../../entities/coreviews/serverroute.view';
 import { RabbitMQService } from '../../../../coretoolkit/micro/microservices/rabbitmq.service';
 import { NotifyTypes } from '../../../../coretoolkit/types/notification/notify.types';
 import { CustomRepository } from '../../../../databridge/ormextender/customrepository';
@@ -144,26 +143,6 @@ export class UserService extends EntityModel<User, string> {
     return `An email with verification link has been sent, please note it may take 1-2 minutes for the email to reach`;
   }
 
-  private async GetServerRoles(user: UserDataView): Promise<ServerRolesType[]> {
-    const serveraccess = await this.model
-      .getRepository(ServerRolesView)
-      .find({ where: { userId: user.id, expired: 0 } });
-    if (serveraccess.length > 0) {
-      const res: ServerRolesType[] = serveraccess.map((data) => {
-        return {
-          roleName: data.roleName,
-          roleValue: data.roleValue,
-          expired: data.expired,
-          days_left: data.days_left,
-          userId: data.userId,
-          method: data.method,
-        };
-      });
-      return res;
-    }
-    return [];
-  }
-
   async UserLogin() {
     const { email, password } = this.entity;
     const { manager } = this.model;
@@ -193,7 +172,6 @@ export class UserService extends EntityModel<User, string> {
       { id: user.id },
       { lastloginDate, updatedBy: user.id },
     );
-    const serverroles = await this.GetServerRoles(user);
     const accessToken: string = await this.createAccessToken(user, roles);
     const refreshToken: string = await this.createRefreshToken(user, roles);
     this.refreshtoken.entity.token = refreshToken;

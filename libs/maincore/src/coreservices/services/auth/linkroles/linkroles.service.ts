@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CustomRepository } from '../../../../databridge/ormextender/customrepository';
 import { LinkRole } from '../../../../entities/core/linkroles.entity';
 import { ModuleRolesView } from '../../../../entities/coreviews/moduleroles.view';
-import { QueryFailedError } from 'typeorm';
+import { IsNull, Not, QueryFailedError } from 'typeorm';
 import { ModuleLinksView } from '../../../../entities/coreviews/modulelinks.view';
 import { EntityModel } from '../../../../databridge/model/entity.model';
 import { EntityDataSource } from '../../../../databridge/model/enity.data.model';
@@ -16,12 +16,36 @@ export class LinkRoleService extends EntityModel<LinkRole> {
     this.rolesrepo = this.model.getRepository(ModuleRolesView);
   }
 
-  async AddLinkroles() {
+  private async checkUserHasRole() {
+    const repository = this.model.manager.getRepository(ModuleRolesView);
+    const roleexists = await repository.findOne({
+      where: {
+        userId: this.entity.User.id,
+        moduleLinkId: this.entity.ModuleLink.id,
+        groupId: Not(IsNull()),
+      },
+    });
+    if (roleexists) {
+      throw new BadRequestException(
+        `The role has already been set for this user in the ${roleexists.groupName} group`,
+      );
+    }
+    return false;
+  }
+
+  async AddLinkroles(type: 'group' | 'user' = 'user') {
     try {
+      const condition =
+        type === 'user'
+          ? { User: { id: this.entity.User.id } }
+          : { group: { id: this.entity.group.id } };
+      if (type === 'user') {
+        await this.checkUserHasRole();
+      }
       const exists = await this.repository.findOne({
         where: {
           ModuleLink: { id: this.entity.ModuleLink.id },
-          User: { id: this.entity.User.id },
+          ...condition,
         },
         withDeleted: true,
       });
@@ -38,11 +62,16 @@ export class LinkRoleService extends EntityModel<LinkRole> {
       }
       const results = await this.repository.save(this.entity);
       return results.id > 0;
+      // return true;
     } catch (error) {
       if (error instanceof QueryFailedError) {
         if (error.message.includes('UQ_Role_User')) {
           throw new BadRequestException(
             `The ${this.entity.ModuleLink.linkname} role already exists on this user`,
+          );
+        } else if (error.message.includes('UQ_Role_Group')) {
+          throw new BadRequestException(
+            `The ${this.entity.ModuleLink.linkname} role already exists on this group`,
           );
         }
       }

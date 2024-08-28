@@ -1,3 +1,4 @@
+import { LinkRoleDTO } from '@core/maincore/coreservices/services/auth/linkroles/linkroles.schema';
 import { applyDecorators } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -6,8 +7,6 @@ import {
   ApiParam,
   ApiBody,
 } from '@nestjs/swagger';
-import j2s from 'joi-to-swagger';
-import { linkrolesSchema } from '../../../../coreservices/services/auth/linkroles/linkroles.schema';
 
 export function ApiCreateLinkRole() {
   return applyDecorators(
@@ -15,7 +14,7 @@ export function ApiCreateLinkRole() {
     ApiResponse({ status: 200, description: 'Role added successfully' }),
     ApiResponse({ status: 400, description: 'Bad Request' }),
     ApiBearerAuth(),
-    ApiBody({ schema: j2s(linkrolesSchema).swagger }),
+    ApiBody({ type: LinkRoleDTO }),
   );
 }
 
@@ -36,7 +35,7 @@ export function ApiUpdateLinkRole() {
     ApiResponse({ status: 400, description: 'Bad Request' }),
     ApiBearerAuth(),
     ApiParam({ name: 'id', description: 'Link Role ID' }),
-    ApiBody({ schema: j2s(linkrolesSchema).swagger }),
+    ApiBody({ type: LinkRoleDTO }),
   );
 }
 

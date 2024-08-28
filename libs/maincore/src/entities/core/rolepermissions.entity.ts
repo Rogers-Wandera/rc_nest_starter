@@ -7,7 +7,6 @@ import {
   Unique,
 } from 'typeorm';
 import { BaseEntityClass } from '../base.entity';
-import { User } from './users.entity';
 import { LinkPermission } from './linkpermissions.entity';
 import { LinkRole } from './linkroles.entity';
 import { ServerRouteRole } from './serverrouteroles.entity';
@@ -15,16 +14,10 @@ import { ServerRouteRole } from './serverrouteroles.entity';
 @Entity({
   name: 'rolepermissions',
 })
-@Unique('UQ_ROLE', ['user', 'linkpermission', 'linkrole'])
+@Unique('UQ_ROLE', ['linkpermission', 'linkrole'])
 export class RolePermission extends BaseEntityClass {
   @PrimaryGeneratedColumn()
   id: number;
-  @ManyToOne(() => User, (user) => user.rolepermissions, {
-    eager: true,
-    nullable: false,
-  })
-  @JoinColumn({ name: 'userId' })
-  user: User;
   @ManyToOne(() => LinkPermission, (link) => link.rolepermissions, {
     nullable: false,
     eager: true,

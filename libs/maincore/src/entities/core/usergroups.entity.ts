@@ -9,6 +9,7 @@ import { BaseEntityClass } from '../base.entity';
 import { UserGroupStatus } from '../../coretoolkit/types/enums/enums';
 import { UserGroupMember } from './usergroupmembers.entity';
 import { UserGroupSupervisors } from './usergroupsupervisors.entity';
+import { LinkRole } from './linkroles.entity';
 
 @Entity({ name: 'usergroups' })
 @Unique('UQ_GROUPNAME', ['groupName'])
@@ -30,4 +31,6 @@ export class UserGroup extends BaseEntityClass {
   members: UserGroupMember[];
   @OneToMany(() => UserGroupSupervisors, (supervisor) => supervisor.group)
   supervisor: UserGroupSupervisors[];
+  @OneToMany(() => LinkRole, (role) => role.group)
+  roles: LinkRole[];
 }

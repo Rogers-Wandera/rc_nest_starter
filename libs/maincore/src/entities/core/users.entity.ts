@@ -14,8 +14,6 @@ import { BaseEntityClass } from '../base.entity';
 import { RefreshToken } from './refreshtokens.entity';
 import { UserProfileImage } from './userprofileimages.entity';
 import { LinkRole } from './linkroles.entity';
-import { RolePermission } from './rolepermissions.entity';
-import { ServerRouteRole } from './serverrouteroles.entity';
 import { UserGroupMember } from './usergroupmembers.entity';
 import { UserGroupSupervisors } from './usergroupsupervisors.entity';
 
@@ -61,10 +59,6 @@ export class User extends BaseEntityClass<string> {
   image: UserProfileImage;
   @OneToMany(() => LinkRole, (linkrole) => linkrole.User)
   LinkRoles: LinkRole[];
-  @OneToMany(() => RolePermission, (role) => role.user)
-  rolepermissions: RolePermission[];
-  @OneToMany(() => ServerRouteRole, (role) => role.user)
-  serverrouteroles: ServerRouteRole[];
   @OneToMany(() => UserGroupMember, (group) => group.user)
   usergroups: UserGroupMember[];
   @OneToMany(() => UserGroupSupervisors, (group) => group.user)

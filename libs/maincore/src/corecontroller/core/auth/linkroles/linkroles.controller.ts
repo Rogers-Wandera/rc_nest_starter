@@ -1,14 +1,17 @@
 import {
+  Body,
   Controller,
   Delete,
+  ExecutionContext,
   Get,
   HttpStatus,
   Patch,
   Post,
+  Req,
   Res,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { Paginate } from '../../../../coretoolkit/decorators/pagination.decorator';
 import { Schemas } from '../../../../coretoolkit/decorators/schema.decorator';
 import { ValidateService } from '../../../../coretoolkit/decorators/servicevalidate.decorator';
@@ -25,14 +28,31 @@ import {
   ApiUpdateLinkRole,
 } from '../../../core/auth/linkroles/linkroles.swagger';
 import { LinkRoleService } from '../../../../coreservices/services/auth/linkroles/linkroles.service';
-import {
-  linkrolesSchema,
-  updatelinkSchema,
-} from '../../../../coreservices/services/auth/linkroles/linkroles.schema';
+import { LinkRoleDTO } from '../../../../coreservices/services/auth/linkroles/linkroles.schema';
 import { AuthGuard } from '../../../../authguards/guards/auth.guard';
 import { Roles } from '../../../../authguards/decorators/roles.guard';
 import { ROLE } from '../../../../coretoolkit/types/enums/enums';
 import { Service } from '../../../../coretoolkit/decorators/param.decorator';
+import { ClassValidator } from '@core/maincore/coretoolkit/decorators/classvalidator.decorator';
+import { UserGroup } from '@core/maincore/entities/core/usergroups.entity';
+
+const ServiceToValidate = (ctx: ExecutionContext) => {
+  const request: Request = ctx.switchToHttp().getRequest();
+  const body: LinkRoleDTO = request.body;
+  if (body.groupId) {
+    return UserGroup;
+  }
+  return User;
+};
+
+const key = (ctx: ExecutionContext) => {
+  const request: Request = ctx.switchToHttp().getRequest();
+  const body: LinkRoleDTO = request.body;
+  if (body.groupId) {
+    return 'groupId';
+  }
+  return 'userId';
+};
 
 @Controller('/core/auth/linkroles')
 @ApiTags('Link Roles (Module Link Roles)')
@@ -41,24 +61,30 @@ export class LinkRoleController extends IController<LinkRoleService> {
   constructor(model: LinkRoleService) {
     super(model);
   }
-  @Post()
+  @Post(':linkId')
   @ApiCreateLinkRole()
-  @Schemas({ type: 'body', schemas: [linkrolesSchema] })
   @ValidateService([
-    { entity: User, key: 'userId', type: 'body' },
-    { entity: ModuleLink, key: 'linkId', type: 'body' },
+    { entity: ModuleLink },
+    { entity: ServiceToValidate, type: 'body', key: key },
   ])
+  @ClassValidator({ classDTO: LinkRoleDTO })
   async Create(
-    @Res() res: Response,
+    @Req() req: Request,
     @Service('modulelink') modulelink: ModuleLink,
-    @Service('user') user: User,
   ) {
     try {
-      this.model.entity.User = user;
+      const body = req.body as LinkRoleDTO;
+      const toassign = body.userId ? 'user' : 'group';
+      if (body.groupId) {
+        this.model.entity.group = req.entities['usergroup'] as UserGroup;
+      } else {
+        this.model.entity.User = req.entities['user'] as User;
+      }
+      this.model.entity.expireDate = body.expireDate;
       this.model.entity.ModuleLink = modulelink;
-      const response = await this.model.AddLinkroles();
+      const response = await this.model.AddLinkroles(toassign);
       const msg = response ? 'Role added successfully' : 'Something went wrong';
-      res.status(HttpStatus.OK).json({ msg });
+      return { msg };
     } catch (error) {
       throw error;
     }
@@ -67,13 +93,13 @@ export class LinkRoleController extends IController<LinkRoleService> {
   @Delete(':id')
   @ApiDeleteLinkRole()
   @ValidateService([{ entity: LinkRole, key: 'id' }])
-  async Delete(@Res() res: Response) {
+  async Delete() {
     try {
       const response = await this.model.DeleteLinkRole();
       const msg = response
         ? 'Role removed successfully'
         : 'Something went wrong';
-      res.status(HttpStatus.OK).json({ msg });
+      return { msg };
     } catch (error) {
       throw error;
     }
@@ -81,14 +107,15 @@ export class LinkRoleController extends IController<LinkRoleService> {
   @Patch(':id')
   @ApiUpdateLinkRole()
   @ValidateService([{ entity: LinkRole, key: 'id' }])
-  @Schemas({ type: 'body', schemas: [updatelinkSchema] })
-  async Update(@Res() res: Response) {
+  @ClassValidator({ classDTO: LinkRoleDTO })
+  async Update(@Body() body: LinkRoleDTO) {
     try {
+      this.model.entity.expireDate = body.expireDate;
       const response = await this.model.UpdateLinkRole();
       const msg = response
         ? 'Role updated successfully'
         : 'Something went wrong';
-      res.status(HttpStatus.OK).json({ msg });
+      return { msg };
     } catch (error) {
       throw error;
     }

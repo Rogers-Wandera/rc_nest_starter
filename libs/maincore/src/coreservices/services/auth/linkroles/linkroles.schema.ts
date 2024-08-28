@@ -1,42 +1,68 @@
-import Joi from 'joi';
-import JoiDate from '@joi/date';
+import {
+  IsDateString,
+  IsNotEmpty,
+  IsOptional,
+  Validate,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+  ValidationArguments,
+  Matches,
+} from 'class-validator';
+import { format, isBefore, isEqual } from 'date-fns';
 
-const joi = Joi.extend(JoiDate);
+@ValidatorConstraint({ name: 'eitherUserIdOrGroupId', async: false })
+class EitherUserIdOrGroupIdConstraint implements ValidatorConstraintInterface {
+  validate(_: any, args: ValidationArguments) {
+    const object = args.object as any;
+    const hasUserId = !!object.userId;
+    const hasGroupId = !!object.groupId;
 
-export const linkrolesSchema = joi.object({
-  linkId: joi.number().required().messages({
-    'any.required': 'linkId is required',
-    'number.base': 'linkId must be a number',
-  }),
-  userId: joi.string().min(3).max(200).required().messages({
-    'any.required': 'userId is required',
-    'string.empty': 'userId cannot be empty',
-    'string.max': 'userId must be at most {#limit} characters',
-    'string.min': 'userId must be at least {#limit} characters',
-  }),
-  expireDate: joi
-    .date()
-    .required()
-    .format('YYYY-MM-DD HH:mm')
-    .min('now')
-    .allow(null)
-    .messages({
-      'date.format': 'Expire Date must be in format YYYY-MM-DD HH:mm',
-      'date.base': 'Expire Date must be a valid date',
-      'date.min': 'Expire Date must be greater than or equal to now',
-    }),
-});
+    if (!hasUserId && !hasGroupId) {
+      return true;
+    }
 
-export const updatelinkSchema = joi.object({
-  expireDate: joi
-    .date()
-    .required()
-    .format('YYYY-MM-DD HH:mm')
-    .min('now')
-    .allow(null)
-    .messages({
-      'date.format': 'Expire Date must be in format YYYY-MM-DD HH:mm',
-      'date.base': 'Expire Date must be a valid date',
-      'date.min': 'Expire Date must be greater than or equal to now',
-    }),
-});
+    // Ensure that either userId or groupId is provided, but not both.
+    return (hasUserId || hasGroupId) && !(hasUserId && hasGroupId);
+  }
+
+  defaultMessage(args: ValidationArguments) {
+    return 'Either userId or groupId must be provided, but not both.';
+  }
+}
+
+@ValidatorConstraint({ name: 'validateDate', async: false })
+class ValidateDate implements ValidatorConstraintInterface {
+  validate(_: any, args: ValidationArguments) {
+    const object = args.object as LinkRoleDTO;
+    const date = object.expireDate;
+    const isLessThanNow = isBefore(date, new Date());
+    const isNow = isEqual(date, new Date());
+    return !isLessThanNow && !isNow;
+  }
+
+  defaultMessage(args: ValidationArguments) {
+    return `Expire date must be greater than ${format(new Date(), 'yyyy-MM-dd HH:mm')}`;
+  }
+}
+
+export class LinkRoleDTO {
+  @IsOptional()
+  @IsNotEmpty({ message: 'userId cannot be empty' })
+  userId: string;
+
+  @IsOptional()
+  @IsNotEmpty({ message: 'groupId cannot be empty' })
+  groupId: string;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsDateString()
+  @Matches(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(:\d{2})?$/, {
+    message: 'Expire date must be in the format YYYY-MM-DD HH:MM:SS',
+  })
+  expireDate: Date | null;
+  @Validate(EitherUserIdOrGroupIdConstraint)
+  validateEitherUserIdOrGroupId: boolean;
+  @Validate(ValidateDate)
+  validatedate: boolean;
+}
