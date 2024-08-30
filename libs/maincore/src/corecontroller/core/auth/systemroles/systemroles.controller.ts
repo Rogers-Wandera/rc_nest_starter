@@ -27,6 +27,7 @@ import {
 } from '../../../../corecontroller/core/auth/systemroles/systemroles.swagger';
 import { AuthGuard } from '../../../../authguards/guards/auth.guard';
 import { ROLE } from '../../../../coretoolkit/types/enums/enums';
+import { Only } from '@core/maincore/authguards/decorators/only.guard';
 
 @Controller('/core/auth/roles')
 @ApiTags('System Roles')
@@ -37,6 +38,7 @@ export class SystemRolesController extends IController<SystemRolesService> {
     super(model);
   }
   @Get('/')
+  @Only(ROLE.PROGRAMMER, ROLE.ADMIN)
   @ViewSystemRolesDoc()
   @Paginate()
   async ViewSystemRoles(@Res() res: Response) {
@@ -49,6 +51,7 @@ export class SystemRolesController extends IController<SystemRolesService> {
   }
 
   @Post()
+  @Only(ROLE.PROGRAMMER)
   @AddSystemRolesDoc()
   @Schemas({ schemas: [SystemRolesSchema], type: 'body' })
   async AddSystemRoles(@Res() res: Response) {
@@ -64,6 +67,7 @@ export class SystemRolesController extends IController<SystemRolesService> {
   }
 
   @Patch(':roleId')
+  @Only(ROLE.PROGRAMMER)
   @UpdateSystemRolesDoc()
   @Schemas({ schemas: [SystemRolesSchema], type: 'body' })
   async UpdateSysyemRoles(
@@ -84,6 +88,7 @@ export class SystemRolesController extends IController<SystemRolesService> {
   }
 
   @Delete(':roleId')
+  @Only(ROLE.PROGRAMMER)
   @DeleteSystemRoleDoc()
   async DeleteSystemRole(
     @Res() res: Response,

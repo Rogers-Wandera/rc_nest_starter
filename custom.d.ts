@@ -1,4 +1,4 @@
-import { reqUser } from '@toolkit/core-toolkit/types/coretypes';
+import { reqUser } from '@core/maincore/coretoolkit/types/coretypes';
 import { EntityTarget, ObjectLiteral } from 'typeorm';
 
 declare global {

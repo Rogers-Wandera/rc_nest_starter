@@ -25,6 +25,7 @@ import {
 } from '../../../core/system/modulelinks/modulelinks.swagger';
 import { AuthGuard } from '../../../../authguards/guards/auth.guard';
 import { ROLE } from '../../../../coretoolkit/types/enums/enums';
+import { Only } from '@core/maincore/authguards/decorators/only.guard';
 
 @Controller('/core/system/modulelinks')
 @ApiTags('Module Links')
@@ -39,6 +40,7 @@ export class ModuleLinksController extends IController<ModuleLinksService> {
     super(model);
   }
   @Post(':moduleId')
+  @Only(ROLE.PROGRAMMER)
   @ApiCreateModuleLink()
   @Schemas({ type: 'body', schemas: [modulelinksschema] })
   async Create(
@@ -73,6 +75,7 @@ export class ModuleLinksController extends IController<ModuleLinksService> {
   }
 
   @Delete(':linkId')
+  @Only(ROLE.PROGRAMMER)
   @ApiDeleteModuleLink()
   async Delete(
     @Res() res: Response,

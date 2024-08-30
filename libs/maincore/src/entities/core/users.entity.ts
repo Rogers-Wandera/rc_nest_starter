@@ -49,9 +49,9 @@ export class User extends BaseEntityClass<string> {
   position: Position;
   @Column({ nullable: false, default: 0 })
   online: number;
-  @OneToMany(() => Role, (role) => role.user)
+  @OneToMany(() => Role, (role) => role.user, { eager: true })
   roles: Role[];
-  @OneToMany(() => Token, (token) => token.user)
+  @OneToMany(() => Token, (token) => token.user, { eager: true })
   tokens: Token[];
   @OneToOne(() => RefreshToken, (token) => token.user)
   refreshtoken: RefreshToken;

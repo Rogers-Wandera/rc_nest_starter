@@ -31,6 +31,7 @@ import {
   EmailTemplates,
   NOTIFICATION_PATTERN,
   PRIORITY_TYPES,
+  ROLE,
   TOKEN_TYPES,
 } from '../../../../coretoolkit/types/enums/enums';
 import {
@@ -240,6 +241,16 @@ export class UserService extends EntityModel<User, string> {
       }
       if (!user) {
         throw new ForbiddenException(`No user found`);
+      }
+
+      if (user.id === this.request.user.id) {
+        const registeredroles = this.request.user.roles;
+        const checkhasrole = registeredroles.includes(ROLE.MAIN);
+        if (!checkhasrole) {
+          throw new ForbiddenException(
+            `You cannot add roles to yourself, contact main admin`,
+          );
+        }
       }
       this.roles.entity.systemRole = role;
       this.roles.entity.user = user;

@@ -26,6 +26,7 @@ import {
 } from '../../../core/system/modules/modules.swagger';
 import { AuthGuard } from '../../../../authguards/guards/auth.guard';
 import { ROLE } from '../../../../coretoolkit/types/enums/enums';
+import { Only } from '@core/maincore/authguards/decorators/only.guard';
 
 @Controller('/core/system/modules')
 @ApiTags('Modules')
@@ -40,6 +41,7 @@ export class ModulesController extends IController<ModuleService> {
     super(model);
   }
   @Post()
+  @Only(ROLE.PROGRAMMER)
   @ApiCreateModule()
   @Schemas({ type: 'body', schemas: [ModulesSchema] })
   async Create(@Res() res: Response) {
@@ -94,6 +96,7 @@ export class ModulesController extends IController<ModuleService> {
   }
 
   @Delete('/:moduleId')
+  @Only(ROLE.PROGRAMMER)
   @ApiDeleteModule()
   async Delete(
     @Res() res: Response,

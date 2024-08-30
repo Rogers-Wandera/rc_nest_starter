@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { CustomRepository } from '../../../../databridge/ormextender/customrepository';
 import { LinkRole } from '../../../../entities/core/linkroles.entity';
 import { ModuleRolesView } from '../../../../entities/coreviews/moduleroles.view';
@@ -7,11 +12,17 @@ import { ModuleLinksView } from '../../../../entities/coreviews/modulelinks.view
 import { EntityModel } from '../../../../databridge/model/entity.model';
 import { EntityDataSource } from '../../../../databridge/model/enity.data.model';
 import { UserModuleRes } from '../../../../coretoolkit/types/coretypes';
+import { REQUEST } from '@nestjs/core';
+import { Request } from 'express';
+import { ROLE } from '@core/maincore/coretoolkit/types/enums/enums';
 
 @Injectable()
 export class LinkRoleService extends EntityModel<LinkRole> {
   private readonly rolesrepo: CustomRepository<ModuleRolesView>;
-  constructor(source: EntityDataSource) {
+  constructor(
+    source: EntityDataSource,
+    @Inject(REQUEST) protected request: Request,
+  ) {
     super(LinkRole, source);
     this.rolesrepo = this.model.getRepository(ModuleRolesView);
   }
@@ -49,6 +60,17 @@ export class LinkRoleService extends EntityModel<LinkRole> {
         },
         withDeleted: true,
       });
+      if (type === 'user') {
+        if (this.entity.User.id === this.request.user.id) {
+          const registeredroles = this.request.user.roles;
+          const checkhasrole = registeredroles.includes(ROLE.MAIN);
+          if (!checkhasrole) {
+            throw new ForbiddenException(
+              `You cannot add roles to yourself, contact main admin`,
+            );
+          }
+        }
+      }
       if (exists) {
         if (exists.isActive === 0 && exists.deletedAt !== null) {
           const response = await this.repository.restoreDelete(

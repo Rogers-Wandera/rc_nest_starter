@@ -30,6 +30,7 @@ import {
 import { AuthGuard } from '../../../../authguards/guards/auth.guard';
 import { ROLE } from '../../../../coretoolkit/types/enums/enums';
 import { Service } from '../../../../coretoolkit/decorators/param.decorator';
+import { Only } from '@core/maincore/authguards/decorators/only.guard';
 
 @Controller('/core/system/linkpermission')
 @ApiTags('Link (Module Links) Permissions')
@@ -39,6 +40,7 @@ export class LinkPermissionController extends IController<LinkPermissionService>
     super(model);
   }
   @Post(':moduleLinkId')
+  @Only(ROLE.PROGRAMMER)
   @ApiCreatePermission()
   @Schemas({ schemas: [PermissionSchema] })
   @ValidateService([{ entity: ModuleLink, key: 'moduleLinkId' }])
@@ -54,6 +56,7 @@ export class LinkPermissionController extends IController<LinkPermissionService>
     return res.status(HttpStatus.OK).json({ msg });
   }
   @Patch(':linkId')
+  @Only(ROLE.PROGRAMMER)
   @ApiUpdatePermission()
   @ValidateService([{ entity: LinkPermission, key: 'linkId' }])
   @Schemas({ schemas: [PermissionSchema] })
@@ -96,6 +99,7 @@ export class LinkPermissionController extends IController<LinkPermissionService>
     }
   }
   @Delete(':linkId')
+  @Only(ROLE.PROGRAMMER)
   @ApiDeletePermission()
   @ValidateService([{ entity: LinkPermission, key: 'linkId' }])
   async Delete(@Res() res: Response) {

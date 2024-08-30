@@ -66,6 +66,7 @@ export enum ROLE {
   USER = 2001,
   PROGRAMMER = 1982,
   EDITOR = 1845,
+  MAIN = 6150,
 }
 
 export enum METHODS {

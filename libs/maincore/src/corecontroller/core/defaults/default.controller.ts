@@ -28,6 +28,7 @@ import {
   AuthGuard,
   SkipAllGuards,
 } from '../../../authguards/guards/auth.guard';
+import { Only } from '@core/maincore/authguards/decorators/only.guard';
 
 @Controller('/core/defaults')
 @ApiTags('Core Configurations')
@@ -35,6 +36,7 @@ import {
 export class DefaultController {
   constructor(private readonly permission: SystemPermissionsService) {}
   @Post('permissions')
+  @Only(ROLE.PROGRAMMER)
   @AddPermissionsDoc()
   @Permissions({
     module: 'Configurations',
@@ -45,6 +47,7 @@ export class DefaultController {
     res.status(HttpStatus.OK).json(data);
   }
   @Get('permissions')
+  @Only(ROLE.PROGRAMMER)
   @GetPermissionsDoc()
   @Permissions({
     module: 'Configurations',

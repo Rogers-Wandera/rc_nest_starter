@@ -5,6 +5,7 @@ import { RolesGuard } from './roles.guard';
 import { Roles } from '../decorators/roles.guard';
 import { GUARDS, ROLE } from '../../coretoolkit/types/enums/enums';
 import { SkipGuards } from '../decorators/skip.guard';
+import { OnlyGuard } from './only.guard';
 
 /**
  * A custom decorator that applies authentication and authorization guards to a handler or class.
@@ -19,7 +20,7 @@ import { SkipGuards } from '../decorators/skip.guard';
 export function AuthGuard(...roles: ROLE[]) {
   return applyDecorators(
     Roles(...roles),
-    UseGuards(JwtGuard, EMailGuard, RolesGuard),
+    UseGuards(JwtGuard, EMailGuard, RolesGuard, OnlyGuard),
   );
 }
 

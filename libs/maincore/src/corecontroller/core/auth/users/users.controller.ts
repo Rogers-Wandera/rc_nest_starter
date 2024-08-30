@@ -73,6 +73,7 @@ import {
 import { ValidateService } from '../../../../coretoolkit/decorators/servicevalidate.decorator';
 import { User } from '../../../../entities/core/users.entity';
 import { CheckMicroService } from '../../../../coretoolkit/decorators/microservice.decorator';
+import { Only } from '@core/maincore/authguards/decorators/only.guard';
 
 @ApiTags('User Management')
 @Controller('/core/auth/user')
@@ -179,6 +180,7 @@ export class UsersController extends IController<UserService> {
   }
 
   @Post('/roles')
+  @Only(ROLE.ADMIN)
   @AddRolesDocs()
   @UseInterceptors(new JoiValidator(AddRoleSchema, 'body'))
   async AddRoles(
@@ -197,6 +199,7 @@ export class UsersController extends IController<UserService> {
   }
 
   @Delete('/roles')
+  @Only(ROLE.ADMIN)
   @RemoveRolesDocs()
   @UseInterceptors(new JoiValidator(AddRoleSchema, 'body'))
   async RemoveRoles(
@@ -216,6 +219,7 @@ export class UsersController extends IController<UserService> {
 
   @Get()
   @GetUsersDocs()
+  @Only(ROLE.ADMIN)
   @Paginate()
   @Permissions({ module: 'User Management', moduleLink: 'Users' })
   async GetUsers(@Res() res: Response) {
@@ -228,6 +232,7 @@ export class UsersController extends IController<UserService> {
   }
 
   @Delete(':userId')
+  @Only(ROLE.ADMIN)
   @DeleteUserDocs()
   @Permissions({ module: 'User Management', moduleLink: 'Users' })
   async DeleteUser(
