@@ -54,7 +54,8 @@ export const PaginationSchema = <T>(itemSchema: {
           }),
         }).required(),
       )
-      .required()
+      .empty(Joi.array().length(0))
+      .optional()
       .messages({
         'array.base': `sortBy should be an array`,
         'any.required': `sortBy is a required field`,
@@ -78,7 +79,7 @@ export const PaginationSchema = <T>(itemSchema: {
         'array.base': `"filters" should be an array`,
         'any.required': `"filters" is a required field`,
       }),
-    globalFilter: Joi.string().allow(null).optional().messages({
+    globalFilter: Joi.string().allow(null, '').optional().messages({
       'string.base': `"globalFilter" should be a type of 'text'`,
     }),
   });

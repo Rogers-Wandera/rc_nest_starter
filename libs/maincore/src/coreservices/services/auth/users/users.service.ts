@@ -37,7 +37,6 @@ import {
 import {
   addrolestype,
   registertype,
-  ServerRolesType,
 } from '../../../../coretoolkit/types/coretypes';
 import { ConfigService } from '@nestjs/config';
 import { EnvConfig } from '../../../../coretoolkit/config/config';
