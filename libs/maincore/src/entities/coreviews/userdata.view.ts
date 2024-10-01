@@ -12,6 +12,7 @@ import { User } from '../core/users.entity';
       .addSelect('ps.position', 'position')
       .addSelect('upi.image', 'image')
       .addSelect("CONCAT(`u`.`firstname`, ' ', `u`.`lastname`)", 'userName')
+      .addSelect('DATEDIFF(NOW(), u.lastloginDate) AS last_active')
       .from(User, 'u')
       .innerJoin(Position, 'ps', 'ps.id = u.positionId')
       .leftJoin(UserProfileImage, 'upi', 'upi.user = u.id'),
@@ -55,4 +56,6 @@ export class UserDataView {
   image: string;
   @ViewColumn()
   online: string;
+  @ViewColumn()
+  last_active: number;
 }
