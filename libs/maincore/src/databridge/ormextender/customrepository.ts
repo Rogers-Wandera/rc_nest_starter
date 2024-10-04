@@ -342,7 +342,7 @@ export class CustomRepository<T extends ObjectLiteral> extends MyRepository<T> {
       const page = paginate.page > 0 ? paginate.page : 1;
       const relations = this.metadata.relations.map((rel) => rel.propertyName);
       const queryBuilder = this.createQueryBuilder('entity');
-      if (relations.length > 0) {
+      if (relations && relations.length > 0) {
         relations.forEach((relation) => {
           queryBuilder.leftJoinAndSelect(`entity.${relation}`, relation);
         });
@@ -374,7 +374,7 @@ export class CustomRepository<T extends ObjectLiteral> extends MyRepository<T> {
       }
 
       //   filters
-      if (paginate.filters?.length > 0) {
+      if (paginate.filters && paginate.filters?.length > 0) {
         paginate.filters.forEach((filter) => {
           const value = filter.id.toString().toLowerCase().includes('date')
             ? `%${format(new Date(filter.value), 'yyyy-MM-dd')}%`
@@ -387,7 +387,7 @@ export class CustomRepository<T extends ObjectLiteral> extends MyRepository<T> {
       }
 
       //   add sorting
-      if (paginate?.sortBy.length > 0) {
+      if (paginate?.sortBy && paginate?.sortBy.length > 0) {
         const sort = paginate.sortBy[0].id;
         const sortOrder = paginate.sortBy[0].desc ? 'DESC' : 'ASC';
         queryBuilder.orderBy(`entity.${String(sort)}`, sortOrder);
