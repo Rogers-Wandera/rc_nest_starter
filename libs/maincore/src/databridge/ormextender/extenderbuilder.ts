@@ -11,6 +11,15 @@ export class DataExtenderBuilder extends MainDBBuilder {
     super(options);
   }
 
+  private getMainTable(query: string) {
+    const regex = /FROM\s+([a-zA-Z_][a-zA-Z0-9_]*)/i;
+    const match = query.match(regex);
+    if (match) {
+      return match[1];
+    }
+    return null;
+  }
+
   /**
    * Executes a custom SQL query with pagination, sorting, filtering, and global search.
    *
@@ -25,6 +34,9 @@ export class DataExtenderBuilder extends MainDBBuilder {
     try {
       const { query, queryParams, limit, page, sortBy, globalFilter, filters } =
         data;
+
+      const mainTable = this.getMainTable(query);
+      const countTotalDocs = this.getTotalDocs('SELECT *FROM ' + mainTable, []);
 
       let sql = query.trim();
       const queryValues = [...queryParams];
@@ -83,7 +95,7 @@ export class DataExtenderBuilder extends MainDBBuilder {
 
       const [docs, totalDocs] = await Promise.all([
         this.query(sql, queryValues),
-        this.getTotalDocs(sql, queryValues),
+        countTotalDocs,
       ]);
       const totalPages = Math.ceil(totalDocs / limit);
       const hasNextPage = page < totalPages;

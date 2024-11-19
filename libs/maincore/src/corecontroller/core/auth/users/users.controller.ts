@@ -74,9 +74,10 @@ import { ValidateService } from '../../../../coretoolkit/decorators/servicevalid
 import { User } from '../../../../entities/core/users.entity';
 import { CheckMicroService } from '../../../../coretoolkit/decorators/microservice.decorator';
 import { Only } from '@core/maincore/authguards/decorators/only.guard';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @ApiTags('User Management')
-@Controller('/core/auth/user')
+@Controller('/core/auth/users')
 @AuthGuard(ROLE.ADMIN)
 export class UsersController extends IController<UserService> {
   constructor(
@@ -96,7 +97,6 @@ export class UsersController extends IController<UserService> {
   public async RegisterUser(@Body() body: registertype, @Res() res: Response) {
     try {
       const response = await this.model.createUser(body);
-      console.log('res', response);
       res
         .status(HttpStatus.OK)
         .json({ msg: 'User created successfully', emailsent: response });
@@ -221,6 +221,7 @@ export class UsersController extends IController<UserService> {
   @GetUsersDocs()
   @Only(ROLE.ADMIN)
   @Paginate()
+  @SkipThrottle()
   @Permissions({ module: 'User Management', moduleLink: 'Users' })
   async GetUsers(@Res() res: Response) {
     try {
