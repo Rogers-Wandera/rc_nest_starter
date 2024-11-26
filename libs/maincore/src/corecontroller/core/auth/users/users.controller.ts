@@ -7,6 +7,7 @@ import {
   Inject,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Req,
   Res,
@@ -75,6 +76,8 @@ import { User } from '../../../../entities/core/users.entity';
 import { CheckMicroService } from '../../../../coretoolkit/decorators/microservice.decorator';
 import { Only } from '@core/maincore/authguards/decorators/only.guard';
 import { SkipThrottle } from '@nestjs/throttler';
+import { ClassValidator } from '@core/maincore/coretoolkit/decorators/classvalidator.decorator';
+import { LockUserDTO } from './users.dto';
 
 @ApiTags('User Management')
 @Controller('/core/auth/users')
@@ -345,6 +348,19 @@ export class UsersController extends IController<UserService> {
       this.userutils.entity.id = req.user.id;
       const response = await this.userutils.AddUserProfileImage(image);
       return res.status(HttpStatus.OK).json(response);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Patch('/lock/:userId')
+  @Only(ROLE.ADMIN)
+  @ValidateService({ entity: User })
+  @ClassValidator({ classDTO: LockUserDTO })
+  async LockUser(@Body() body: LockUserDTO) {
+    try {
+      const response = await this.model.LockUser(body.isLocked);
+      return { msg: response };
     } catch (error) {
       throw error;
     }

@@ -386,4 +386,23 @@ export class UserService extends EntityModel<User, string> {
       this.client.send(NOTIFICATION_PATTERN.NOTIFY, mailoptions),
     );
   }
+
+  async LockUser(isLocked: number) {
+    try {
+      const response = await this.repository.FindOneAndUpdate(
+        {
+          id: this.entity.id,
+        },
+        { isLocked: isLocked },
+      );
+      return response
+        ? this.entity.firstname +
+            ' ' +
+            this.entity.lastname +
+            ` has been ${isLocked === 1 ? 'locked' : 'unlocked'}`
+        : 'something went wrong';
+    } catch (error) {
+      throw error;
+    }
+  }
 }
