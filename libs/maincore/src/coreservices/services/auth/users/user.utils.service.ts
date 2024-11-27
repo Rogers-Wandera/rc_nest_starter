@@ -35,24 +35,29 @@ export class UserUtilsService extends EntityModel<User, string> {
     super(User, source);
   }
 
-  async ResetPasswordLink() {
+  async ResetPasswordLink(id: string = undefined) {
     try {
       const checktoken = await this.tokens.FindOne({
         user: { id: this.entity.id },
         isActive: 1,
+        tokenType: TOKEN_TYPES.RESET,
       });
       if (checktoken) {
         const expired = this.checkExpireDate(checktoken.expire);
         if (!expired) {
           throw new BadRequestException(
-            'Please you still have an active reset token, check your mail',
+            `${
+              id
+                ? `${this.entity.firstname} ${this.entity.lastname} still has an active reset link.`
+                : 'Please you still have an active reset token, check your mail'
+            }`,
           );
         }
       }
       const token = crypto.randomBytes(64).toString('hex');
       const baseurl = this.configservive.get<string>('frontUrl');
       const url = `${baseurl}/resetpassword/${this.encryptUrl(this.entity.id)}/${this.encryptUrl(token)}`;
-      const info = this.ResetMessage(this.entity);
+      const info = this.ResetMessage(this.entity, id);
       const expireDate = addHours(new Date(), 1);
       this.tokens.entity.user = this.entity;
       this.tokens.entity.expire = expireDate;
@@ -81,11 +86,12 @@ export class UserUtilsService extends EntityModel<User, string> {
     }
   }
 
-  ResetMessage(user: User) {
+  ResetMessage(user: User, id?: string) {
     const moreInfo = `
       <p>Hello, ${user.firstname} ${user.lastname}</p>
       <p>
-        Your recieving this email because you requested a password reset. <br>
+        Your recieving this email because ${id ? 'an admin requested' : 'you requested'} a password reset
+        ${id ? ' for you' : ''}. <br>
         Please note that the reset link expires in 1 hour
       </p>
       <p> If you did not request a password reset, please ignore this email.</p>`;
@@ -116,7 +122,7 @@ export class UserUtilsService extends EntityModel<User, string> {
     }
   }
 
-  async RegenerateActivation() {
+  async RegenerateActivation(isAdmin: string = undefined) {
     try {
       const user = await this.repository.findOne({
         where: { id: this.entity.id },
@@ -133,7 +139,12 @@ export class UserUtilsService extends EntityModel<User, string> {
       const expired = this.checkExpireDate(token.expire);
       if (!expired) {
         throw new BadRequestException(
-          'You still have an active token, please check your email for a verification link',
+          `${isAdmin ? user.firstname + ' ' + user.lastname + ' still has ' : 'You still have '} an active token, 
+          ${
+            isAdmin
+              ? 'you will have to wait for 1 hour to resend the link again.'
+              : 'please check your email for a verification link.'
+          }`,
         );
       }
       const newtoken = require('crypto').randomBytes(64).toString('hex');

@@ -355,6 +355,18 @@ export class UserService extends EntityModel<User, string> {
         },
         { password: hashedPassword, adminCreated: user.adminCreated },
       );
+
+      const token = await this.tokens.FindOne({
+        user: { id: user.id },
+        tokenType: TOKEN_TYPES.RESET,
+        isActive: 1,
+      });
+      if (token) {
+        this.tokens.entity.user = user;
+        this.tokens.entity.tokenType = TOKEN_TYPES.RESET;
+        this.tokens.entity.token = token.token;
+        await this.tokens.DeactivateUserToken(user.id);
+      }
       return response;
     } catch (error) {
       throw error;

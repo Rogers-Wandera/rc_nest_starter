@@ -141,15 +141,21 @@ const ResetSchema = Joi.object<resetpasswordtype>({
 });
 
 const ResetLinkSchema = Joi.object<registertype>({
-  email: Joi.string()
-    .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
-    .required()
-    .messages({
-      'string.email': 'Invalid email address',
-      'any.required': 'Email is required',
-      'string.empty': 'Email is required',
+  email: Joi.alternatives(
+    Joi.string()
+      .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
+      .required()
+      .messages({
+        'string.email': 'Invalid email address',
+        'any.required': 'Email is required',
+        'string.empty': 'Email is required',
+      }),
+    Joi.allow(null).messages({
+      'any.allowOnly': 'Admin created is required',
+      'any.required': 'Admin created is required',
     }),
-});
+  ),
+}).unknown(true);
 
 export {
   UserRegisterSchema,

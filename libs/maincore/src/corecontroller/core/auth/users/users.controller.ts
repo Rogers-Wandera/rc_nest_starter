@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -115,10 +116,11 @@ export class UsersController extends IController<UserService> {
   async GenerateVerification(
     @Res() res: Response,
     @Param('userId', new ParseUUIDPipe()) id: string,
+    @Query('admin') isAdmin: string,
   ) {
     try {
       this.userutils.entity.id = id;
-      const response = await this.userutils.RegenerateActivation();
+      const response = await this.userutils.RegenerateActivation(isAdmin);
       res
         .status(HttpStatus.OK)
         .json({ msg: 'Verification Sent Successfully', emailsent: response });
@@ -276,14 +278,36 @@ export class UsersController extends IController<UserService> {
   @CheckMicroService()
   @SkipAllGuards()
   @Schemas({ schemas: [ResetLinkSchema] })
-  @ValidateService([{ entity: User, type: 'body', field: 'email' }])
+  @ValidateService([
+    {
+      entity: User,
+      type: 'body',
+      field: (context) => {
+        const request = context.switchToHttp().getRequest() as Request;
+        const params = request.query as { admin?: string; userId?: string };
+        if (params?.admin && Number(params?.admin) === 1) {
+          request.body = { id: params?.userId, email: null };
+          return 'id';
+        }
+        return 'email';
+      },
+    },
+  ])
   @ResetLinkDoc()
-  async ResetLink(@Res() res: Response, @Service('user') user: User) {
+  async ResetLink(
+    @Res() res: Response,
+    @Service('user') user: User,
+    @Body() body: { id?: string; email: string },
+  ) {
     try {
       this.userutils.entity = user;
-      const response = await this.userutils.ResetPasswordLink();
+      const response = await this.userutils.ResetPasswordLink(body.id);
       const msg = response
-        ? 'Please Check your email for a password reset link'
+        ? `${
+            body.id
+              ? `Verification link has been sent to ${user.firstname} ${user.lastname} successfully`
+              : 'Please Check your email for a password reset link'
+          }`
         : 'Something went wrong';
       res.status(HttpStatus.OK).json({ msg });
     } catch (error) {

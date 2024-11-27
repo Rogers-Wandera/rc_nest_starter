@@ -23,7 +23,7 @@ export type servicevalidate<
   entity: EntityTarget<T> | ((context: ExecutionContext) => EntityTarget<T>);
   key?: string | ((context: ExecutionContext) => string);
   type?: Paramstype;
-  field?: string;
+  field?: string | ((context: ExecutionContext) => string);
   name?: string;
 };
 

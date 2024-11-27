@@ -64,7 +64,11 @@ export class ServiceValidator implements NestInterceptor {
   ) {
     const type = service.type || 'params';
 
-    const field = service.field || 'id';
+    const field = service.field
+      ? typeof service.field === 'function'
+        ? service.field(context)
+        : service.field
+      : 'id';
     let key =
       typeof service.key === 'function' ? service.key(context) : service.key;
     if (Object.keys(request[type]).length <= 0) {
