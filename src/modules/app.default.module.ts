@@ -3,7 +3,7 @@ import { envconfig } from '@core/maincore/coretoolkit/config/config';
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import path from 'path';
+import * as path from 'path';
 
 @Global()
 @Module({

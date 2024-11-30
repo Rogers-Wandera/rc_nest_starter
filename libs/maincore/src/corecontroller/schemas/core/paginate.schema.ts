@@ -1,5 +1,5 @@
 import { paginateprops } from '../../../coretoolkit/types/coretypes';
-import Joi, { ObjectSchema } from 'joi';
+import * as Joi from 'joi';
 
 export const generateDynamicConditionsSchema = (itemSchema: {
   [key: string]: any;
@@ -29,7 +29,7 @@ export const generateDynamicConditionsSchema = (itemSchema: {
 
 export const PaginationSchema = <T>(itemSchema: {
   [key: string]: any;
-}): ObjectSchema<paginateprops<T>> => {
+}): Joi.ObjectSchema<paginateprops<T>> => {
   const conditionsSchema = generateDynamicConditionsSchema(itemSchema);
   return Joi.object<paginateprops<T>>({
     limit: Joi.number().integer().required().messages({

@@ -1,5 +1,5 @@
 import { systemrolestype } from '../../../../coretoolkit/types/coretypes';
-import Joi from 'joi';
+import * as Joi from 'joi';
 
 export const SystemRolesSchema = Joi.object<systemrolestype>({
   rolename: Joi.string().min(3).max(250).required().messages({

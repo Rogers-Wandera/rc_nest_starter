@@ -3,7 +3,7 @@ import {
   registertype,
   resetpasswordtype,
 } from '../../../coretoolkit/types/coretypes';
-import Joi from 'joi';
+import * as Joi from 'joi';
 
 const prefixes = ['+256', '+254', '+255'];
 export const nameRegex = /^[a-zA-Z\s]+$/;

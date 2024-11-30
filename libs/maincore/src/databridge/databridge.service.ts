@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ModelService } from './model/model.service';
 import { Model } from './model/model';
 import { ConfigOptions } from './config/config';
-import { EntityTarget } from 'typeorm';
+import { EntityTarget, ObjectLiteral } from 'typeorm';
 import { CustomRepository } from './ormextender/customrepository';
 
 @Injectable()
@@ -22,7 +22,9 @@ export class DataBridgeService {
   public initialize(): Promise<void> {
     return this.modelServiceInstance.initialize();
   }
-  public GetRepository<T>(entity: EntityTarget<T>): CustomRepository<T> {
+  public GetRepository<T extends ObjectLiteral>(
+    entity: EntityTarget<T>,
+  ): CustomRepository<T> {
     return this.modelServiceInstance.getModel('pass').getRepository(entity);
   }
 }

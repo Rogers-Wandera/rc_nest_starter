@@ -1,4 +1,4 @@
-import Joi from 'joi';
+import * as Joi from 'joi';
 import { nameRegex } from '../../../../corecontroller/schemas/core/user.schema';
 import { ModulesSchemaType } from '../../../../coretoolkit/types/coretypes';
 

@@ -4,6 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import { FireBaseService } from './databuilder/firebase.setup';
 import { EntityDataSource } from './model/enity.data.model';
 import { EnvConfig } from '../coretoolkit/config/config';
+import { FirebaseOptions } from 'firebase/app';
+import { ServiceAccount } from 'firebase-admin';
 
 @Global()
 @Module({
@@ -20,8 +22,8 @@ import { EnvConfig } from '../coretoolkit/config/config';
       provide: 'FIREBASE_SERVICE',
       useFactory: async (config: ConfigService<EnvConfig>) => {
         const firebase = new FireBaseService(
-          config.get('firebase_web'),
-          config.get('firebaseServiceAccount'),
+          config.get('firebase_web') as FirebaseOptions,
+          config.get('firebaseServiceAccount') as ServiceAccount,
         );
         return firebase;
       },

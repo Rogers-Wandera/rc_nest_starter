@@ -1,4 +1,4 @@
-import Joi from 'joi';
+import * as Joi from 'joi';
 import { Position } from '../../../../entities/core/positions.entity';
 
 export const PositionsSchema = Joi.object<Partial<Position>>({

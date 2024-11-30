@@ -1,4 +1,4 @@
-import joi from 'joi';
+import * as joi from 'joi';
 import { LinkPermission } from '../../../../entities/core/linkpermissions.entity';
 
 export const PermissionSchema = joi.object<Partial<LinkPermission>>({
