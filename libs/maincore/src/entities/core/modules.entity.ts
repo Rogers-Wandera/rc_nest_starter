@@ -17,6 +17,8 @@ export class Module extends BaseEntityClass {
   name: string;
   @Column({ nullable: false })
   position: number;
+  @Column({ nullable: true, length: 80, default: 'IconCrop32Filled' })
+  icon: string;
   @OneToMany(() => ModuleLink, (moduleLink) => moduleLink.module)
   modulelinks: ModuleLink[];
 }

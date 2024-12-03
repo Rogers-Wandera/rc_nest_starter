@@ -142,6 +142,7 @@ export class LinkRoleService extends EntityModel<LinkRole> {
             route: item.route,
             expired: Number(item.expired),
             render: Number(item.render),
+            icon: item.icon,
           });
           return acc;
         }, {});

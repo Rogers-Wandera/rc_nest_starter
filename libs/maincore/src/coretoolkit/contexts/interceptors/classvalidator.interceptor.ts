@@ -13,6 +13,7 @@ import { CLASS_VALIDATOR_KEY } from '../../decorators/classvalidator.decorator';
 import { ClassValidatorType } from '../../types/coretypes';
 import { validate } from 'class-validator';
 import { Request } from 'express';
+import { ObjectLiteral } from 'typeorm';
 
 /**
  * Interceptor for validating request data using class-validator.
@@ -53,9 +54,7 @@ export class ClassValidatorInterceptor implements NestInterceptor {
     );
     if (check) {
       const dto = new check.classDTO();
-      const data = (
-        check.type ? request[check.type] : request.body
-      ) as typeof check.classDTO;
+      const data = check.type ? request[check.type] : request.body;
       Object.assign(dto, data);
       const errors = await validate(dto);
       if (errors.length > 0) {
@@ -64,10 +63,12 @@ export class ClassValidatorInterceptor implements NestInterceptor {
           .join(', ');
         throw new BadRequestException(message);
       }
+      const entity: ObjectLiteral = this.parentClass.model.entity;
       if (request.user) {
         if (this.parentClass) {
           this.parentClass.model.entity['createdBy'] = request.user.id;
           this.parentClass.model.entity['updatedBy'] = request.user.id;
+          this.parentClass.model.entity = { ...entity, ...data };
         }
       }
     }

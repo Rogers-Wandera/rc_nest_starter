@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -27,6 +28,8 @@ import {
 import { AuthGuard } from '../../../../authguards/guards/auth.guard';
 import { ROLE } from '../../../../coretoolkit/types/enums/enums';
 import { Only } from '@core/maincore/authguards/decorators/only.guard';
+import { ClassValidator } from '@core/maincore/coretoolkit/decorators/classvalidator.decorator';
+import { ModuleDTO, UpdateModuleDTO } from './module.dto';
 
 @Controller('/core/system/modules')
 @ApiTags('Modules')
@@ -43,9 +46,11 @@ export class ModulesController extends IController<ModuleService> {
   @Post()
   @Only(ROLE.PROGRAMMER)
   @ApiCreateModule()
-  @Schemas({ type: 'body', schemas: [ModulesSchema] })
-  async Create(@Res() res: Response) {
+  @ClassValidator({ classDTO: ModuleDTO })
+  // @Schemas({ type: 'body', schemas: [ModulesSchema] })
+  async Create(@Res() res: Response, @Body() body: ModuleDTO) {
     try {
+      this.model.entity = { ...this.model.entity, ...body };
       await this.model.addModule();
       res.status(HttpStatus.OK).json({ msg: 'Module added successfully' });
     } catch (error) {
@@ -78,13 +83,15 @@ export class ModulesController extends IController<ModuleService> {
 
   @Patch('/:moduleId')
   @ApiUpdateModule()
-  @Schemas({ type: 'body', schemas: [ModulesSchema] })
+  // @Schemas({ type: 'body', schemas: [ModulesSchema] })
+  @ClassValidator({ classDTO: UpdateModuleDTO })
   async Update(
     @Res() res: Response,
     @Param('moduleId', new ParseIntPipe()) id: number,
   ) {
     try {
       this.model.entity.id = id;
+      // this.model.entity = { ...this.model.entity, ...body };
       const response = await this.model.updateModule();
       const msg = response
         ? 'Module updated successfully'

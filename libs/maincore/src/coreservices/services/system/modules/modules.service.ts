@@ -47,8 +47,11 @@ export class ModuleService extends EntityModel<Module> {
       if (!exists) {
         throw new BadRequestException('The module doesnot exist');
       }
+      const positionId = this.entity?.position
+        ? this.entity.position
+        : exists.position;
       const position = await this.repository.findOne({
-        where: { position: this.entity.position },
+        where: { position: positionId },
       });
       if (!position) {
         throw new BadRequestException('The position doesnot exist');
@@ -60,6 +63,7 @@ export class ModuleService extends EntityModel<Module> {
         { id: position.id },
         { position: exists.position },
       );
+
       const response = await this.repository.save(this.entity);
       return response;
     } catch (err) {
@@ -86,7 +90,6 @@ export class ModuleService extends EntityModel<Module> {
   async viewModules() {
     try {
       const results = await this.repository.Paginate(this.pagination);
-      console.log(this.pagination);
       return results;
     } catch (error) {
       throw error;

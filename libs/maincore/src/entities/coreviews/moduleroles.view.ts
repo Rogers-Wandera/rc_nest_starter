@@ -27,7 +27,9 @@ import { UserGroupMember } from '../core/usergroupmembers.entity';
           .addSelect('lr.updateDate as updateDate, lr.deleted_at as deleted_at')
           .addSelect('lr.deletedBy as deletedBy')
           .addSelect('ml.linkname as linkname, ml.route as route')
-          .addSelect('ml.position as mlpos,ml.released as released')
+          .addSelect(
+            'ml.position as mlpos,ml.released as released, ml.icon as icon',
+          )
           .addSelect('ml.render as render, ml.mpos as mpos, ml.name')
           .addSelect('CONCAT(u.firstname, " ", u.lastname) as userName')
           .addSelect(
@@ -98,6 +100,8 @@ export class ModuleRolesView {
   name: string;
   @ViewColumn()
   route: string;
+  @ViewColumn()
+  icon: string;
   @ViewColumn()
   render: string;
   @ViewColumn()
