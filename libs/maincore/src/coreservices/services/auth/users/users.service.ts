@@ -322,8 +322,31 @@ export class UserService extends EntityModel<User, string> {
         id: this.entity.id,
       });
       if (user) {
+        this.roles.entity = {
+          ...this.roles.entity,
+          user: { ...this.roles.entity.user, id: user.id },
+        };
+        const roles = await this.roles.getUserRoles();
+        const not_assigned = await this.systemroles.ViewNotAssigned(user.id);
         const formatted = this.userData(user, true);
-        return formatted;
+        const isAdmin = await this.systemroles.CheckIsRole(
+          ROLE.ADMIN,
+          this.request.user.id,
+        );
+        const moreinfo = isAdmin
+          ? {
+              system_roles: {
+                roles,
+                unassigned: not_assigned,
+              },
+            }
+          : { system_roles: { roles, unassigned: [] } };
+
+        const userObject = {
+          ...formatted,
+          ...moreinfo,
+        };
+        return userObject;
       }
       return {} as UserDataView;
     } catch (error) {

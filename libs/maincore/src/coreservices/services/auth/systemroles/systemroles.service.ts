@@ -4,6 +4,8 @@ import { EntityModel } from '../../../../databridge/model/entity.model';
 import { EntityDataSource } from '../../../../databridge/model/enity.data.model';
 import { Not } from 'typeorm';
 import { PaginationResults } from '../../../../coretoolkit/types/coretypes';
+import { UserRolesView } from '@core/maincore/entities/coreviews/userroles.view';
+import { ROLE } from '@core/maincore/coretoolkit/types/enums/enums';
 
 @Injectable()
 export class SystemRolesService extends EntityModel<Systemrole> {
@@ -103,5 +105,20 @@ export class SystemRolesService extends EntityModel<Systemrole> {
     } catch (error) {
       throw new Error(error.message);
     }
+  }
+
+  async ViewUserRoles(userId: string) {
+    const repository = this.model.getRepository(UserRolesView);
+    const data = await repository.findOneBy({ userId: userId });
+    return data;
+  }
+
+  async CheckIsRole(role: ROLE, userId: string) {
+    const repository = this.model.getRepository(UserRolesView);
+    const data = await repository.findOneBy({ userId: userId, role: role });
+    if (data) {
+      return true;
+    }
+    return false;
   }
 }
