@@ -13,6 +13,23 @@ export class RoleService extends EntityModel<Role> {
 
   async createRoles() {
     try {
+      const checkrole = await this.repository.findOne({
+        where: {
+          systemRole: {
+            rolename: this.entity.systemRole.rolename,
+            value: this.entity.systemRole.value,
+          },
+          user: { id: this.entity.user.id },
+        },
+        withDeleted: true,
+      });
+      if (checkrole && checkrole.isActive == 0) {
+        checkrole.isActive = 1;
+        checkrole.deletedAt = null;
+        checkrole.deletedBy = null;
+        this.entity = { ...this.entity, ...checkrole };
+        return this.repository.save(this.entity);
+      }
       return this.repository.save(this.entity);
     } catch (error) {
       throw new Error(error.message);
