@@ -4,6 +4,8 @@ import { ModuleLink } from '../../entities/core/modulelinks.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { METHODS } from './enums/enums';
 import { FindOptionsWhere } from 'typeorm';
+import { UserLinkRolesView } from '@core/maincore/entities/coreviews/userlinkroles.view';
+import { RolePermissionsData } from '@core/maincore/coreservices/services/auth/rolepermissions/type';
 
 export type Constructor<T> = new (...args: unknown[]) => T;
 
@@ -189,4 +191,14 @@ export type ColumnConfigTypes = {
   name: string;
   type?: columntypes;
   visible?: true | false;
+};
+
+export type UserServerRoles = UserLinkRolesView & {
+  permissions: RolePermissionsData[];
+};
+
+export type UserServerRolesGroup = {
+  module: string;
+  links: UserServerRoles[];
+  icon: string;
 };

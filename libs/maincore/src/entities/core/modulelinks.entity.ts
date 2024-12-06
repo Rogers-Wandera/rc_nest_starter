@@ -29,9 +29,9 @@ export class ModuleLink extends BaseEntityClass {
   route: string;
   @Column({ nullable: false })
   position: number;
-  @Column({ nullable: false, enum: [0, 1], default: 1, type: 'enum' })
+  @Column({ nullable: false, default: 1, type: 'int' })
   render: number;
-  @Column({ nullable: false, enum: [0, 1], default: 0, type: 'enum' })
+  @Column({ nullable: false, default: 0, type: 'int' })
   released: number;
   @OneToMany(
     () => LinkPermission,

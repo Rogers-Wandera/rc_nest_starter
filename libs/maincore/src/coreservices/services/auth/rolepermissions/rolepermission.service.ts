@@ -30,6 +30,7 @@ export class RolePermissionService extends EntityModel<RolePermission> {
         .addSelect(
           "CASE WHEN mr.memberId IS NULL THEN 'user' ELSE 'group' END AS permissionType",
         )
+        .addSelect('CASE WHEN rp.id IS NULL THEN 0 ELSE 1 END', 'is_assigned')
         .from(LinkPermissionView, 'lp')
         .leftJoin(
           RolePermission,

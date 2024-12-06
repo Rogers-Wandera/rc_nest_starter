@@ -8,13 +8,19 @@ import { CustomRepository } from '../../../../databridge/ormextender/customrepos
 import { LinkRole } from '../../../../entities/core/linkroles.entity';
 import { ModuleRolesView } from '../../../../entities/coreviews/moduleroles.view';
 import { IsNull, Not, QueryFailedError } from 'typeorm';
-import { ModuleLinksView } from '../../../../entities/coreviews/modulelinks.view';
 import { EntityModel } from '../../../../databridge/model/entity.model';
 import { EntityDataSource } from '../../../../databridge/model/enity.data.model';
-import { UserModuleRes } from '../../../../coretoolkit/types/coretypes';
+import {
+  PaginationResults,
+  UserModuleRes,
+  UserServerRoles,
+  UserServerRolesGroup,
+} from '../../../../coretoolkit/types/coretypes';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
 import { ROLE } from '@core/maincore/coretoolkit/types/enums/enums';
+import { UserLinkRolesView } from '@core/maincore/entities/coreviews/userlinkroles.view';
+import { RolePermissionService } from '../rolepermissions/rolepermission.service';
 
 @Injectable()
 export class LinkRoleService extends EntityModel<LinkRole> {
@@ -22,6 +28,7 @@ export class LinkRoleService extends EntityModel<LinkRole> {
   constructor(
     source: EntityDataSource,
     @Inject(REQUEST) protected request: Request,
+    private permissions: RolePermissionService,
   ) {
     super(LinkRole, source);
     this.rolesrepo = this.model.getRepository(ModuleRolesView);
@@ -174,23 +181,46 @@ export class LinkRoleService extends EntityModel<LinkRole> {
     }
   }
 
-  async getToAssignRoles() {
+  async getToAssignRoles(): Promise<PaginationResults<UserServerRolesGroup>> {
     try {
-      const response = await this.model.manager
-        .createQueryBuilder(ModuleLinksView, 'ml')
-        .leftJoin(
-          ModuleRolesView,
-          'mr',
-          'ml.id = mr.moduleLinkId AND mr.userId = :userId',
-          { userId: this.entity.User.id },
-        )
-        .where('mr.moduleLinkId IS NULL')
-        .andWhere('ml.isActive = :isActive', { isActive: 1 })
-        .andWhere('ml.released = :released', { released: 1 })
-        .getMany();
-      return response;
+      const conditions = { userId: this.entity.User.id };
+      const data = await this.PaginateView(UserLinkRolesView, conditions);
+      let docsWithPermissions: UserServerRolesGroup[] = [];
+      if (data?.docs.length > 0) {
+        const docsPermissions = (await Promise.all(
+          data.docs.map(async (doc) => {
+            const permissions = await this.permissions.ViewRolepermissions(
+              doc.id,
+              this.entity.User.id,
+            );
+            return { ...doc, permissions };
+          }),
+        )) as UserServerRoles[];
+        docsWithPermissions = this.groupData(docsPermissions);
+      }
+      data.docs = docsWithPermissions as unknown as UserServerRoles[];
+      return data as unknown as PaginationResults<UserServerRolesGroup>;
     } catch (error) {
       throw error;
     }
+  }
+
+  private groupData(docs: UserServerRoles[]): UserServerRolesGroup[] {
+    return docs.reduce((acc, item) => {
+      const moduleName = item.name;
+      const icon = item.icon;
+      let group = acc.find((g) => g.module === moduleName);
+      if (!group) {
+        group = { module: moduleName, links: [], icon };
+        acc.push(group);
+      }
+      group.links.push({
+        ...item,
+        expired: Number(item.expired),
+        render: Number(item.render),
+        permissions: item.permissions,
+      });
+      return acc;
+    }, []);
   }
 }

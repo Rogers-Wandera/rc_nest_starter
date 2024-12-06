@@ -13,7 +13,6 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { Paginate } from '../../../../coretoolkit/decorators/pagination.decorator';
-import { Schemas } from '../../../../coretoolkit/decorators/schema.decorator';
 import { ValidateService } from '../../../../coretoolkit/decorators/servicevalidate.decorator';
 import { IController } from '../../../controller.interface';
 import { LinkRole } from '../../../../entities/core/linkroles.entity';
@@ -149,7 +148,8 @@ export class LinkRoleController extends IController<LinkRoleService> {
     }
   }
 
-  @Get('/user/unassigned/:userId')
+  @Get('/user/serverroles/:userId')
+  @Paginate()
   @ApiGetUnassignedRoles()
   @ValidateService([{ entity: User, key: 'userId' }])
   async GetUnAssignedRoles(@Res() res: Response, @Service('user') user: User) {
