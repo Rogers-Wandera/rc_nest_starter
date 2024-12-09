@@ -22,7 +22,7 @@ import { MulterConfigs } from './config/multer.configs';
       {
         name: 'short',
         ttl: 1000,
-        limit: 3,
+        limit: 5,
       },
       {
         name: 'medium',

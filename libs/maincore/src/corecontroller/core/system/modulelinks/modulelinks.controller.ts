@@ -26,6 +26,8 @@ import {
 import { AuthGuard } from '../../../../authguards/guards/auth.guard';
 import { ROLE } from '../../../../coretoolkit/types/enums/enums';
 import { Only } from '@core/maincore/authguards/decorators/only.guard';
+import { ValidateService } from '@core/maincore/coretoolkit/decorators/servicevalidate.decorator';
+import { ModuleLink } from '@core/maincore/entities/core/modulelinks.entity';
 
 @Controller('/core/system/modulelinks')
 @ApiTags('Module Links')
@@ -57,6 +59,7 @@ export class ModuleLinksController extends IController<ModuleLinksService> {
   }
   @Patch(':linkId')
   @ApiUpdateModuleLink()
+  @ValidateService({ entity: ModuleLink })
   @Schemas({ type: 'body', schemas: [modulelinksschema] })
   async Update(
     @Res() res: Response,

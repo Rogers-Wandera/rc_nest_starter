@@ -98,7 +98,10 @@ export class ServiceValidator implements NestInterceptor {
     }
 
     if (classname === parentClassName) {
-      this.parentClass.model.entity = exists;
+      this.parentClass.model.entity = {
+        ...this.parentClass.model.entity,
+        ...exists,
+      };
       entityobj[classname.toLowerCase()] = exists;
     } else {
       entityobj[classname.toLowerCase()] = exists;

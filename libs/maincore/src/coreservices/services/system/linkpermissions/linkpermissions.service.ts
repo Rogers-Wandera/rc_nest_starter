@@ -13,6 +13,18 @@ export class LinkPermissionService extends EntityModel<LinkPermission> {
 
   async AddPermission() {
     try {
+      const exists = await this.repository.findOneByConditions({
+        accessName: this.entity.accessName,
+        ModuleLink: { id: this.entity.ModuleLink.id },
+      });
+      if (exists && exists.isActive == 0) {
+        exists.description = this.entity.accessRoute;
+        exists.accessRoute = this.entity.accessRoute;
+        exists.deletedAt = null;
+        exists.isActive = 1;
+        await this.repository.save(exists);
+        return true;
+      }
       const entity = this.repository.create(this.entity);
       const response = await this.repository.save(entity);
       return response.id > 0;

@@ -5,6 +5,7 @@ import { EntityDataSource } from '../../../../databridge/model/enity.data.model'
 import { ModuleService } from '../modules/modules.service';
 import { QueryFailedError } from 'typeorm';
 import { ModuleLinksView } from '../../../../entities/coreviews/modulelinks.view';
+import { LinkPermissionView } from '@core/maincore/entities/coreviews/linkpermissions.view';
 
 @Injectable()
 export class ModuleLinksService extends EntityModel<ModuleLink> {
@@ -47,7 +48,7 @@ export class ModuleLinksService extends EntityModel<ModuleLink> {
       if (error instanceof QueryFailedError) {
         if (error.message.includes('UQ_moduleId_linkname')) {
           throw new BadRequestException(
-            'The module link already exists on this module',
+            `The module link ${this.entity.linkname} already exists on this module ${this.entity.module.name}`,
           );
         }
       }
@@ -57,13 +58,10 @@ export class ModuleLinksService extends EntityModel<ModuleLink> {
 
   async updateModeleLink() {
     try {
-      const module = await this.repository.findOne({
+      const module = await this.repository.findReject({
         where: { id: this.entity.id },
         relations: ['module'],
       });
-      if (!module) {
-        throw new BadRequestException('No module found');
-      }
       if (module.position === this.entity.position) {
         const data = { ...module, ...this.entity };
         const response = await this.repository.FindOneAndUpdate(
@@ -97,7 +95,7 @@ export class ModuleLinksService extends EntityModel<ModuleLink> {
       if (error instanceof QueryFailedError) {
         if (error.message.includes('UQ_moduleId_linkname')) {
           throw new BadRequestException(
-            'The module link already exists on this module',
+            `The module link ${this.entity.linkname} already exists on this module ${this.entity.module.name}`,
           );
         }
       }
@@ -119,9 +117,23 @@ export class ModuleLinksService extends EntityModel<ModuleLink> {
   async ViewModuleLinks(moduleId: number) {
     try {
       const pagination = this.transformPaginateProps<ModuleLinksView>();
+      const permissionview = this.model.getRepository(LinkPermissionView);
       pagination.conditions = { moduleId: moduleId };
       const repository = this.model.getRepository(ModuleLinksView);
-      return repository.Paginate(pagination);
+      const data = await repository.Paginate(pagination);
+      if (data.docs.length > 0) {
+        const newdocs = await Promise.all(
+          data.docs.map(async (link) => {
+            const permissions = await permissionview.findBy({
+              moduleLinkId: link.id,
+            });
+            link['permissions'] = permissions;
+            return link;
+          }),
+        );
+        data.docs = newdocs;
+      }
+      return data;
     } catch (error) {
       throw error;
     }

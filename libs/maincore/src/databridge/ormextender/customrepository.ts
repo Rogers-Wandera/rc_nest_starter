@@ -411,4 +411,18 @@ export class CustomRepository<T extends ObjectLiteral> extends MyRepository<T> {
       throw new BadRequestException(error);
     }
   }
+
+  /**
+   * Finds entity if exists returns it else throws an error
+   * @param {FindOneOptions<T>} conditions Conditions to find the entity.
+   */
+  async findReject(options: FindOneOptions<T>) {
+    const data = await this.findOne(options);
+    if (!data) {
+      throw new BadRequestException(
+        `No ${this.metadata.name.toLowerCase()} found`,
+      );
+    }
+    return data;
+  }
 }
