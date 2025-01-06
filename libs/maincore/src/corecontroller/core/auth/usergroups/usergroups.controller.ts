@@ -22,6 +22,8 @@ import {
   ApiUpdateUserGroup,
   ApiViewUserGroups,
 } from './usergroup.swagger';
+import { ValidateService } from '@core/maincore/coretoolkit/decorators/servicevalidate.decorator';
+import { UserGroup } from '@core/maincore/entities/core/usergroups.entity';
 
 @Controller('/core/auth/usergroups')
 @Permissions({ module: 'User Management', moduleLink: 'User Groups' })
@@ -75,6 +77,19 @@ export class UserGroupController extends IController<UserGroupService> {
       this.model.entity.id = id;
       await this.model.DeleteGroup();
       return { msg: 'Group deleted successfully' };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Patch('/status/:id')
+  @ValidateService({ entity: UserGroup })
+  async updateStatus() {
+    try {
+      const text =
+        this.model.entity.status === 'active' ? 'disabled' : 'enabled';
+      await this.model.updateStatus();
+      return { msg: `Group ${text} successfully` };
     } catch (error) {
       throw error;
     }

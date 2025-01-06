@@ -34,10 +34,10 @@ export const CoreAppProviders: Provider[] = [
     provide: APP_INTERCEPTOR,
     useClass: TransformPainateQuery,
   },
+  { provide: APP_PIPE, useClass: ClassValidationPipe },
   { provide: APP_INTERCEPTOR, useClass: ClassValidatorInterceptor },
   { provide: APP_INTERCEPTOR, useClass: JoiPaginateValidation },
-  { provide: APP_INTERCEPTOR, useClass: ServiceValidator },
   { provide: APP_INTERCEPTOR, useClass: JoiSchemaValidator },
+  { provide: APP_INTERCEPTOR, useClass: ServiceValidator },
   { provide: APP_INTERCEPTOR, useClass: NotificationSender },
-  { provide: APP_PIPE, useClass: ClassValidationPipe },
 ];

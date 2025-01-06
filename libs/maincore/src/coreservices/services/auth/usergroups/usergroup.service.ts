@@ -4,15 +4,32 @@ import { UserGroupDTO } from '../../../../corecontroller/core/auth/usergroups/us
 import { UserGroup } from '../../../../entities/core/usergroups.entity';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
+import { UserGroupSupervisorService } from '../usergroupsupervisor/usergroupsupervisor.service';
+import { UserGroupMemberService } from '../usergroupmembers/usergroupmember.service';
+import { UserGroupStatus } from '@core/maincore/coretoolkit/types/enums/enums';
 
 @Injectable()
 export class UserGroupService extends EntityModel<UserGroup> {
-  constructor(source: EntityDataSource) {
+  constructor(
+    source: EntityDataSource,
+    private groupsupervisors: UserGroupSupervisorService,
+    private groupmembers: UserGroupMemberService,
+  ) {
     super(UserGroup, source);
   }
 
   async ViewGroups() {
     const results = await this.repository.Paginate(this.pagination);
+    if (results.docs.length > 0) {
+      for (const group of results.docs) {
+        const supervsiors = await this.groupsupervisors.viewGroupSupervisors(
+          group.id,
+        );
+        const members = await this.groupmembers.ViewUserGroupMembers(group.id);
+        group.supervisor = supervsiors;
+        group.members = members;
+      }
+    }
     return results;
   }
 
@@ -58,5 +75,15 @@ export class UserGroupService extends EntityModel<UserGroup> {
       }
       throw error;
     }
+  }
+
+  async updateStatus() {
+    if (this.entity.status === UserGroupStatus.ACTIVE) {
+      this.entity.status = UserGroupStatus.INACTIVE;
+    } else {
+      this.entity.status = UserGroupStatus.ACTIVE;
+    }
+    await this.repository.save(this.entity);
+    return true;
   }
 }

@@ -11,11 +11,9 @@ import {
   Res,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { ModulesSchema } from '../../../../coreservices/services/system/modules/module.schema';
 import { ModuleService } from '../../../../coreservices/services/system/modules/modules.service';
 import { Paginate } from '../../../../coretoolkit/decorators/pagination.decorator';
 import { Permissions } from '../../../../coretoolkit/decorators/permissions.decorator';
-import { Schemas } from '../../../../coretoolkit/decorators/schema.decorator';
 import { Response } from 'express';
 import { IController } from '../../../controller.interface';
 import {

@@ -48,6 +48,7 @@ export class ClassValidatorInterceptor implements NestInterceptor {
    */
   async intercept(context: ExecutionContext, next: CallHandler<any>) {
     const request: Request = context.switchToHttp().getRequest();
+    const method = request.method.toLowerCase();
     const check = this.reflector.getAllAndOverride<ClassValidatorType>(
       CLASS_VALIDATOR_KEY,
       [context.getHandler(), context.getClass()],
@@ -66,9 +67,15 @@ export class ClassValidatorInterceptor implements NestInterceptor {
       const entity: ObjectLiteral = this.parentClass.model.entity;
       if (request.user) {
         if (this.parentClass) {
-          this.parentClass.model.entity['createdBy'] = request.user.id;
-          this.parentClass.model.entity['updatedBy'] = request.user.id;
           this.parentClass.model.entity = { ...entity, ...data };
+          if (request.user) {
+            if (method != 'post') {
+              this.parentClass.model.entity['updatedBy'] = request.user.id;
+            } else {
+              this.parentClass.model.entity['createdBy'] = request.user.id;
+              this.parentClass.model.entity['updatedBy'] = request.user.id;
+            }
+          }
         }
       }
     }

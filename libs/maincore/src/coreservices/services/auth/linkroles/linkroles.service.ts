@@ -80,11 +80,12 @@ export class LinkRoleService extends EntityModel<LinkRole> {
       }
       if (exists) {
         if (exists.isActive === 0 && exists.deletedAt !== null) {
+          const expireDate = this.entity.expireDate || null;
           const response = await this.repository.restoreDelete(
             {
               id: exists.id,
             },
-            { expireDate: this.entity.expireDate },
+            { expireDate },
           );
           return response.affected === 1;
         }
@@ -121,6 +122,7 @@ export class LinkRoleService extends EntityModel<LinkRole> {
 
   async UpdateLinkRole() {
     try {
+      console.log(this.entity);
       const response = await this.repository.FindOneAndUpdate(
         {
           id: this.entity.id,
@@ -187,15 +189,15 @@ export class LinkRoleService extends EntityModel<LinkRole> {
       const data = await this.PaginateView(UserLinkRolesView, conditions);
       let docsWithPermissions: UserServerRolesGroup[] = [];
       if (data?.docs.length > 0) {
-        const docsPermissions = (await Promise.all(
-          data.docs.map(async (doc) => {
-            const permissions = await this.permissions.ViewRolepermissions(
-              doc.id,
-              this.entity.User.id,
-            );
-            return { ...doc, permissions };
-          }),
-        )) as UserServerRoles[];
+        let docsPermissions: UserServerRoles[] = [];
+        for (const link of data.docs) {
+          const permissions = await this.permissions.ViewRolepermissions(
+            link.id,
+            this.entity.User.id,
+          );
+          link.is_assigned = Number(link.is_assigned);
+          docsPermissions.push({ ...link, permissions });
+        }
         docsWithPermissions = this.groupData(docsPermissions);
       }
       data.docs = docsWithPermissions as unknown as UserServerRoles[];

@@ -134,6 +134,7 @@ export class JoiSchemaValidator implements NestInterceptor {
   ) {}
   intercept(context: ExecutionContext, next: CallHandler) {
     const request = context.switchToHttp().getRequest() as Request;
+    const method = request.method.toLowerCase();
     const schemas = this.reflector.getAllAndOverride<schema_validate>(
       SCHEMA_KEY,
       [context.getHandler(), context.getClass()],
@@ -154,8 +155,12 @@ export class JoiSchemaValidator implements NestInterceptor {
       }
       if (schemas.schemas.length === 1) {
         if (request.user) {
-          entity['createdBy'] = request.user.id;
-          entity['updatedBy'] = request.user.id;
+          if (method != 'post') {
+            entity['updatedBy'] = request.user.id;
+          } else {
+            entity['createdBy'] = request.user.id;
+            entity['updatedBy'] = request.user.id;
+          }
         }
 
         this.parentClass.model.entity = { ...entity, ...value };

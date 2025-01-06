@@ -1,5 +1,5 @@
 import { IController } from '../../../controller.interface';
-import { Controller, Get, Post } from '@nestjs/common';
+import { Controller, Get, Patch, Post } from '@nestjs/common';
 import { UserGroupSupervisorService } from '../../../../coreservices/services/auth/usergroupsupervisor/usergroupsupervisor.service';
 import { ClassValidator } from '../../../../coretoolkit/decorators/classvalidator.decorator';
 import { UserGroupSupervisorDTO } from './usergroupsupervisor.dto';
@@ -43,6 +43,30 @@ export class UsergroupsupervisorController extends IController<UserGroupSupervis
       this.model.entity.group = group;
       await this.model.AddGroupSupervisor();
       return { msg: 'User added as supervisor successfully' };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Patch('/main')
+  @ClassValidator({ classDTO: UserGroupSupervisorDTO })
+  @ValidateService([
+    { entity: User, type: 'body' },
+    { entity: UserGroup, type: 'body', key: 'groupId' },
+  ])
+  async UpdateIsMain(
+    @Service('user') user: User,
+    @Service('usergroup') group: UserGroup,
+  ) {
+    try {
+      this.model.entity.group = group;
+      this.model.entity.user = user;
+      await this.model.UpdateIsMainSupervisor();
+      return {
+        msg:
+          this.model.entity.user.firstname +
+          ` has been set as ${this.model.entity.group.groupName} supervisor`,
+      };
     } catch (error) {
       throw error;
     }

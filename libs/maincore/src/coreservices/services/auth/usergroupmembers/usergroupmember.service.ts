@@ -1,8 +1,10 @@
+import { UserDataView } from '@core/maincore/entities/coreviews/userdata.view';
 import { EntityDataSource } from '../../../../databridge/model/enity.data.model';
 import { EntityModel } from '../../../../databridge/model/entity.model';
 import { UserGroupMember } from '../../../../entities/core/usergroupmembers.entity';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
+import { UserGroup } from '@core/maincore/entities/core/usergroups.entity';
 
 @Injectable()
 export class UserGroupMemberService extends EntityModel<UserGroupMember> {
@@ -43,5 +45,24 @@ export class UserGroupMemberService extends EntityModel<UserGroupMember> {
     } catch (error) {
       throw error;
     }
+  }
+
+  async ViewUserGroupMembers(groupId: number) {
+    const query = this.repository
+      .createQueryBuilder('ugm')
+      .select('ugm.*')
+      .addSelect(
+        'ud.userName AS userName, ud.image AS userImage,ud.gender AS gender',
+      )
+      .addSelect('ug.groupName AS groupName')
+      .innerJoin(UserDataView, 'ud', 'ud.id = ugm.userId')
+      .innerJoin(UserGroup, 'ug', 'ug.id = ugm.groupId AND ug.isActive = 1')
+      .where('ugm.isActive = 1')
+      .andWhere('ugm.groupId = :groupId', { groupId });
+    const members = (await query.getRawMany()) as ({
+      userName: string;
+      groupName: string;
+    } & UserGroupMember)[];
+    return members;
   }
 }

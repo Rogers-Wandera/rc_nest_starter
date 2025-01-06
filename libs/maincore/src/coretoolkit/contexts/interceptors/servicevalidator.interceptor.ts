@@ -34,6 +34,7 @@ export class ServiceValidator implements NestInterceptor {
       const entity: BaseEntityClass = this.parentClass.model.entity;
       const parentClassName = entity.constructor.name;
       const request: Request = context.switchToHttp().getRequest();
+      const method = request.method.toLowerCase();
       const validations = Array.isArray(services) ? services : [services];
       for (const service of validations) {
         await this.ValidateService(
@@ -47,8 +48,12 @@ export class ServiceValidator implements NestInterceptor {
       request.entities = entityobj;
       if (request.user) {
         if (this.parentClass) {
-          this.parentClass.model.entity['createdBy'] = request.user.id;
-          this.parentClass.model.entity['updatedBy'] = request.user.id;
+          if (method != 'post') {
+            this.parentClass.model.entity['updatedBy'] = request.user.id;
+          } else {
+            this.parentClass.model.entity['createdBy'] = request.user.id;
+            this.parentClass.model.entity['updatedBy'] = request.user.id;
+          }
         }
       }
     }
@@ -96,7 +101,6 @@ export class ServiceValidator implements NestInterceptor {
         `No ${name} found with ${key} of ${request[type][key]}`,
       );
     }
-
     if (classname === parentClassName) {
       this.parentClass.model.entity = {
         ...this.parentClass.model.entity,

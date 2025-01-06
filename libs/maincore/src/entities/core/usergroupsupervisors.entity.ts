@@ -1,4 +1,5 @@
 import {
+  Column,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -20,4 +21,6 @@ export class UserGroupSupervisors extends BaseEntityClass {
   @ManyToOne(() => UserGroup, (group) => group.supervisor)
   @JoinColumn()
   group: UserGroup;
+  @Column({ default: 0 })
+  isMain: number;
 }

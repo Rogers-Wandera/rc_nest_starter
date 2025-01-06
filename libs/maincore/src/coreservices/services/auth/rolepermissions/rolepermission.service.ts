@@ -19,33 +19,38 @@ export class RolePermissionService extends EntityModel<RolePermission> {
 
   async ViewRolepermissions(linkId: number, userId: string) {
     try {
-      const result: RolePermissionsData[] = await this.repository
+      const querydata = this.model.manager
         .createQueryBuilder()
         .select('lp.*')
+        .addSelect('rp.roleId,rp.id as rpId,mr.userId')
         .addSelect(
-          'rp.roleId,rp.id as rpId,mr.userId,CASE WHEN mr.id IS NULL THEN 0 ELSE 1 END AS checked',
+          'CASE WHEN mr.id IS NULL THEN 0 ELSE CASE WHEN rp.isActive = 1 THEN 1 ELSE 0 END END AS checked',
         )
         .addSelect('mr.groupId as groupId, mr.groupName as groupName')
         .addSelect('mr.memberId as memberId, mr.userName as userName')
         .addSelect(
           "CASE WHEN mr.memberId IS NULL THEN 'user' ELSE 'group' END AS permissionType",
         )
-        .addSelect('CASE WHEN rp.id IS NULL THEN 0 ELSE 1 END', 'is_assigned')
-        .from(LinkPermissionView, 'lp')
-        .leftJoin(
-          RolePermission,
-          'rp',
-          'rp.permissionId = lp.id AND rp.isActive = 1',
+        .addSelect(
+          'CASE WHEN rp.id IS NULL OR rp.isActive = 0 THEN 0 ELSE 1 END',
+          'is_assigned',
         )
+        .from(LinkPermissionView, 'lp')
+        .withDeleted()
+        .leftJoin(RolePermission, 'rp', 'rp.permissionId = lp.id')
+        .withDeleted()
         .leftJoin(
           ModuleRolesView,
           'mr',
-          'mr.id = rp.roleId AND mr.userId = :userId',
+          'mr.id = rp.roleId AND (mr.userId = :userId OR mr.userId IS NULL)',
         )
-        .where('lp.moduleLinkId = :moduleLinkId')
+        .where(
+          'lp.moduleLinkId = :moduleLinkId AND (mr.userId = :userId OR rp.id IS NULL)',
+        )
+        .withDeleted()
         .setParameter('userId', userId)
-        .setParameter('moduleLinkId', linkId)
-        .getRawMany();
+        .setParameter('moduleLinkId', linkId);
+      const result = await querydata.getRawMany<RolePermissionsData>();
       return result;
     } catch (error) {
       throw error;
