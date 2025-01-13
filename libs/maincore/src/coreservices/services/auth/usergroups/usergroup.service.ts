@@ -33,6 +33,20 @@ export class UserGroupService extends EntityModel<UserGroup> {
     return results;
   }
 
+  async ViewSingleGroup() {
+    if (Object.keys(this.entity).length > 0) {
+      const supervsiors = await this.groupsupervisors.viewGroupSupervisors(
+        this.entity.id,
+      );
+      const members = await this.groupmembers.ViewUserGroupMembers(
+        this.entity.id,
+      );
+      this.entity.supervisor = supervsiors;
+      this.entity.members = members;
+    }
+    return this.entity;
+  }
+
   async AddGroup(body: UserGroupDTO) {
     try {
       this.entity.groupName = body.groupName;

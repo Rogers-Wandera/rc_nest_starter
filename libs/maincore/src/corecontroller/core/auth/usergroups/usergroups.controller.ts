@@ -45,6 +45,16 @@ export class UserGroupController extends IController<UserGroupService> {
     }
   }
 
+  @Get(':id')
+  @ValidateService({ entity: UserGroup })
+  async ViewSingle() {
+    try {
+      return await this.model.ViewSingleGroup();
+    } catch (error) {
+      throw error;
+    }
+  }
+
   @Post()
   @ApiCreateUserGroup()
   @ClassValidator({ classDTO: UserGroupDTO })
