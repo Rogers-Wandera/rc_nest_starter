@@ -21,6 +21,16 @@ export class UserGroupMemberService extends EntityModel<UserGroupMember> {
 
   async AddGroupMember() {
     try {
+      const find = await this.repository.findOne({
+        where: { user: { id: this.entity.user.id } },
+        withDeleted: true,
+      });
+      if (find) {
+        if (find.isActive === 0 && find.deletedAt !== null) {
+          await this.repository.restoreDelete({ id: find.id });
+          return find;
+        }
+      }
       const entity = this.repository.create(this.entity);
       const response = await this.repository.save(entity);
       return response;

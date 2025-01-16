@@ -1,5 +1,5 @@
 import { IController } from '../../../controller.interface';
-import { Controller, Get, Patch, Post } from '@nestjs/common';
+import { Controller, Delete, Get, Patch, Post } from '@nestjs/common';
 import { UserGroupSupervisorService } from '../../../../coreservices/services/auth/usergroupsupervisor/usergroupsupervisor.service';
 import { ClassValidator } from '../../../../coretoolkit/decorators/classvalidator.decorator';
 import { UserGroupSupervisorDTO } from './usergroupsupervisor.dto';
@@ -11,6 +11,7 @@ import { AuthGuard } from '../../../../authguards/guards/auth.guard';
 import { ROLE } from '../../../../coretoolkit/types/enums/enums';
 import { Paginate } from '../../../../coretoolkit/decorators/pagination.decorator';
 import { ApiTags } from '@nestjs/swagger';
+import { UserGroupSupervisors } from '@core/maincore/entities/core/usergroupsupervisors.entity';
 
 @Controller('/core/auth/groupsupervisors')
 @AuthGuard(ROLE.ADMIN)
@@ -31,7 +32,7 @@ export class UsergroupsupervisorController extends IController<UserGroupSupervis
   @Post()
   @ClassValidator({ classDTO: UserGroupSupervisorDTO })
   @ValidateService([
-    { entity: User, type: 'body' },
+    { entity: User, type: 'body', key: 'userId' },
     { entity: UserGroup, type: 'body', key: 'groupId' },
   ])
   async Create(
@@ -63,10 +64,22 @@ export class UsergroupsupervisorController extends IController<UserGroupSupervis
       this.model.entity.user = user;
       await this.model.UpdateIsMainSupervisor();
       return {
-        msg:
-          this.model.entity.user.firstname +
-          ` has been set as ${this.model.entity.group.groupName} supervisor`,
+        msg: 'Operation successful',
       };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Delete(':id')
+  @ValidateService({ entity: UserGroupSupervisors })
+  async Delete() {
+    try {
+      const response = await this.model.RemoveSupervisor();
+      const msg = response
+        ? 'Supervisor removed successfully'
+        : 'Something went wrong';
+      return { msg };
     } catch (error) {
       throw error;
     }

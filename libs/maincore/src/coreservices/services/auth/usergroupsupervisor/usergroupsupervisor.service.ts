@@ -24,10 +24,21 @@ export class UserGroupSupervisorService extends EntityModel<UserGroupSupervisors
 
   async AddGroupSupervisor() {
     try {
-      if (this.entity.group.supervisor.length > 0) {
+      const groupSupervisors = await this.repository.find({
+        where: { group: { id: this.entity.group.id } },
+      });
+      if (groupSupervisors.length > 0) {
         this.entity = { ...this.entity, isMain: 0 };
       } else {
         this.entity = { ...this.entity, isMain: 1 };
+      }
+      const find = await this.repository.findOne({
+        where: { user: { id: this.entity.user.id } },
+        withDeleted: true,
+      });
+      if (find?.isActive === 0 && find?.deletedAt !== null) {
+        await this.repository.restoreDelete({ id: find.id });
+        return find;
       }
       const response = await this.repository.save(this.entity);
       return response;
@@ -46,6 +57,7 @@ export class UserGroupSupervisorService extends EntityModel<UserGroupSupervisors
     try {
       const supervisors = await this.repository.find({
         where: { group: { id: this.entity.group.id } },
+        relations: { user: true },
       });
       for (const supervisor of supervisors) {
         if (supervisor.user.id === this.entity.user.id) {
@@ -78,5 +90,16 @@ export class UserGroupSupervisorService extends EntityModel<UserGroupSupervisors
       groupName: string;
     } & UserGroupSupervisors)[];
     return supervisors;
+  }
+
+  async RemoveSupervisor() {
+    try {
+      const response = await this.repository.softDataDelete({
+        id: this.entity.id,
+      });
+      return response.affected === 1;
+    } catch (error) {
+      throw error;
+    }
   }
 }
