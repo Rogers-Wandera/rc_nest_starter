@@ -21,6 +21,7 @@ import { Request } from 'express';
 import { ROLE } from '@core/maincore/coretoolkit/types/enums/enums';
 import { UserLinkRolesView } from '@core/maincore/entities/coreviews/userlinkroles.view';
 import { RolePermissionService } from '../rolepermissions/rolepermission.service';
+import { GroupLinkRolesView } from '@core/maincore/entities/coreviews/grouplinkroles.view';
 
 @Injectable()
 export class LinkRoleService extends EntityModel<LinkRole> {
@@ -183,17 +184,33 @@ export class LinkRoleService extends EntityModel<LinkRole> {
     }
   }
 
-  async getToAssignRoles(): Promise<PaginationResults<UserServerRolesGroup>> {
+  async getToAssignRoles(
+    type: 'user' | 'group' = 'user',
+  ): Promise<PaginationResults<UserServerRolesGroup>> {
     try {
-      const conditions = { userId: this.entity.User.id };
-      const data = await this.PaginateView(UserLinkRolesView, conditions);
+      const conditions: Record<string, any> = {};
+      if (type != 'user') {
+        conditions['groupId'] = this.entity.group.id;
+      } else {
+        conditions['userId'] = this.entity.User.id;
+      }
+      const view = type === 'user' ? UserLinkRolesView : GroupLinkRolesView;
+      const data = await this.PaginateView(view, conditions);
+      const value =
+        type === 'user' ? this.entity.User.id : this.entity.group.id;
       let docsWithPermissions: UserServerRolesGroup[] = [];
+
       if (data?.docs.length > 0) {
+        const formatteddata =
+          type === 'user'
+            ? data.docs
+            : this.removeDuplicatesObject(data.docs, 'groupId' as any);
         let docsPermissions: UserServerRoles[] = [];
-        for (const link of data.docs) {
+        for (const link of formatteddata) {
           const permissions = await this.permissions.ViewRolepermissions(
             link.id,
-            this.entity.User.id,
+            value,
+            'group',
           );
           link.is_assigned = Number(link.is_assigned);
           docsPermissions.push({ ...link, permissions });
@@ -202,6 +219,7 @@ export class LinkRoleService extends EntityModel<LinkRole> {
       }
       data.docs = docsWithPermissions as unknown as UserServerRoles[];
       return data as unknown as PaginationResults<UserServerRolesGroup>;
+      // return {} as PaginationResults<UserServerRolesGroup>;
     } catch (error) {
       throw error;
     }

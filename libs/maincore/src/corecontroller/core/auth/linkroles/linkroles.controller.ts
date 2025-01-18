@@ -161,4 +161,20 @@ export class LinkRoleController extends IController<LinkRoleService> {
       throw error;
     }
   }
+  @Get('/group/serverroles/:groupId')
+  @Paginate()
+  @ApiGetUnassignedRoles()
+  @ValidateService([{ entity: UserGroup }])
+  async GetUnAssignedGroupRoles(
+    @Res() res: Response,
+    @Service('usergroup') group: UserGroup,
+  ) {
+    try {
+      this.model.entity.group = group;
+      const data = await this.model.getToAssignRoles('group');
+      res.status(HttpStatus.OK).json(data);
+    } catch (error) {
+      throw error;
+    }
+  }
 }

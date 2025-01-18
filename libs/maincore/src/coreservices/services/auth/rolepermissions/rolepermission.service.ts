@@ -17,12 +17,16 @@ export class RolePermissionService extends EntityModel<RolePermission> {
     super(RolePermission, source);
   }
 
-  async ViewRolepermissions(linkId: number, userId: string) {
+  async ViewRolepermissions(
+    linkId: number,
+    value: string | number,
+    type: 'user' | 'group' = 'user',
+  ) {
     try {
       const querydata = this.model.manager
         .createQueryBuilder()
         .select('lp.*')
-        .addSelect('rp.roleId,rp.id as rpId,mr.userId')
+        .addSelect(`rp.roleId,rp.id as rpId,mr.userId`)
         .addSelect(
           'CASE WHEN mr.id IS NULL THEN 0 ELSE CASE WHEN rp.isActive = 1 THEN 1 ELSE 0 END END AS checked',
         )
@@ -42,13 +46,13 @@ export class RolePermissionService extends EntityModel<RolePermission> {
         .leftJoin(
           ModuleRolesView,
           'mr',
-          'mr.id = rp.roleId AND (mr.userId = :userId OR mr.userId IS NULL)',
+          `mr.id = rp.roleId AND (mr.${type === 'user' ? 'userId' : 'groupId'} = :${type === 'user' ? 'userId' : 'groupId'} OR mr.${type === 'user' ? 'userId' : 'groupId'} IS NULL)`,
         )
         .where(
-          'lp.moduleLinkId = :moduleLinkId AND (mr.userId = :userId OR rp.id IS NULL)',
+          `lp.moduleLinkId = :moduleLinkId AND (mr.${type === 'user' ? 'userId' : 'groupId'} = :${type === 'user' ? 'userId' : 'groupId'} OR rp.id IS NULL)`,
         )
         .withDeleted()
-        .setParameter('userId', userId)
+        .setParameter(`${type === 'user' ? 'userId' : 'groupId'}`, value)
         .setParameter('moduleLinkId', linkId);
       const result = await querydata.getRawMany<RolePermissionsData>();
       return result;

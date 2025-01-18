@@ -66,4 +66,20 @@ export abstract class DataUtils {
 
     return formatted.trim();
   }
+
+  removeDuplicatesObject<T extends Record<string, any>>(
+    records: T[],
+    uniqueField: keyof T,
+  ) {
+    const uniqueRecords = Object.values(
+      records.reduce((acc, record) => {
+        const key = record[uniqueField];
+        if (!acc[key as string]) {
+          acc[key as string] = record;
+        }
+        return acc;
+      }, {}) as T[],
+    );
+    return uniqueRecords;
+  }
 }
