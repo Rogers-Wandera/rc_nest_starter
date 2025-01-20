@@ -22,17 +22,18 @@ import { ROLE } from '@core/maincore/coretoolkit/types/enums/enums';
 import { UserLinkRolesView } from '@core/maincore/entities/coreviews/userlinkroles.view';
 import { RolePermissionService } from '../rolepermissions/rolepermission.service';
 import { GroupLinkRolesView } from '@core/maincore/entities/coreviews/grouplinkroles.view';
+import { UserModuleRolesView } from '@core/maincore/entities/coreviews/user.moduleroles.view';
 
 @Injectable()
 export class LinkRoleService extends EntityModel<LinkRole> {
-  private readonly rolesrepo: CustomRepository<ModuleRolesView>;
+  private readonly rolesrepo: CustomRepository<UserModuleRolesView>;
   constructor(
     source: EntityDataSource,
     @Inject(REQUEST) protected request: Request,
     private permissions: RolePermissionService,
   ) {
     super(LinkRole, source);
-    this.rolesrepo = this.model.getRepository(ModuleRolesView);
+    this.rolesrepo = this.model.getRepository(UserModuleRolesView);
   }
 
   private async checkUserHasRole() {
@@ -201,10 +202,7 @@ export class LinkRoleService extends EntityModel<LinkRole> {
       let docsWithPermissions: UserServerRolesGroup[] = [];
 
       if (data?.docs.length > 0) {
-        const formatteddata =
-          type === 'user'
-            ? data.docs
-            : this.removeDuplicatesObject(data.docs, 'groupId' as any);
+        const formatteddata = data.docs;
         let docsPermissions: UserServerRoles[] = [];
         for (const link of formatteddata) {
           const permissions = await this.permissions.ViewRolepermissions(

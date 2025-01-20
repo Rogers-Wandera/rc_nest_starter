@@ -31,9 +31,9 @@ export class RolePermissionService extends EntityModel<RolePermission> {
           'CASE WHEN mr.id IS NULL THEN 0 ELSE CASE WHEN rp.isActive = 1 THEN 1 ELSE 0 END END AS checked',
         )
         .addSelect('mr.groupId as groupId, mr.groupName as groupName')
-        .addSelect('mr.memberId as memberId, mr.userName as userName')
+        .addSelect('mr.userName as userName')
         .addSelect(
-          "CASE WHEN mr.memberId IS NULL THEN 'user' ELSE 'group' END AS permissionType",
+          "CASE WHEN mr.userId IS NOT NULL THEN 'user' ELSE 'group' END AS permissionType",
         )
         .addSelect(
           'CASE WHEN rp.id IS NULL OR rp.isActive = 0 THEN 0 ELSE 1 END',

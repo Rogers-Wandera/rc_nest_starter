@@ -1,7 +1,7 @@
 import { ViewColumn, ViewEntity } from 'typeorm';
 import { ModuleLinksView } from './modulelinks.view';
 import { UserDataView } from './userdata.view';
-import { ModuleRolesView } from './moduleroles.view';
+import { UserModuleRolesView } from './user.moduleroles.view';
 
 @ViewEntity({
   name: 'vw_userlinkroles',
@@ -16,10 +16,11 @@ import { ModuleRolesView } from './moduleroles.view';
       .addSelect('mr.expired', 'expired')
       .addSelect('mr.days_left', 'days_left')
       .addSelect('ur.id', 'userId')
+      .addSelect('mr.groupId', 'groupId')
       .from(UserDataView, 'ur')
       .innerJoin(ModuleLinksView, 'ml', '1 = 1')
       .leftJoin(
-        ModuleRolesView,
+        UserModuleRolesView,
         'mr',
         'mr.moduleLinkId = ml.id AND ur.id = mr.userId',
       )
@@ -77,4 +78,6 @@ export class UserLinkRolesView {
 
   @ViewColumn()
   userId: string;
+  @ViewColumn()
+  groupId: string;
 }

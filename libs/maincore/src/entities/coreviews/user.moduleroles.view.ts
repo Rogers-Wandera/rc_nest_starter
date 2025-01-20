@@ -3,9 +3,10 @@ import { LinkRole } from '../core/linkroles.entity';
 import { ModuleLinksView } from './modulelinks.view';
 import { User } from '../core/users.entity';
 import { UserGroup } from '../core/usergroups.entity';
+import { UserGroupMember } from '../core/usergroupmembers.entity';
 
 @ViewEntity({
-  name: 'vw_module_roles',
+  name: 'vw_usermodule_roles',
   expression: (model) =>
     model
       .createQueryBuilder()
@@ -15,7 +16,10 @@ import { UserGroup } from '../core/usergroups.entity';
           .select(
             'lr.id as id, lr.expireDate as expireDate, lr.moduleLinkId as moduleLinkId',
           )
-          .addSelect('lr.userId as userId,lr.groupId as groupId')
+          .addSelect(
+            'CASE WHEN (lr.userId IS NULL) THEN ugm.userId ELSE lr.userId END AS userId',
+          )
+          .addSelect('lr.groupId as groupId')
           .addSelect('lr.isActive as isActive, lr.createdBy as createdBy')
           .addSelect(
             'lr.creationDate as creationDate, lr.updatedBy as updatedBy',
@@ -33,6 +37,7 @@ import { UserGroup } from '../core/usergroups.entity';
           )
           .addSelect('TO_DAYS(lr.expireDate) - TO_DAYS(CURDATE()) AS days_left')
           .addSelect('ug.groupName as groupName')
+          .addSelect('ugm.id as memberId')
           .addSelect(
             `ROW_NUMBER() OVER (
               PARTITION BY u.id, lr.moduleLinkId 
@@ -49,7 +54,16 @@ import { UserGroup } from '../core/usergroups.entity';
           )
           .from(LinkRole, 'lr')
           .innerJoin(ModuleLinksView, 'ml', 'ml.id = lr.moduleLinkId')
-          .leftJoin(User, 'u', 'u.id = lr.userId and u.isActive = 1')
+          .leftJoin(
+            UserGroupMember,
+            'ugm',
+            'ugm.groupId = lr.groupId and ugm.isActive = 1',
+          )
+          .leftJoin(
+            User,
+            'u',
+            'u.id = lr.userId OR u.id = ugm.userId and u.isActive = 1',
+          )
           .leftJoin(UserGroup, 'ug', 'ug.id = lr.groupId and ug.isActive = 1')
           .where('lr.isActive = 1')
           .orderBy('ml.mpos, ml.position');
@@ -57,7 +71,7 @@ import { UserGroup } from '../core/usergroups.entity';
       }, 'roles')
       .where('roles.rownumber = 1'),
 })
-export class ModuleRolesView {
+export class UserModuleRolesView {
   @ViewColumn()
   id: number;
   @ViewColumn()
@@ -104,4 +118,6 @@ export class ModuleRolesView {
   groupId: string | null;
   @ViewColumn()
   groupName: string | null;
+  @ViewColumn()
+  memberId: string | null;
 }

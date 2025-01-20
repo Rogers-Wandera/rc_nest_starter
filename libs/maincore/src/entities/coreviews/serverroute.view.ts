@@ -22,7 +22,7 @@ import { RolePermission } from '../core/rolepermissions.entity';
       )
       .addSelect('mrv.userName AS `userName`')
       .addSelect('mrv.userId as userId, mrv.groupId as groupId')
-      .addSelect('mrv.memberId as memberId, mrv.groupName as groupName')
+      .addSelect('mrv.groupName as groupName')
       .addSelect(
         'CASE WHEN (CAST(srr.expireTime AS DATE) <= CURDATE()) THEN 1 ELSE 0 END AS expired',
       )
@@ -61,8 +61,6 @@ export class ServerRolesView extends BaseEntityView {
   serverRouteId: number;
   @ViewColumn()
   groupId: string;
-  @ViewColumn()
-  memberId: string;
   @ViewColumn()
   groupName: string;
 }

@@ -69,16 +69,33 @@ export abstract class DataUtils {
 
   removeDuplicatesObject<T extends Record<string, any>>(
     records: T[],
-    uniqueField: keyof T,
+    uniqueFields: (keyof T)[],
   ) {
     const uniqueRecords = Object.values(
-      records.reduce((acc, record) => {
-        const key = record[uniqueField];
-        if (!acc[key as string]) {
-          acc[key as string] = record;
-        }
-        return acc;
-      }, {}) as T[],
+      records.reduce(
+        (acc, record) => {
+          if (record === null) {
+            // If the record is null, include it and skip further checks
+            acc[JSON.stringify(record)] = record;
+            return acc;
+          }
+          // Check if any unique field value is null
+          const isInvalidRecord = uniqueFields.some(
+            (field) => record[field] === null,
+          );
+          if (isInvalidRecord) {
+            acc[JSON.stringify(record)] = record; // Include the record as-is
+            return acc;
+          }
+
+          const key = uniqueFields.map((field) => record[field]).join('|');
+          if (!acc[key]) {
+            acc[key] = record;
+          }
+          return acc;
+        },
+        {} as Record<string, T>,
+      ),
     );
     return uniqueRecords;
   }
