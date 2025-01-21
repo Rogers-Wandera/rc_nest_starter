@@ -79,6 +79,7 @@ import { Only } from '@core/maincore/authguards/decorators/only.guard';
 import { SkipThrottle } from '@nestjs/throttler';
 import { ClassValidator } from '@core/maincore/coretoolkit/decorators/classvalidator.decorator';
 import { LockUserDTO } from './users.dto';
+import { ServerRouteRoleService } from '@core/maincore/coreservices/services/auth/serverrouteroles/serverrouteroles.service';
 
 @ApiTags('User Management')
 @Controller('/core/auth/users')
@@ -89,6 +90,7 @@ export class UsersController extends IController<UserService> {
     private readonly userutils: UserUtilsService,
     @Inject(EventsGateway) private readonly socket: EventsGateway,
     private readonly rabbitService: RabbitMQService,
+    private serverroles: ServerRouteRoleService,
   ) {
     super(model);
   }
@@ -385,6 +387,17 @@ export class UsersController extends IController<UserService> {
     try {
       const response = await this.model.LockUser(body.isLocked);
       return { msg: response };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get('/userpermissions/:userId')
+  @Roles(ROLE.USER)
+  async UserPermissions(@Param('userId', new ParseUUIDPipe()) userId: string) {
+    try {
+      const permissions = await this.serverroles.getUserPermissions(userId);
+      return permissions;
     } catch (error) {
       throw error;
     }

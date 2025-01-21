@@ -78,6 +78,7 @@ export class UserLinkRolesView {
 
   @ViewColumn()
   userId: string;
+
   @ViewColumn()
   groupId: string;
 }

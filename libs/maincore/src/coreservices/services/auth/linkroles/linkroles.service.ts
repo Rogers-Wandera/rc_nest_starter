@@ -20,7 +20,10 @@ import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
 import { ROLE } from '@core/maincore/coretoolkit/types/enums/enums';
 import { UserLinkRolesView } from '@core/maincore/entities/coreviews/userlinkroles.view';
-import { RolePermissionService } from '../rolepermissions/rolepermission.service';
+import {
+  permissionprops,
+  RolePermissionService,
+} from '../rolepermissions/rolepermission.service';
 import { GroupLinkRolesView } from '@core/maincore/entities/coreviews/grouplinkroles.view';
 import { UserModuleRolesView } from '@core/maincore/entities/coreviews/user.moduleroles.view';
 
@@ -196,20 +199,29 @@ export class LinkRoleService extends EntityModel<LinkRole> {
         conditions['userId'] = this.entity.User.id;
       }
       const view = type === 'user' ? UserLinkRolesView : GroupLinkRolesView;
-      const data = await this.PaginateView(view, conditions);
       const value =
         type === 'user' ? this.entity.User.id : this.entity.group.id;
+      const proptype =
+        type === 'user' ? { value, type: 'user' } : { value, type: 'group' };
+      const data = await this.PaginateView(view, conditions);
+
       let docsWithPermissions: UserServerRolesGroup[] = [];
 
       if (data?.docs.length > 0) {
         const formatteddata = data.docs;
         let docsPermissions: UserServerRoles[] = [];
         for (const link of formatteddata) {
-          const permissions = await this.permissions.ViewRolepermissions(
-            link.id,
-            value,
-            'group',
-          );
+          let newproptype = proptype;
+          if (link?.groupId !== null) {
+            newproptype = {
+              value: link.groupId,
+              type: 'group',
+            };
+          }
+          const permissions = await this.permissions.ViewRolepermissions({
+            ...newproptype,
+            moduleLinkId: link.id,
+          } as permissionprops);
           link.is_assigned = Number(link.is_assigned);
           docsPermissions.push({ ...link, permissions });
         }
@@ -217,7 +229,6 @@ export class LinkRoleService extends EntityModel<LinkRole> {
       }
       data.docs = docsWithPermissions as unknown as UserServerRoles[];
       return data as unknown as PaginationResults<UserServerRolesGroup>;
-      // return {} as PaginationResults<UserServerRolesGroup>;
     } catch (error) {
       throw error;
     }

@@ -82,7 +82,7 @@ export class RolesGuard implements CanActivate {
       return true;
     }
     throw new UnauthorizedException(
-      'You are not authorized to view this route',
+      'You are not authorized to perform action on this route contact admin',
     );
   }
 

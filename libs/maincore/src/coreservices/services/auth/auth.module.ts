@@ -54,6 +54,7 @@ import { UserGroupSupervisorModule } from './usergroupsupervisor/usergroupsuperv
     UserGroupModule,
     UserGroupMemberModule,
     UserGroupSupervisorModule,
+    ServerRouteRoleModule,
   ],
 })
 export class AuthModule {}

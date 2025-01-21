@@ -81,7 +81,11 @@ export class RolePermissionController extends IController<RolePermissionService>
     @Service('user') user: User,
   ) {
     try {
-      const response = await this.model.ViewRolepermissions(linkId, user.id);
+      const response = await this.model.ViewRolepermissions({
+        moduleLinkId: linkId,
+        type: 'user',
+        value: user.id,
+      });
       res.status(HttpStatus.OK).json(response);
     } catch (error) {
       throw error;

@@ -3,8 +3,8 @@ import { ServerRouteMethod } from '../core/serverroutemethods.entity';
 import { ServerRouteRole } from '../core/serverrouteroles.entity';
 import { BaseEntityView } from '../baseview';
 import { METHODS } from '../../coretoolkit/types/enums/enums';
-import { ModuleRolesView } from './moduleroles.view';
 import { RolePermission } from '../core/rolepermissions.entity';
+import { UserModuleRolesView } from './user.moduleroles.view';
 
 @ViewEntity({
   name: 'vw_serverroles',
@@ -29,7 +29,7 @@ import { RolePermission } from '../core/rolepermissions.entity';
       .addSelect('TO_DAYS(srr.expireTime) - TO_DAYS(CURDATE()) AS days_left')
       .innerJoin(ServerRouteRole, 'srr', 'srr.id = srm.serverRouteId')
       .innerJoin(RolePermission, 'lpv', 'lpv.id = srr.permissionId')
-      .innerJoin(ModuleRolesView, 'mrv', 'mrv.id = lpv.roleId')
+      .innerJoin(UserModuleRolesView, 'mrv', 'mrv.id = lpv.roleId')
       .withDeleted(),
 })
 export class ServerRolesView extends BaseEntityView {

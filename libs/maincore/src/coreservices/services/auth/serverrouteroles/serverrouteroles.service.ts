@@ -78,4 +78,26 @@ export class ServerRouteRoleService extends EntityModel<ServerRouteRole> {
       throw error;
     }
   }
+
+  async getUserPermissions(userId: string) {
+    try {
+      const data = await this.serverview.find({
+        where: { userId, isActive: 1 },
+      });
+      return data.map((permission) => ({
+        method: permission.method,
+        expireTime: permission.expireTime,
+        userName: permission.userName,
+        userId: permission.userId,
+        isGroupPermission: permission.groupId !== null,
+        expired: permission.expired,
+        groupId: permission.groupId,
+        groupName: permission.groupName,
+        days_left: permission.days_left,
+        roleName: permission.roleName,
+      }));
+    } catch (error) {
+      throw error;
+    }
+  }
 }

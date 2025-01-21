@@ -7,6 +7,19 @@ import { QueryFailedError } from 'typeorm';
 import { LinkPermissionView } from '../../../../entities/coreviews/linkpermissions.view';
 import { ModuleRolesView } from '../../../../entities/coreviews/moduleroles.view';
 import { RolePermissionsData } from './type';
+import { PermissionRolesView } from '@core/maincore/entities/coreviews/permissions.view';
+
+type withuser = {
+  type: 'user';
+  value: string;
+};
+type withgroup = {
+  type: 'group';
+  value: number;
+};
+export type permissionprops = (withgroup | withuser) & {
+  moduleLinkId: number;
+};
 
 @Injectable()
 export class RolePermissionService extends EntityModel<RolePermission> {
@@ -17,45 +30,82 @@ export class RolePermissionService extends EntityModel<RolePermission> {
     super(RolePermission, source);
   }
 
-  async ViewRolepermissions(
-    linkId: number,
-    value: string | number,
-    type: 'user' | 'group' = 'user',
-  ) {
+  async getUnAssignedPermissions({
+    value,
+    type,
+    moduleLinkId,
+  }: permissionprops) {
+    const field = type === 'user' ? { userId: value } : { groupId: value };
+    const repository = this.model.manager.getRepository(LinkPermissionView);
+    const assigned = await this.model.manager
+      .getRepository(PermissionRolesView)
+      .find({
+        where: { ...field, moduleLinkId },
+      });
+    const ids = assigned.map((item) => item.id);
+    const query = repository
+      .createQueryBuilder('lp')
+      .select('lp.*')
+      .addSelect('null AS roleId, null AS rpId, null AS userId, 0 AS checked')
+      .addSelect('NULL AS groupId, null AS groupName, NULL as userName')
+      .addSelect(`'${type}' AS permissionType, 0 AS is_assigned`)
+      .where('lp.isActive = 1')
+      .andWhere('lp.moduleLinkId = :moduleLinkId', { moduleLinkId });
+
+    if (ids.length > 0) {
+      query.andWhere('lp.id NOT IN (:...ids)', { ids });
+    }
+    return query.getRawMany() as unknown as PermissionRolesView[];
+  }
+
+  async ViewRolepermissions({ value, type, moduleLinkId }: permissionprops) {
     try {
-      const querydata = this.model.manager
-        .createQueryBuilder()
-        .select('lp.*')
-        .addSelect(`rp.roleId,rp.id as rpId,mr.userId`)
-        .addSelect(
-          'CASE WHEN mr.id IS NULL THEN 0 ELSE CASE WHEN rp.isActive = 1 THEN 1 ELSE 0 END END AS checked',
-        )
-        .addSelect('mr.groupId as groupId, mr.groupName as groupName')
-        .addSelect('mr.userName as userName')
-        .addSelect(
-          "CASE WHEN mr.userId IS NOT NULL THEN 'user' ELSE 'group' END AS permissionType",
-        )
-        .addSelect(
-          'CASE WHEN rp.id IS NULL OR rp.isActive = 0 THEN 0 ELSE 1 END',
-          'is_assigned',
-        )
-        .from(LinkPermissionView, 'lp')
-        .withDeleted()
-        .leftJoin(RolePermission, 'rp', 'rp.permissionId = lp.id')
-        .withDeleted()
-        .leftJoin(
-          ModuleRolesView,
-          'mr',
-          `mr.id = rp.roleId AND (mr.${type === 'user' ? 'userId' : 'groupId'} = :${type === 'user' ? 'userId' : 'groupId'} OR mr.${type === 'user' ? 'userId' : 'groupId'} IS NULL)`,
-        )
-        .where(
-          `lp.moduleLinkId = :moduleLinkId AND (mr.${type === 'user' ? 'userId' : 'groupId'} = :${type === 'user' ? 'userId' : 'groupId'} OR rp.id IS NULL)`,
-        )
-        .withDeleted()
-        .setParameter(`${type === 'user' ? 'userId' : 'groupId'}`, value)
-        .setParameter('moduleLinkId', linkId);
-      const result = await querydata.getRawMany<RolePermissionsData>();
-      return result;
+      const field = type === 'user' ? { userId: value } : { groupId: value };
+      const repository = this.model.manager.getRepository(PermissionRolesView);
+      const assigned = await repository.find({
+        where: { permissionType: type, moduleLinkId, ...field },
+      });
+      const unassignedpermissions = await this.getUnAssignedPermissions({
+        value,
+        type,
+        moduleLinkId,
+      } as permissionprops);
+
+      const data = [...assigned, ...unassignedpermissions];
+      // const querydata = this.model.manager
+      //   .createQueryBuilder()
+      //   .select('lp.*')
+      //   .addSelect(`rp.roleId,rp.id as rpId,mr.userId`)
+      //   .addSelect(
+      //     'CASE WHEN mr.id IS NULL THEN 0 ELSE CASE WHEN rp.isActive = 1 THEN 1 ELSE 0 END END AS checked',
+      //   )
+      //   .addSelect('mr.groupId as groupId, mr.groupName as groupName')
+      //   .addSelect('mr.userName as userName')
+      //   .addSelect(
+      //     "CASE WHEN mr.userId IS NOT NULL THEN 'user' ELSE 'group' END AS permissionType",
+      //   )
+      //   .addSelect(
+      //     'CASE WHEN rp.id IS NULL OR rp.isActive = 0 THEN 0 ELSE 1 END',
+      //     'is_assigned',
+      //   )
+      //   .from(LinkPermissionView, 'lp')
+      //   .withDeleted()
+      //   .leftJoin(RolePermission, 'rp', 'rp.permissionId = lp.id')
+      //   .withDeleted()
+      //   .leftJoin(
+      //     ModuleRolesView,
+      //     'mr',
+      //     `mr.id = rp.roleId AND (mr.${type === 'user' ? 'userId' : 'groupId'} = :${type === 'user' ? 'userId' : 'groupId'} OR mr.${type === 'user' ? 'userId' : 'groupId'} IS NULL)`,
+      //   )
+      //   .where(
+      //     `lp.moduleLinkId = :moduleLinkId AND (mr.${type === 'user' ? 'userId' : 'groupId'} = :${type === 'user' ? 'userId' : 'groupId'} OR rp.id IS NULL)`,
+      //   )
+      //   .withDeleted()
+      //   .setParameter(`${type === 'user' ? 'userId' : 'groupId'}`, value)
+      //   .setParameter('moduleLinkId', linkId);
+      // const result = await querydata.getRawMany<RolePermissionsData>();
+      // return result;
+      return data as unknown as RolePermissionsData[];
     } catch (error) {
       throw error;
     }
