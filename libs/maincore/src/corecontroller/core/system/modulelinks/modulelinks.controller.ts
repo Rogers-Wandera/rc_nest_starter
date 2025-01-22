@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -28,6 +29,10 @@ import { ROLE } from '../../../../coretoolkit/types/enums/enums';
 import { Only } from '@core/maincore/authguards/decorators/only.guard';
 import { ValidateService } from '@core/maincore/coretoolkit/decorators/servicevalidate.decorator';
 import { ModuleLink } from '@core/maincore/entities/core/modulelinks.entity';
+import { ClassValidator } from '@core/maincore/coretoolkit/decorators/classvalidator.decorator';
+import { TransferLinkDTO } from './link.dto';
+import { Module } from '@core/maincore/entities/core/modules.entity';
+import { Service } from '@core/maincore/coretoolkit/decorators/param.decorator';
 
 @Controller('/core/system/modulelinks')
 @ApiTags('Module Links')
@@ -106,6 +111,33 @@ export class ModuleLinksController extends IController<ModuleLinksService> {
     try {
       const data = await this.model.ViewModuleLinks(id);
       res.status(HttpStatus.OK).json(data);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Patch('/transfer/link')
+  @Only(ROLE.PROGRAMMER)
+  @ClassValidator({ classDTO: TransferLinkDTO })
+  @ValidateService([
+    { entity: ModuleLink, type: 'body', key: 'linkId' },
+    { entity: Module, type: 'body', key: 'moduleId' },
+  ])
+  async TransferLink(
+    @Service('module') module: Module,
+    @Service('modulelink') modulelink: ModuleLink,
+    @Body() body: TransferLinkDTO,
+  ) {
+    try {
+      this.model.entity = modulelink;
+      await this.model.TransferLink(body.moduleId, module);
+      return {
+        msg:
+          this.model.entity.linkname +
+          ' transfered to ' +
+          module.name +
+          ' Module successfully',
+      };
     } catch (error) {
       throw error;
     }

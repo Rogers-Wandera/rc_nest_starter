@@ -70,8 +70,14 @@ export class EventsGateway
   handleConnection(client: Socket) {
     const { sockets } = this.server.sockets;
     const token = client.handshake.auth.token as string;
-    this.HandleAuthorizationClient(token, client);
-    this.logger.log(`Client id: ${client.id} connected`);
+    const status = this.HandleAuthorizationClient(token, client);
+    if (status) {
+      this.logger.warn(`Client id: ${client.id} connected`);
+    } else {
+      this.logger.log(
+        `Client id: ${client.id} tried to connect but was denied `,
+      );
+    }
     this.logger.debug(`Number of connected clients: ${sockets.size}`);
   }
 
@@ -104,8 +110,9 @@ export class EventsGateway
         message: 'Authentication errors: Token required or invalid',
       });
       client.disconnect(true);
-      return;
+      return false;
     }
+    return true;
   }
 
   /**
@@ -152,6 +159,7 @@ export class EventsGateway
     @MessageBody() data: { userId: string },
     @ConnectedSocket() client: Socket,
   ) {
+    console.log(data);
     this.clients.set(data.userId, client);
     this.logger.log(
       `User id: ${data.userId} connected with client id: ${client.id}`,

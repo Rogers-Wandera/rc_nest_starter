@@ -6,6 +6,7 @@ import { ModuleService } from '../modules/modules.service';
 import { QueryFailedError } from 'typeorm';
 import { ModuleLinksView } from '../../../../entities/coreviews/modulelinks.view';
 import { LinkPermissionView } from '@core/maincore/entities/coreviews/linkpermissions.view';
+import { Module } from '@core/maincore/entities/core/modules.entity';
 
 @Injectable()
 export class ModuleLinksService extends EntityModel<ModuleLink> {
@@ -134,6 +135,28 @@ export class ModuleLinksService extends EntityModel<ModuleLink> {
         data.docs = newdocs;
       }
       return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async TransferLink(moduleId: number, module: Module) {
+    try {
+      console.log(this.entity);
+      if (this?.entity.module.id === moduleId) {
+        throw new BadRequestException('You cannot transfer to the same module');
+      }
+      const position = await this.repository.countField('position', {
+        where: { module: { id: moduleId } },
+      });
+      if (position) {
+        this.entity.position = position + 1;
+      } else {
+        this.entity.position = 1;
+      }
+      this.entity.module = module;
+      const response = await this.repository.save(this.entity);
+      return response;
     } catch (error) {
       throw error;
     }
