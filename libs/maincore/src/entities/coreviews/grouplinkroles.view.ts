@@ -10,12 +10,12 @@ import { UserGroup } from '../core/usergroups.entity';
       .createQueryBuilder()
       .select('ml.*')
       .addSelect('mr.id', 'linkRoleId')
-      .addSelect('mr.userName', 'userName')
+      .addSelect('mr.userId', 'userId')
+      .addSelect('mr.groupId', 'groupId')
       .addSelect(`CASE WHEN mr.id IS NOT NULL THEN 1 ELSE 0 END`, 'is_assigned')
       .addSelect('mr.expireDate', 'expireDate')
       .addSelect('mr.expired', 'expired')
       .addSelect('mr.days_left', 'days_left')
-      .addSelect('ur.id', 'groupId')
       .from(UserGroup, 'ur')
       .innerJoin(ModuleLinksView, 'ml', '1 = 1')
       .leftJoin(
@@ -77,4 +77,7 @@ export class GroupLinkRolesView {
 
   @ViewColumn()
   groupId: number;
+
+  @ViewColumn()
+  userId: string | null;
 }

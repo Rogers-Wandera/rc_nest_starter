@@ -40,7 +40,6 @@ import {
 } from '../../../../coretoolkit/types/coretypes';
 import { ConfigService } from '@nestjs/config';
 import { EnvConfig } from '../../../../coretoolkit/config/config';
-import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class UserService extends EntityModel<User, string> {
@@ -139,7 +138,7 @@ export class UserService extends EntityModel<User, string> {
     if (data.adminCreated == 1) {
       additionaldata = [`Please login using this password ${data.password}`];
     }
-    await this.sendVerificationEmail(user, verify, additionaldata);
+    this.sendVerificationEmail(user, verify, additionaldata);
     return `An email with verification link has been sent, please note it may take 1-2 minutes for the email to reach`;
   }
 
@@ -396,11 +395,11 @@ export class UserService extends EntityModel<User, string> {
     }
   }
 
-  private async sendVerificationEmail(
+  private sendVerificationEmail(
     user: User,
     link: string,
     additionalhtml: string | string[] = '',
-  ): Promise<string> {
+  ): string {
     const emailData = {
       recipientName: user.firstname + ' ' + user.lastname,
       serverData: 'Please confirm registration',
@@ -417,9 +416,8 @@ export class UserService extends EntityModel<User, string> {
         context: emailData,
       },
     };
-    return lastValueFrom(
-      this.client.send(NOTIFICATION_PATTERN.NOTIFY, mailoptions),
-    );
+    this.client.emit(NOTIFICATION_PATTERN.NOTIFY, mailoptions);
+    return 'Email sent';
   }
 
   async LockUser(isLocked: number) {

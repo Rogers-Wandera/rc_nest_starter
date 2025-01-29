@@ -80,5 +80,5 @@ export class UserLinkRolesView {
   userId: string;
 
   @ViewColumn()
-  groupId: string;
+  groupId: number;
 }

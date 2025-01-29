@@ -12,11 +12,13 @@ import { Server, Socket } from 'socket.io';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { corsOptions } from '../config/corsoptions';
-import { NOTIFICATION_PATTERN } from '../types/enums/enums';
+import { NOTIFICATION_PATTERN, USER_EVENTS } from '../types/enums/enums';
 import { RTechSystemNotificationType } from '../types/notification/notify.types';
 import { RabbitMQService } from '../micro/microservices/rabbitmq.service';
 import { lastValueFrom } from 'rxjs';
 import { EnvConfig } from '../config/config';
+
+const sockets: Map<string, Socket> = new Map();
 
 /**
  * WebSocket gateway for managing client connections and handling system notifications.
@@ -38,7 +40,6 @@ export class EventsGateway
   server: Server;
 
   private logger = new Logger(EventsGateway.name);
-  private clients: Map<string, Socket> = new Map();
 
   /**
    * Creates an instance of `EventsGateway`.
@@ -61,6 +62,18 @@ export class EventsGateway
     this.logger.log('Initialized');
   }
 
+  getClients() {
+    return sockets;
+  }
+
+  setClients(userId: string, client: Socket) {
+    sockets.set(userId, client);
+  }
+
+  deleteClient(userId: string) {
+    sockets.delete(userId);
+  }
+
   /**
    * Called when a client connects to the WebSocket server.
    * Authorizes the client based on the provided token and logs connection details.
@@ -73,6 +86,7 @@ export class EventsGateway
     const status = this.HandleAuthorizationClient(token, client);
     if (status) {
       this.logger.warn(`Client id: ${client.id} connected`);
+      this.emitOnlineUsersToAdmin();
     } else {
       this.logger.log(
         `Client id: ${client.id} tried to connect but was denied `,
@@ -88,11 +102,16 @@ export class EventsGateway
    * @param {Socket} client - The disconnected client socket.
    */
   handleDisconnect(client: Socket) {
-    this.clients.forEach((value, key) => {
+    sockets.forEach((value, key) => {
+      console.log(client.id);
       if (value.id === client.id) {
-        this.clients.delete(key);
+        sockets.delete(key);
+        this.rmqService.emit(NOTIFICATION_PATTERN.USER_LOGGED_OUT, {
+          userId: key,
+        });
       }
     });
+    this.emitOnlineUsersToAdmin();
     this.logger.log(`Client id: ${client.id} disconnected`);
   }
 
@@ -119,50 +138,24 @@ export class EventsGateway
    * Emits a notification to a specific client and schedules a re-send if the client is not connected.
    *
    * @param {string} userId - The ID of the user to notify.
-   * @param {RTechSystemNotificationType} data - The notification data to be sent.
+   * @param {string} pattern - The pattern to use for the notification.
+   * @param {any} data - The notification data to be sent.
    */
-  async emitToClient(userId: string, data: RTechSystemNotificationType) {
-    const client = this.clients.get(userId);
+  async emitToClient(userId: string, pattern: string, data: any) {
+    const client = sockets.get(userId);
     if (client) {
-      client.emit(data.pattern, data);
-      if (data.resendId) {
-        await lastValueFrom(
-          this.rmqService.emit(NOTIFICATION_PATTERN.SYSTEM_NOTIFICATION, data),
-        );
-      } else {
-        await lastValueFrom(
-          this.rmqService.emit(
-            NOTIFICATION_PATTERN.SYSTEM_NOTIFICATION_SENT,
-            data,
-          ),
-        );
-      }
+      client.emit(pattern, data);
       return true;
     } else {
-      this.logger.warn(`User id: ${userId} not logged in at the moment`);
-      this.logger.log(
-        `Automatic re-scheduling enabled for this user ${userId}`,
+      this.logger.warn(
+        `Emit to User id: ${userId} not logged in at the moment`,
       );
       return false;
     }
   }
 
-  /**
-   * Handles login events by associating the client socket with the provided user ID.
-   *
-   * @param {Object} data - The login event data.
-   * @param {string} data.userId - The user ID of the logged-in user.
-   * @param {Socket} client - The client socket associated with the user.
-   */
-  @SubscribeMessage(NOTIFICATION_PATTERN.LOGIN)
-  HandleLogin(
-    @MessageBody() data: { userId: string },
-    @ConnectedSocket() client: Socket,
-  ) {
-    console.log(data);
-    this.clients.set(data.userId, client);
-    this.logger.log(
-      `User id: ${data.userId} connected with client id: ${client.id}`,
-    );
+  emitOnlineUsersToAdmin() {
+    const onlineUsers = Array.from(sockets.keys());
+    this.server.emit(USER_EVENTS.ONLINE_USERS, onlineUsers);
   }
 }

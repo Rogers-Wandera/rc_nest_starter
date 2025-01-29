@@ -44,14 +44,14 @@ export class MessagingService {
    * @param {string} content.subject The subject of the email.
    * @param {mailer2Content['context']} content.context The context for the email template.
    * @param {string} [content.company] Optional company name to override the default.
-   * @returns {Promise<NotifyResponse.EMAIL>} Promise resolving to the response of the email notification.
+   * @returns {NotifyResponse.EMAIL} Promise resolving to the response of the email notification.
    */
   SendWithMailer2(content: {
     email: { to: string | Address; priority: PRIORITY_TYPES }[];
     subject: string;
     context: mailer2Content['context'];
     company?: string;
-  }): Promise<NotifyResponse.EMAIL> {
+  }): NotifyResponse.EMAIL {
     const company = content.company || this.company;
     const options: NotifyTypes = {
       type: 'email',
@@ -63,9 +63,8 @@ export class MessagingService {
         company,
       },
     };
-    return lastValueFrom(
-      this.client.send(NOTIFICATION_PATTERN.NOTIFY, options),
-    );
+    this.client.emit(NOTIFICATION_PATTERN.NOTIFY, options);
+    return NotifyResponse.EMAIL;
   }
 
   /**

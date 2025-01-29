@@ -45,11 +45,9 @@ import {
   UploadProfileDoc,
   VerifyUserDocs,
 } from '../../../core/auth/users/users.swagger';
-import { lastValueFrom } from 'rxjs';
 import { UserUtilsService } from '../../../../coreservices/services/auth/users/user.utils.service';
 import { UserService } from '../../../../coreservices/services/auth/users/users.service';
 import { EventsGateway } from '../../../../coretoolkit/events/event.gateway';
-import { RabbitMQService } from '../../../../coretoolkit/micro/microservices/rabbitmq.service';
 import { JoiValidator } from '../../../../coretoolkit/contexts/interceptors/joi.interceptor';
 import { RefreshTokenGuard } from '../../../../authguards/guards/refresh.guard';
 import { Roles } from '../../../../authguards/decorators/roles.guard';
@@ -57,11 +55,7 @@ import {
   addrolestype,
   registertype,
 } from '../../../../coretoolkit/types/coretypes';
-import {
-  GUARDS,
-  NOTIFICATION_PATTERN,
-  ROLE,
-} from '../../../../coretoolkit/types/enums/enums';
+import { GUARDS, ROLE } from '../../../../coretoolkit/types/enums/enums';
 import {
   AuthGuard,
   SkipAllGuards,
@@ -89,7 +83,6 @@ export class UsersController extends IController<UserService> {
     model: UserService,
     private readonly userutils: UserUtilsService,
     @Inject(EventsGateway) private readonly socket: EventsGateway,
-    private readonly rabbitService: RabbitMQService,
     private serverroles: ServerRouteRoleService,
   ) {
     super(model);
@@ -158,12 +151,6 @@ export class UsersController extends IController<UserService> {
   public async LoginUser(@Res() res: Response) {
     try {
       const user = await this.model.UserLogin();
-      this.socket.server.emit('login', { userId: user.id });
-      await lastValueFrom(
-        this.rabbitService.emit(NOTIFICATION_PATTERN.USER_LOGGED_IN, {
-          userId: user.id,
-        }),
-      );
       res.status(200).json(user);
     } catch (error) {
       throw error;

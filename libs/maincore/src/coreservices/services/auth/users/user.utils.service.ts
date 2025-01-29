@@ -74,7 +74,7 @@ export class UserUtilsService extends EntityModel<User, string> {
           url,
         },
       };
-      const response = await this.messagingService.SendWithMailer2(emailData);
+      const response = this.messagingService.SendWithMailer2(emailData);
       if (!response) {
         return false;
       }
@@ -156,7 +156,7 @@ export class UserUtilsService extends EntityModel<User, string> {
       this.tokens.entity.createdBy = user.id;
       this.tokens.entity.tokenType = TOKEN_TYPES.VERIFY;
       await this.tokens.CreateToken();
-      await this.sendVerificationEmail(user, verify);
+      this.sendVerificationEmail(user, verify);
       return `An email with verification link has been sent, please note it may take 1-2 minutes for the email to reach`;
     } catch (error) {
       throw error;
@@ -211,11 +211,11 @@ export class UserUtilsService extends EntityModel<User, string> {
     }
   }
 
-  private async sendVerificationEmail(
+  private sendVerificationEmail(
     user: User,
     link: string,
     additionalhtml: string | string[] = '',
-  ): Promise<string> {
+  ): string {
     const emailData = {
       recipientName: user.firstname + ' ' + user.lastname,
       serverData: 'Please confirm registration',
@@ -232,8 +232,7 @@ export class UserUtilsService extends EntityModel<User, string> {
         context: emailData,
       },
     };
-    return lastValueFrom(
-      this.client.send(NOTIFICATION_PATTERN.NOTIFY, mailoptions),
-    );
+    this.client.emit(NOTIFICATION_PATTERN.NOTIFY, mailoptions);
+    return 'Email sent successfully';
   }
 }
