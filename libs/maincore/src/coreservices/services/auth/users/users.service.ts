@@ -29,10 +29,12 @@ import { NotifyTypes } from '../../../../coretoolkit/types/notification/notify.t
 import { CustomRepository } from '../../../../databridge/ormextender/customrepository';
 import {
   EmailTemplates,
+  INJECTABLES,
   NOTIFICATION_PATTERN,
   PRIORITY_TYPES,
   ROLE,
   TOKEN_TYPES,
+  USER_EVENTS,
 } from '../../../../coretoolkit/types/enums/enums';
 import {
   addrolestype,
@@ -40,6 +42,8 @@ import {
 } from '../../../../coretoolkit/types/coretypes';
 import { ConfigService } from '@nestjs/config';
 import { EnvConfig } from '../../../../coretoolkit/config/config';
+import { EventsGateway } from '@core/maincore/coretoolkit/events/event.gateway';
+import { LockUserDTO } from '@core/maincore/corecontroller/core/auth/users/users.dto';
 
 @Injectable()
 export class UserService extends EntityModel<User, string> {
@@ -57,6 +61,8 @@ export class UserService extends EntityModel<User, string> {
     @Inject(REQUEST) protected request: Request,
     private client: RabbitMQService,
     private configservice: ConfigService<EnvConfig>,
+    @Inject(INJECTABLES.EVENT_GATEWAY)
+    private readonly eventgateway: EventsGateway,
   ) {
     super(User, source);
     this.positionId = null;
@@ -420,19 +426,54 @@ export class UserService extends EntityModel<User, string> {
     return 'Email sent';
   }
 
-  async LockUser(isLocked: number) {
+  async LockUser(data: LockUserDTO) {
     try {
       const response = await this.repository.FindOneAndUpdate(
         {
           id: this.entity.id,
         },
-        { isLocked: isLocked },
+        { isLocked: data.isLocked },
       );
+      if (data.isLocked == 1) {
+        this.eventgateway.emitToClient(
+          this.entity.id,
+          USER_EVENTS.LOG_USER_OUT,
+          {
+            message: `Your account is locked, contact admin ${data?.reason?.length > 0 ? ', Reason: ' + data.reason : ''}`,
+          },
+          () => {
+            const emailData = {
+              recipientName: this.entity.firstname + ' ' + this.entity.lastname,
+              serverData: 'Please confirm registration',
+              senderName: 'RC-TECH',
+              body: `We would like to inform you 
+            that your account has been locked due to ${data?.reason?.length > 0 ? data.reason : 'unkwown reason'}, 
+            If you believe this was a mistake or need further assistance, please contact admin`,
+            };
+            const mailoptions: NotifyTypes = {
+              type: 'email',
+              payload: {
+                to: [{ to: this.entity.email, priority: PRIORITY_TYPES.HIGH }],
+                subject: 'Account Locked',
+                template: EmailTemplates.MAILER_2,
+                context: {
+                  ...emailData,
+                  title: 'Your account is locked',
+                  cta: true,
+                  btntext: 'Contact Admin',
+                  url: '#',
+                },
+              },
+            };
+            this.client.emit(NOTIFICATION_PATTERN.NOTIFY, mailoptions);
+          },
+        );
+      }
       return response
         ? this.entity.firstname +
             ' ' +
             this.entity.lastname +
-            ` has been ${isLocked === 1 ? 'locked' : 'unlocked'}`
+            ` has been ${data.isLocked === 1 ? 'locked' : 'unlocked'}`
         : 'something went wrong';
     } catch (error) {
       throw error;

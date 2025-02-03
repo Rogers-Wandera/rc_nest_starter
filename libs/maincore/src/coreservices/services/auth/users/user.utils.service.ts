@@ -19,7 +19,6 @@ import {
   TOKEN_TYPES,
 } from '../../../../coretoolkit/types/enums/enums';
 import { UserService } from './users.service';
-import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class UserUtilsService extends EntityModel<User, string> {

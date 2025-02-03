@@ -141,12 +141,20 @@ export class EventsGateway
    * @param {string} pattern - The pattern to use for the notification.
    * @param {any} data - The notification data to be sent.
    */
-  async emitToClient(userId: string, pattern: string, data: any) {
+  async emitToClient(
+    userId: string,
+    pattern: string,
+    data: any,
+    offlineCallBack: () => void = undefined,
+  ) {
     const client = sockets.get(userId);
     if (client) {
       client.emit(pattern, data);
       return true;
     } else {
+      if (offlineCallBack) {
+        offlineCallBack();
+      }
       this.logger.warn(
         `Emit to User id: ${userId} not logged in at the moment`,
       );

@@ -10,7 +10,11 @@ import {
 import { Server, Socket } from 'socket.io';
 import { corsOptions } from '../../config/corsoptions';
 import { EventsGateway } from '../event.gateway';
-import { NOTIFICATION_PATTERN, USER_EVENTS } from '../../types/enums/enums';
+import {
+  INJECTABLES,
+  NOTIFICATION_PATTERN,
+  USER_EVENTS,
+} from '../../types/enums/enums';
 import { CustomRepository } from '@core/maincore/databridge/ormextender/customrepository';
 import { User } from '@core/maincore/entities/core/users.entity';
 import { DataBridgeService } from '@core/maincore/databridge/databridge.service';
@@ -33,8 +37,8 @@ export class UserEventsService {
    * @param {EventsGateway} events - Service for emitting events to clients.
    */
   constructor(
-    @Inject('EventsGateway') private readonly events: EventsGateway,
-    @Inject('data_source') private readonly source: DataBridgeService,
+    @Inject(INJECTABLES.EVENT_GATEWAY) private readonly events: EventsGateway,
+    @Inject(INJECTABLES.DATA_sOURCE) private readonly source: DataBridgeService,
     private readonly rmqService: RabbitMQService,
   ) {
     this.userservice = this.source.GetRepository(User);

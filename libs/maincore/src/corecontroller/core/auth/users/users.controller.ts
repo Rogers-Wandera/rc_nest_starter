@@ -370,9 +370,10 @@ export class UsersController extends IController<UserService> {
   @Only(ROLE.ADMIN)
   @ValidateService({ entity: User })
   @ClassValidator({ classDTO: LockUserDTO })
-  async LockUser(@Body() body: LockUserDTO) {
+  async LockUser(@Body() body: LockUserDTO, @Service('user') user: User) {
     try {
-      const response = await this.model.LockUser(body.isLocked);
+      this.model.entity = user;
+      const response = await this.model.LockUser(body);
       return { msg: response };
     } catch (error) {
       throw error;
