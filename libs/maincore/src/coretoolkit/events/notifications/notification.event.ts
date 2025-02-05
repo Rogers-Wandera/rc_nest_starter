@@ -10,7 +10,6 @@ import { Server } from 'socket.io';
 import { corsOptions } from '../../config/corsoptions';
 import { EventsGateway } from '../event.gateway';
 import { NOTIFICATION_PATTERN, PRIORITY_TYPES } from '../../types/enums/enums';
-import { lastValueFrom } from 'rxjs';
 import { RTechSystemNotificationType } from '../../types/notification/notify.types';
 import { RecipientsValidator } from '../../contexts/interceptors/recipients.interceptor';
 import { RabbitMQService } from '../../micro/microservices/rabbitmq.service';
@@ -20,9 +19,6 @@ import { RabbitMQService } from '../../micro/microservices/rabbitmq.service';
   cors: corsOptions,
 })
 export class NotificationEvents {
-  @WebSocketServer()
-  server: Server;
-
   private logger: Logger = new Logger();
 
   /**
@@ -31,7 +27,7 @@ export class NotificationEvents {
    * @param {EventsGateway} events - Service for emitting events to clients.
    */
   constructor(
-    @Inject('EventsGateway') private readonly events: EventsGateway,
+    private readonly events: EventsGateway,
     private readonly rmqService: RabbitMQService,
   ) {}
 

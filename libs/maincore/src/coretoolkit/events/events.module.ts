@@ -12,21 +12,21 @@ import { NotificationEvents } from './notifications/notification.event';
   providers: [
     EventsGateway,
     DataBridgeModule,
-    {
-      provide: 'EventsGateway',
-      useFactory: (
-        config: ConfigService<EnvConfig>,
-        rabbitmq: RabbitMQService,
-      ) => new EventsGateway(config, rabbitmq),
-      inject: [ConfigService, RabbitMQService],
-    },
+    // {
+    //   provide: 'EventsGateway',
+    //   useFactory: (
+    //     config: ConfigService<EnvConfig>,
+    //     rabbitmq: RabbitMQService,
+    //   ) => new EventsGateway(config, rabbitmq),
+    //   inject: [ConfigService, RabbitMQService],
+    // },
     EventsGateWayService,
     UserEventsService,
     NotificationEvents,
   ],
   exports: [
     EventsGateway,
-    'EventsGateway',
+    // 'EventsGateway',
     EventsGateWayService,
     UserEventsService,
     NotificationEvents,

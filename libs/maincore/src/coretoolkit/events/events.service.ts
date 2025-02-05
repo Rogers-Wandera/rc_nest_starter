@@ -23,7 +23,5 @@ export class EventsGateWayService {
    *
    * @param {EventsGateway} events - Service for emitting events to clients.
    */
-  constructor(
-    @Inject('EventsGateway') private readonly events: EventsGateway,
-  ) {}
+  constructor(private readonly events: EventsGateway) {}
 }

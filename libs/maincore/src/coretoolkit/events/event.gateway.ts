@@ -4,18 +4,13 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
   OnGatewayInit,
-  SubscribeMessage,
-  MessageBody,
-  ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { corsOptions } from '../config/corsoptions';
 import { NOTIFICATION_PATTERN, USER_EVENTS } from '../types/enums/enums';
-import { RTechSystemNotificationType } from '../types/notification/notify.types';
 import { RabbitMQService } from '../micro/microservices/rabbitmq.service';
-import { lastValueFrom } from 'rxjs';
 import { EnvConfig } from '../config/config';
 
 const sockets: Map<string, Socket> = new Map();
@@ -165,5 +160,9 @@ export class EventsGateway
   emitOnlineUsersToAdmin() {
     const onlineUsers = Array.from(sockets.keys());
     this.server.emit(USER_EVENTS.ONLINE_USERS, onlineUsers);
+  }
+
+  emit(event: string, data: unknown) {
+    this.server.emit(event, data);
   }
 }

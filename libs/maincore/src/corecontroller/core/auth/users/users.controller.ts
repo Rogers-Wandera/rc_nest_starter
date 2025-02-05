@@ -55,7 +55,13 @@ import {
   addrolestype,
   registertype,
 } from '../../../../coretoolkit/types/coretypes';
-import { GUARDS, ROLE } from '../../../../coretoolkit/types/enums/enums';
+import {
+  GUARDS,
+  RabbitMQQueues,
+  ROLE,
+  UPLOADER_PATTERN,
+  USER_EVENTS,
+} from '../../../../coretoolkit/types/enums/enums';
 import {
   AuthGuard,
   SkipAllGuards,
@@ -64,6 +70,7 @@ import { SkipGuards } from '../../../../authguards/decorators/skip.guard';
 import { UploadFile } from '../../../../coretoolkit/decorators/upload.decorator';
 import {
   File,
+  Files,
   Service,
 } from '../../../../coretoolkit/decorators/param.decorator';
 import { ValidateService } from '../../../../coretoolkit/decorators/servicevalidate.decorator';
@@ -74,6 +81,8 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { ClassValidator } from '@core/maincore/coretoolkit/decorators/classvalidator.decorator';
 import { LockUserDTO } from './users.dto';
 import { ServerRouteRoleService } from '@core/maincore/coreservices/services/auth/serverrouteroles/serverrouteroles.service';
+import { RabbitMQService } from '@core/maincore/coretoolkit/micro/microservices/rabbitmq.service';
+import { UploadApiOptions } from 'cloudinary';
 
 @ApiTags('User Management')
 @Controller('/core/auth/users')
@@ -82,8 +91,9 @@ export class UsersController extends IController<UserService> {
   constructor(
     model: UserService,
     private readonly userutils: UserUtilsService,
-    @Inject(EventsGateway) private readonly socket: EventsGateway,
+    private readonly socket: EventsGateway,
     private serverroles: ServerRouteRoleService,
+    private readonly client: RabbitMQService,
   ) {
     super(model);
   }
@@ -96,6 +106,7 @@ export class UsersController extends IController<UserService> {
   public async RegisterUser(@Body() body: registertype, @Res() res: Response) {
     try {
       const response = await this.model.createUser(body);
+      this.socket.emit(USER_EVENTS.REFETCH_USERS, {});
       res
         .status(HttpStatus.OK)
         .json({ msg: 'User created successfully', emailsent: response });
@@ -136,6 +147,7 @@ export class UsersController extends IController<UserService> {
     try {
       this.userutils.entity.id = id;
       const response = await this.userutils.VerifyUser(token);
+      this.socket.emit(USER_EVENTS.REFETCH_USERS, {});
       const msg = response
         ? 'Verification has been successful'
         : 'Something went wrong';
@@ -237,6 +249,7 @@ export class UsersController extends IController<UserService> {
     try {
       this.model.entity.id = id;
       const response = await this.model.DeleteUser();
+      this.socket.emit(USER_EVENTS.REFETCH_USERS, {});
       const message = response
         ? 'User deleted successfully'
         : 'Something went wrong';
@@ -353,14 +366,14 @@ export class UsersController extends IController<UserService> {
   @UploadFile({ type: 'single', source: 'image' })
   @Roles(ROLE.USER)
   async AddProfileImage(
-    @Res() res: Response,
     @Req() req: Request,
     @File() image: Express.Multer.File,
   ) {
     try {
+      this.client.setQueue(RabbitMQQueues.UPLOADS);
       this.userutils.entity.id = req.user.id;
       const response = await this.userutils.AddUserProfileImage(image);
-      return res.status(HttpStatus.OK).json(response);
+      return { msg: response };
     } catch (error) {
       throw error;
     }
@@ -374,6 +387,7 @@ export class UsersController extends IController<UserService> {
     try {
       this.model.entity = user;
       const response = await this.model.LockUser(body);
+      this.socket.emit(USER_EVENTS.REFETCH_USERS, {});
       return { msg: response };
     } catch (error) {
       throw error;

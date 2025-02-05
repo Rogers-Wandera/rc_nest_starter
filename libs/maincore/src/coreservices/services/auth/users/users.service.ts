@@ -61,7 +61,6 @@ export class UserService extends EntityModel<User, string> {
     @Inject(REQUEST) protected request: Request,
     private client: RabbitMQService,
     private configservice: ConfigService<EnvConfig>,
-    @Inject(INJECTABLES.EVENT_GATEWAY)
     private readonly eventgateway: EventsGateway,
   ) {
     super(User, source);
@@ -313,8 +312,46 @@ export class UserService extends EntityModel<User, string> {
         id: this.entity.id,
       });
       if (response.affected === 1) {
+        this.eventgateway.emitToClient(
+          this.entity.id,
+          USER_EVENTS.LOG_USER_OUT,
+          {
+            message: `Your account has been deleted, contact admin`,
+          },
+          () => {
+            const emailData = {
+              recipientName: user.firstname + ' ' + user.lastname,
+              senderName: 'RC-TECH',
+              body: `Hello ${user.firstname + ' ' + user.lastname}, We would like to inform you that your account has been deleted due to unkwown reason, 
+               If you believe this was a mistake or need further assistance, please contact admin`,
+            };
+            const mailoptions: NotifyTypes = {
+              type: 'email',
+              payload: {
+                to: [{ to: user.email, priority: PRIORITY_TYPES.HIGH }],
+                subject: 'Account Deleted',
+                template: EmailTemplates.MAILER_2,
+                context: {
+                  ...emailData,
+                  title: 'Your account is deleted',
+                  cta: true,
+                  btntext: 'Contact Admin',
+                  url: '#',
+                },
+              },
+            };
+            this.client.emit(NOTIFICATION_PATTERN.NOTIFY, mailoptions);
+          },
+        );
+        const socketThere = this.eventgateway.getClients().has(this.entity.id);
+        if (socketThere) {
+          this.eventgateway.deleteClient(this.entity.id);
+          const onlineUsers = Array.from(this.eventgateway.getClients().keys());
+          this.eventgateway.emit(USER_EVENTS.ONLINE_USERS, onlineUsers);
+        }
         return true;
       }
+
       return false;
     } catch (error) {
       throw error;
@@ -446,7 +483,7 @@ export class UserService extends EntityModel<User, string> {
               recipientName: this.entity.firstname + ' ' + this.entity.lastname,
               serverData: 'Please confirm registration',
               senderName: 'RC-TECH',
-              body: `We would like to inform you 
+              body: `Hello ${this.entity.firstname + ' ' + this.entity.lastname}, We would like to inform you 
             that your account has been locked due to ${data?.reason?.length > 0 ? data.reason : 'unkwown reason'}, 
             If you believe this was a mistake or need further assistance, please contact admin`,
             };

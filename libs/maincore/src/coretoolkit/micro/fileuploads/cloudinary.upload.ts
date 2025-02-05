@@ -1,13 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import { IUpload } from './upload.interface';
-import { ConfigService } from '@nestjs/config';
-import {
-  v2 as cloudinary,
-  ConfigOptions,
-  ResourceType,
-  UploadApiOptions,
-} from 'cloudinary';
-import { cloudinaryconfig, EnvConfig } from '../../config/config';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { v2 as cloudinary, ResourceType, UploadApiOptions } from 'cloudinary';
+import { RabbitMQService } from '../microservices/rabbitmq.service';
+import { RabbitMQQueues, UPLOADER_PATTERN } from '../../types/enums/enums';
+
+export type Cloudinary_Upload = {
+  options: UploadApiOptions;
+  meta?: Record<string, any>;
+  files: Express.Multer.File[] | Express.Multer.File;
+  pattern?: string;
+};
 
 /**
  * Service for handling file uploads to Cloudinary.
@@ -18,93 +19,33 @@ import { cloudinaryconfig, EnvConfig } from '../../config/config';
  * @implements {IUpload}
  */
 @Injectable()
-export class CloudinaryUpload implements IUpload {
-  private readonly config: ConfigOptions;
-  private readonly cloudenv: cloudinaryconfig;
-  public options: UploadApiOptions;
+export class CloudinaryUpload {
+  public options: Cloudinary_Upload;
 
-  /**
-   * Creates an instance of `CloudinaryUpload`.
-   *
-   * @param {ConfigService<EnvConfig>} configService - Service for accessing configuration values.
-   */
-  constructor(private readonly configService: ConfigService<EnvConfig>) {
-    this.cloudenv = this.configService.get('cloudinary');
-    this.config = {
-      cloud_name: this.cloudenv.name,
-      api_key: this.cloudenv.publicKey,
-      api_secret: this.cloudenv.privateKey,
-      secure: true,
-    };
-    this.options = {};
-    cloudinary.config(this.config);
-  }
+  constructor(private readonly client: RabbitMQService) {}
 
   /**
    * Uploads a single file to Cloudinary.
-   *
-   * @param {Express.Multer.File} file - The file to be uploaded
-   * @throws {Error} - Throws an error if the upload fails.
-   * @private
    */
-  private async upload(file: Express.Multer.File) {
+  public upload() {
     try {
-      if (this.options.folder) {
-        this.options = {
-          ...this.options,
-          folder: `${this.cloudenv.folder}/${this.options.folder}`,
-        };
-      } else {
-        this.options = {
-          ...this.options,
-          folder: `${this.cloudenv.folder}`,
-        };
+      if (!this.options) {
+        throw new BadRequestException('Please provide cloudinary options');
       }
-
-      const upload = await cloudinary.uploader.upload(file.path, this.options);
-      return {
-        public_id: upload.public_id,
-        secure_url: upload.secure_url,
-        url: upload.url,
-      };
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  /**
-   * Uploads a single file to Cloudinary.
-   *
-   * @param {Express.Multer.File} file - The file to be uploaded.
-   */
-  async singleUpload(file: Express.Multer.File) {
-    try {
-      const response = await this.upload(file);
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  /**
-   * Uploads multiple files to Cloudinary.
-   *
-   * @param {Express.Multer.File[]} files - An array of files to be uploaded.
-   * @throws {Error} - Throws an error if any of the uploads fail.
-   */
-  async multipleUploads(files: Express.Multer.File[]) {
-    try {
-      const promises = files.map(async (file) => {
-        const response = await this.upload(file);
-        return response;
+      this.client.setQueue(RabbitMQQueues.UPLOADS);
+      const files = Array.isArray(this.options.files)
+        ? this.options.files
+        : [this.options.files];
+      this.client.emit(UPLOADER_PATTERN.UPLOAD, {
+        type: 'cloudinary',
+        ...this.options,
+        files,
       });
-      const response = await Promise.all(promises);
-      return response;
+      return 'Upload is happening in the background, you will be notified when its done.';
     } catch (error) {
       throw error;
     }
   }
-
   /**
    * Deletes a file from Cloudinary.
    *

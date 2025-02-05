@@ -110,10 +110,21 @@ export enum USER_EVENTS {
   GET_ONLINE_USERS = 'GET_ONLINE_USERS',
   ONLINE_USERS = 'ONLINE_USERS',
   LOG_USER_OUT = 'LOG_USER_OUT',
+  REFETCH_USERS = 'REFETCH_USERS',
+  PROFILE_UPLOAD = 'PROFILE_UPLOAD',
 }
 
 export enum INJECTABLES {
   EVENT_GATEWAY = 'EventsGateway',
-  DATA_sOURCE = 'data_source',
+  DATA_SOURCE = 'data_source',
   FIREBASE_SERVICE = 'FIREBASE_SERVICE',
+}
+
+export enum UPLOADER_PATTERN {
+  UPLOAD = 'UPLOAD',
+}
+
+export enum RabbitMQQueues {
+  NOTIFICATIONS = 'notifications',
+  UPLOADS = 'uploads',
 }

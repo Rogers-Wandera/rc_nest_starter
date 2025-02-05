@@ -55,7 +55,10 @@ export class UploadFileInterceptor implements NestInterceptor {
    * @throws {BadRequestException} If the file size exceeds the limit.
    */
   private SizeValidator(req: Request, check: FileUploadType) {
-    const maxSize = check.maxSize || 5 * 1024 * 1024; // 5MB
+    let maxSize = 5 * 1024 * 1024; // 5MB
+    if (check?.maxSize) {
+      maxSize = check.maxSize * 1024 * 1024;
+    }
     if (check.type === 'single') {
       const file = req.file as Express.Multer.File;
       const check = file.size <= maxSize;

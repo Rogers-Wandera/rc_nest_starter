@@ -24,6 +24,22 @@ import { EnvConfig } from '../../config/config';
         },
         inject: [ConfigService],
       },
+      {
+        name: 'UPLOAD_SERVICE',
+        useFactory: async (config: ConfigService<EnvConfig>) => {
+          return {
+            transport: Transport.RMQ,
+            options: {
+              urls: [config.get<string>('rabbitmqurl')],
+              queue: 'upload_queue',
+              queueOptions: {
+                durable: true,
+              },
+            },
+          };
+        },
+        inject: [ConfigService],
+      },
     ]),
   ],
   providers: [RabbitMQService],

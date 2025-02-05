@@ -4,11 +4,9 @@ import {
   MessageBody,
   SubscribeMessage,
   WebSocketGateway,
-  WebSocketServer,
   WsResponse,
 } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
-import { corsOptions } from '../../config/corsoptions';
+import { Socket } from 'socket.io';
 import { EventsGateway } from '../event.gateway';
 import {
   INJECTABLES,
@@ -19,17 +17,18 @@ import { CustomRepository } from '@core/maincore/databridge/ormextender/customre
 import { User } from '@core/maincore/entities/core/users.entity';
 import { DataBridgeService } from '@core/maincore/databridge/databridge.service';
 import { RabbitMQService } from '../../micro/microservices/rabbitmq.service';
+import { corsOptions } from '../../config/corsoptions';
+import { UserProfileImage } from '@core/maincore/entities/core/userprofileimages.entity';
+import { UploadReturn } from '../../micro/fileuploads/upload.type';
 
 @Injectable()
 @WebSocketGateway({
   cors: corsOptions,
 })
 export class UserEventsService {
-  @WebSocketServer()
-  server: Server;
-
   private logger: Logger = new Logger();
   private userservice: CustomRepository<User>;
+  private userprofile: CustomRepository<UserProfileImage>;
 
   /**
    * Creates an instance of `EventsGateWayService`.
@@ -37,11 +36,12 @@ export class UserEventsService {
    * @param {EventsGateway} events - Service for emitting events to clients.
    */
   constructor(
-    @Inject(INJECTABLES.EVENT_GATEWAY) private readonly events: EventsGateway,
-    @Inject(INJECTABLES.DATA_sOURCE) private readonly source: DataBridgeService,
+    private readonly events: EventsGateway,
+    @Inject(INJECTABLES.DATA_SOURCE) private readonly source: DataBridgeService,
     private readonly rmqService: RabbitMQService,
   ) {
     this.userservice = this.source.GetRepository(User);
+    this.userprofile = this.source.GetRepository(UserProfileImage);
   }
 
   @SubscribeMessage(USER_EVENTS.UPDATE_SESSION)
@@ -87,7 +87,7 @@ export class UserEventsService {
         this.events.deleteClient(data.userId);
       }
       const onlineUsers = Array.from(this.events.getClients().keys());
-      this.server.emit(USER_EVENTS.ONLINE_USERS, onlineUsers);
+      this.events.emit(USER_EVENTS.ONLINE_USERS, onlineUsers);
     } catch (error) {
       this.logger.error('Error while setting offline');
     }
@@ -152,7 +152,7 @@ export class UserEventsService {
       message = { success: true, message: 'User socket updated successfully.' };
     }
     const onlineUsers = Array.from(this.events.getClients().keys());
-    this.server.emit(USER_EVENTS.ONLINE_USERS, onlineUsers);
+    this.events.emit(USER_EVENTS.ONLINE_USERS, onlineUsers);
     return message;
   }
 
@@ -160,5 +160,48 @@ export class UserEventsService {
   handleGetOnlineUsers(@ConnectedSocket() client: Socket) {
     const onlineUsers = Array.from(this.events.getClients().keys());
     client.emit(USER_EVENTS.ONLINE_USERS, onlineUsers);
+  }
+
+  @SubscribeMessage(USER_EVENTS.PROFILE_UPLOAD)
+  async HandleUploadProfilePicture(@MessageBody() data: UploadReturn) {
+    try {
+      this.logger.log(`${data?.data?.meta?.userId} : uploading profile image`);
+      if (!data?.data?.meta?.userId || !data?.data?.meta?.type) {
+        return;
+      }
+      if (data?.data?.meta?.type != 'profile_picture') {
+        return;
+      }
+      const exists = await this.userprofile.findOneBy({
+        user: { id: data?.data?.meta?.userId },
+      });
+      if (exists) {
+        exists.public_id = data?.data?.publicUrl;
+        exists.image = data?.data?.results?.secure_url;
+        await this.userprofile.save(exists);
+      } else {
+        const user = await this.userservice.findOneBy({
+          id: data?.data?.meta?.userId,
+        });
+        const tosave = {
+          createdBy: data.data.meta.userId,
+          updatedBy: data.data.meta.userId,
+          image: data.data.results.secure_url,
+          public_id: data.data.publicUrl,
+          user,
+        };
+        await this.userprofile.save(tosave);
+      }
+      this.events.emit(USER_EVENTS.REFETCH_USERS, {
+        userId: data.data.meta.userId,
+      });
+      this.logger.log(
+        `${data.data.meta.userId} : uploading profile image finished`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `${data.data.meta.userId} : uploading profile image Error: ${error.message}`,
+      );
+    }
   }
 }
