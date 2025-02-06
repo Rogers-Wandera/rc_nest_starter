@@ -5,7 +5,7 @@ import { RabbitMQQueues, UPLOADER_PATTERN } from '../../types/enums/enums';
 
 export type Cloudinary_Upload = {
   options: UploadApiOptions;
-  meta?: Record<string, any>;
+  meta?: { userId: string; type?: string; [key: string]: any };
   files: Express.Multer.File[] | Express.Multer.File;
   pattern?: string;
 };

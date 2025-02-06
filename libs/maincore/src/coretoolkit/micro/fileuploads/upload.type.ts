@@ -1,7 +1,7 @@
 export interface UploadReturnType<T = Record<string, any>> {
   type: 'cloudinary' | 'fire_store';
   publicUrl: string;
-  meta?: Record<string, any>;
+  meta?: { userId: string; type?: string; [key: string]: any };
   results: T;
   filename: string;
 }

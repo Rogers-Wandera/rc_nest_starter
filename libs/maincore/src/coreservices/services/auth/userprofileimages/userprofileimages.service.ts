@@ -28,7 +28,7 @@ export class UserProfileImageService extends EntityModel<UserProfileImage> {
           overwrite: true,
         },
         files: [image],
-        meta: { userId: this.entity.user.id, type: 'profile_picture' },
+        meta: { userId: this.entity.user.id, type: 'Profile Picture' },
         pattern: USER_EVENTS.PROFILE_UPLOAD,
       };
       this.cloudinary.options = options;

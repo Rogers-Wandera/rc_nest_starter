@@ -169,7 +169,7 @@ export class UserEventsService {
       if (!data?.data?.meta?.userId || !data?.data?.meta?.type) {
         return;
       }
-      if (data?.data?.meta?.type != 'profile_picture') {
+      if (data?.data?.meta?.type != 'Profile Picture') {
         return;
       }
       const exists = await this.userprofile.findOneBy({
@@ -194,6 +194,11 @@ export class UserEventsService {
       }
       this.events.emit(USER_EVENTS.REFETCH_USERS, {
         userId: data.data.meta.userId,
+      });
+      this.events.uploadComplete({
+        progress: 100,
+        filename: data.data.filename,
+        meta: data.data.meta,
       });
       this.logger.log(
         `${data.data.meta.userId} : uploading profile image finished`,

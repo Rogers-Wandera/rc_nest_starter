@@ -165,4 +165,31 @@ export class EventsGateway
   emit(event: string, data: unknown) {
     this.server.emit(event, data);
   }
+
+  uploadComplete(data: {
+    progress: number;
+    filename: string;
+    meta: { userId: string; type?: string; [key: string]: any };
+  }) {
+    if (!data || !data?.meta?.userId) {
+      return;
+    }
+    const client = sockets.get(data.meta.userId);
+    if (client) {
+      client.emit('upload_complete', {
+        ...data,
+        completed: true,
+        failed: false,
+        date: new Date(),
+        title: data?.meta?.type || 'File Upload',
+        message: `Your upload of file: ${data.filename} is complete`,
+      });
+      return true;
+    } else {
+      this.logger.warn(
+        `Emit to User id: ${data.meta.userId} not logged in at the moment`,
+      );
+      return false;
+    }
+  }
 }
