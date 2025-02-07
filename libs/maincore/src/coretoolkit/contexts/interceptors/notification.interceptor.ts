@@ -12,7 +12,7 @@ import {
   NOTIFICATION_KEY,
   NotificationTypes,
 } from '../../decorators/notification.decorator';
-import { NOTIFICATION_PATTERN } from '../../types/enums/enums';
+import { NOTIFICATION_PATTERN, RabbitMQQueues } from '../../types/enums/enums';
 
 /**
  * Interceptor for handling notifications in NestJS applications.
@@ -45,6 +45,7 @@ export class NotificationSender implements NestInterceptor {
     if (!notification) {
       return next.handle();
     }
+    this.client.setQueue(RabbitMQQueues.NOTIFICATIONS);
     if (notification.context === 'before') {
       return this.client
         .send(NOTIFICATION_PATTERN.NOTIFY, notification.data)

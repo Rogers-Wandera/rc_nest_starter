@@ -54,6 +54,7 @@ export class NotificationEvents {
         if (response === false) {
           failed.push(recipients.recipients[recipient]);
         } else {
+          // this.rmqService.emit(NOTIFICATION_PATTERN.SYSTEM_NOTIFICATION);
           this.logger.log(
             `Notification sent to user ${recipients.recipients[recipient].to}`,
           );
@@ -104,6 +105,9 @@ export class NotificationEvents {
           NOTIFICATION_PATTERN.SYSTEM_NOTIFICATION_SENT,
           data,
         );
+        this.rmqService.emit(NOTIFICATION_PATTERN.USER_NOTIFICATIONS, {
+          userId: userId,
+        });
       }
       return true;
     } else {
@@ -112,6 +116,16 @@ export class NotificationEvents {
         `Automatic re-scheduling enabled for this user ${userId}`,
       );
       return false;
+    }
+  }
+
+  @SubscribeMessage(NOTIFICATION_PATTERN.USER_NOTIFICATIONS)
+  async HandleUserNotification(
+    @MessageBody() data: { userId: string; data: Record<string, any> },
+  ) {
+    const client = this.events.getClients().get(data.userId);
+    if (client) {
+      client.emit(NOTIFICATION_PATTERN.USER_NOTIFICATIONS, data.data);
     }
   }
 }

@@ -184,6 +184,9 @@ export class EventsGateway
         title: data?.meta?.type || 'File Upload',
         message: `Your upload of file: ${data.filename} is complete`,
       });
+      this.rmqService.emit(NOTIFICATION_PATTERN.USER_NOTIFICATIONS, {
+        userId: data.meta.userId,
+      });
       return true;
     } else {
       this.logger.warn(
