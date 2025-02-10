@@ -9,7 +9,11 @@ import {
 import { Server } from 'socket.io';
 import { corsOptions } from '../../config/corsoptions';
 import { EventsGateway } from '../event.gateway';
-import { NOTIFICATION_PATTERN, PRIORITY_TYPES } from '../../types/enums/enums';
+import {
+  NOTIFICATION_PATTERN,
+  PRIORITY_TYPES,
+  RabbitMQQueues,
+} from '../../types/enums/enums';
 import { RTechSystemNotificationType } from '../../types/notification/notify.types';
 import { RecipientsValidator } from '../../contexts/interceptors/recipients.interceptor';
 import { RabbitMQService } from '../../micro/microservices/rabbitmq.service';
@@ -29,7 +33,9 @@ export class NotificationEvents {
   constructor(
     private readonly events: EventsGateway,
     private readonly rmqService: RabbitMQService,
-  ) {}
+  ) {
+    this.rmqService.setQueue(RabbitMQQueues.NOTIFICATIONS);
+  }
 
   /**
    * Handles incoming system notifications by broadcasting to specific recipients.
@@ -126,6 +132,13 @@ export class NotificationEvents {
     const client = this.events.getClients().get(data.userId);
     if (client) {
       client.emit(NOTIFICATION_PATTERN.USER_NOTIFICATIONS, data.data);
+    }
+  }
+
+  @SubscribeMessage(NOTIFICATION_PATTERN.UPDATE_READ)
+  HandleUpdateRead(@MessageBody() data: { id: string; userId: string }) {
+    if (data?.id && data?.userId) {
+      this.rmqService.emit(NOTIFICATION_PATTERN.UPDATE_READ, data);
     }
   }
 }

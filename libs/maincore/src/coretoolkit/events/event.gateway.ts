@@ -9,7 +9,11 @@ import { Server, Socket } from 'socket.io';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { corsOptions } from '../config/corsoptions';
-import { NOTIFICATION_PATTERN, USER_EVENTS } from '../types/enums/enums';
+import {
+  NOTIFICATION_PATTERN,
+  RabbitMQQueues,
+  USER_EVENTS,
+} from '../types/enums/enums';
 import { RabbitMQService } from '../micro/microservices/rabbitmq.service';
 import { EnvConfig } from '../config/config';
 
@@ -184,6 +188,7 @@ export class EventsGateway
         title: data?.meta?.type || 'File Upload',
         message: `Your upload of file: ${data.filename} is complete`,
       });
+      this.rmqService.setQueue(RabbitMQQueues.NOTIFICATIONS);
       this.rmqService.emit(NOTIFICATION_PATTERN.USER_NOTIFICATIONS, {
         userId: data.meta.userId,
       });

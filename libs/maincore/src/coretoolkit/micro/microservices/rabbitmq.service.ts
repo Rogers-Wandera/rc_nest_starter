@@ -45,6 +45,10 @@ export class RabbitMQService {
     this.queue = queue;
   }
 
+  public getActiveQueue() {
+    return this.queue;
+  }
+
   /**
    * Sends a message to the RabbitMQ service with the specified pattern and data.
    *

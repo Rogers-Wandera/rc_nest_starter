@@ -11,6 +11,7 @@ import { EventsGateway } from '../event.gateway';
 import {
   INJECTABLES,
   NOTIFICATION_PATTERN,
+  RabbitMQQueues,
   USER_EVENTS,
 } from '../../types/enums/enums';
 import { CustomRepository } from '@core/maincore/databridge/ormextender/customrepository';
@@ -143,6 +144,7 @@ export class UserEventsService {
       }
       // Replace the socket if user refreshed or reconnected
       this.events.setClients(data.userId, client);
+      this.rmqService.setQueue(RabbitMQQueues.NOTIFICATIONS);
       this.rmqService.emit(NOTIFICATION_PATTERN.USER_LOGGED_IN, {
         userId: data.userId,
       });

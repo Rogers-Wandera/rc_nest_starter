@@ -83,7 +83,7 @@ export class DefaultController {
         type: 'system',
         payload: {
           priority: PRIORITY_TYPES.HIGH,
-          pattern: NOTIFICATION_PATTERN.SYSTEM_NOTIFICATION,
+          pattern: NOTIFICATION_PATTERN.ANNOUNCEMENTS,
           type: NotificationTypes.INFO,
           recipient: {
             type: 'no broadcast',
