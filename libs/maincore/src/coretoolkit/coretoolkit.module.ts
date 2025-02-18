@@ -10,6 +10,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AsyncLocalStorage } from 'async_hooks';
 import { MulterConfigs } from './config/multer.configs';
+import { EventLogger } from './app/utils/event.logger';
 
 @Global()
 @Module({
@@ -40,9 +41,10 @@ import { MulterConfigs } from './config/multer.configs';
     FileUploadsModule,
     MessagingModule,
   ],
-  providers: [CoreToolkitService, ...CoreAppProviders],
+  providers: [CoreToolkitService, ...CoreAppProviders, EventLogger],
   exports: [
     CoreToolkitService,
+    EventLogger,
     EventsModule,
     RabbitMQModule,
     FileUploadsModule,

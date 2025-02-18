@@ -1,12 +1,10 @@
-import { Inject, Injectable, Logger, UseInterceptors } from '@nestjs/common';
+import { Injectable, Logger, UseInterceptors } from '@nestjs/common';
 import {
   MessageBody,
   SubscribeMessage,
   WebSocketGateway,
-  WebSocketServer,
   WsResponse,
 } from '@nestjs/websockets';
-import { Server } from 'socket.io';
 import { corsOptions } from '../../config/corsoptions';
 import { EventsGateway } from '../event.gateway';
 import {
@@ -17,13 +15,14 @@ import {
 import { RTechSystemNotificationType } from '../../types/notification/notify.types';
 import { RecipientsValidator } from '../../contexts/interceptors/recipients.interceptor';
 import { RabbitMQService } from '../../micro/microservices/rabbitmq.service';
+import { EventLogger } from '../../app/utils/event.logger';
 
 @Injectable()
 @WebSocketGateway({
   cors: corsOptions,
 })
 export class NotificationEvents {
-  private logger: Logger = new Logger();
+  private logger: Logger = new Logger(NotificationEvents.name);
 
   /**
    * Creates an instance of `EventsGateWayService`.
@@ -33,6 +32,7 @@ export class NotificationEvents {
   constructor(
     private readonly events: EventsGateway,
     private readonly rmqService: RabbitMQService,
+    private readonly eventslogger: EventLogger,
   ) {
     this.rmqService.setQueue(RabbitMQQueues.NOTIFICATIONS);
   }
@@ -139,6 +139,10 @@ export class NotificationEvents {
   HandleUpdateRead(@MessageBody() data: { id: string; userId: string }) {
     if (data?.id && data?.userId) {
       this.rmqService.emit(NOTIFICATION_PATTERN.UPDATE_READ, data);
+      this.eventslogger.logEvent(`User Read a notification`, 'user_events', {
+        userId: data.userId,
+        eventType: 'UPDATE_READ',
+      });
     }
   }
 }

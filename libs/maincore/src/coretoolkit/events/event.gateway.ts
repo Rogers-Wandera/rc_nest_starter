@@ -6,7 +6,7 @@ import {
   OnGatewayInit,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Scope } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { corsOptions } from '../config/corsoptions';
 import {
@@ -28,7 +28,9 @@ const sockets: Map<string, Socket> = new Map();
  * @implements {OnGatewayDisconnect}
  * @implements {OnGatewayInit}
  */
-@Injectable()
+@Injectable({
+  scope: Scope.DEFAULT,
+})
 @WebSocketGateway({
   cors: corsOptions,
 })
@@ -90,8 +92,10 @@ export class EventsGateway
       this.logger.log(
         `Client id: ${client.id} tried to connect but was denied `,
       );
+      return;
     }
-    this.logger.debug(`Number of connected clients: ${sockets.size}`);
+    client.removeAllListeners('disconnect');
+    this.logger.log(`Number of connected clients: ${sockets.size}`);
   }
 
   /**
@@ -102,7 +106,6 @@ export class EventsGateway
    */
   handleDisconnect(client: Socket) {
     sockets.forEach((value, key) => {
-      console.log(client.id);
       if (value.id === client.id) {
         sockets.delete(key);
         this.rmqService.emit(NOTIFICATION_PATTERN.USER_LOGGED_OUT, {
@@ -111,6 +114,7 @@ export class EventsGateway
       }
     });
     this.emitOnlineUsersToAdmin();
+    client.removeAllListeners();
     this.logger.log(`Client id: ${client.id} disconnected`);
   }
 
