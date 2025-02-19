@@ -12,11 +12,13 @@ import { User } from '@core/maincore/entities/core/users.entity';
 import { DataBridgeService } from '@core/maincore/databridge/databridge.service';
 import { RabbitMQService } from '../../micro/microservices/rabbitmq.service';
 import { EventLogger } from '../../app/utils/event.logger';
+import { UserGroupMember } from '@core/maincore/entities/core/usergroupmembers.entity';
 
 @Injectable()
 export class UserAuthService {
   private logger: Logger = new Logger(UserAuthService.name);
   private userservice: CustomRepository<User>;
+  private memberrepository: CustomRepository<UserGroupMember>;
 
   constructor(
     private readonly events: EventsGateway,
@@ -25,6 +27,7 @@ export class UserAuthService {
     private readonly eventlogger: EventLogger,
   ) {
     this.userservice = this.source.GetRepository(User);
+    this.memberrepository = this.source.GetRepository(UserGroupMember);
   }
 
   async handleLogout(data: { userId: string }) {
@@ -41,7 +44,38 @@ export class UserAuthService {
     return data;
   }
 
-  handleFetchModules(data: any) {}
+  async handleFetchModules(data: {
+    userId?: string;
+    groupId?: number;
+    name: string;
+    infotype: string;
+  }) {
+    if (data?.userId) {
+      const socket = this.events.getClients().get(data.userId);
+      if (socket) {
+        socket.emit(USER_EVENTS.FETCH_MODULES, {
+          message: `You now have access to the ${data.name} link`,
+        });
+      }
+    } else if (data?.groupId) {
+      const members = await this.memberrepository.find({
+        where: { group: { id: data.groupId } },
+      });
+      if (members?.length > 0) {
+        const ids = members.map((member) => member?.user?.id).filter(Boolean);
+        ids.forEach((id) => {
+          const socket = this.events.getClients().get(id);
+          if (socket) {
+            socket.emit(USER_EVENTS.FETCH_MODULES, {
+              message: `The ${data.name} link has been ${data.infotype}`,
+            });
+          }
+        });
+      }
+    } else {
+      return;
+    }
+  }
 
   async HandleUserOffline(data: { userId: string; manual?: boolean }) {
     try {

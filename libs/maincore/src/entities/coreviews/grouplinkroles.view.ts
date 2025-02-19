@@ -11,11 +11,12 @@ import { UserGroup } from '../core/usergroups.entity';
       .select('ml.*')
       .addSelect('mr.id', 'linkRoleId')
       .addSelect('mr.userId', 'userId')
-      .addSelect('mr.groupId', 'groupId')
+      .addSelect('ur.id', 'groupId')
       .addSelect(`CASE WHEN mr.id IS NOT NULL THEN 1 ELSE 0 END`, 'is_assigned')
       .addSelect('mr.expireDate', 'expireDate')
       .addSelect('mr.expired', 'expired')
       .addSelect('mr.days_left', 'days_left')
+      .addSelect('mr.userName', 'userName')
       .from(UserGroup, 'ur')
       .innerJoin(ModuleLinksView, 'ml', '1 = 1')
       .leftJoin(

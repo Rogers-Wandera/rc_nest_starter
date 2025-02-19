@@ -65,6 +65,7 @@ export class LinkRoleService extends EntityModel<LinkRole> {
       if (type === 'user') {
         await this.checkUserHasRole();
       }
+      console.log(condition);
       const exists = await this.repository.findOne({
         where: {
           ModuleLink: { id: this.entity.ModuleLink.id },

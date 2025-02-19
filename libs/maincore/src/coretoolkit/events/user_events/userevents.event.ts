@@ -41,7 +41,15 @@ export class UserEventsService {
   }
 
   @SubscribeMessage(USER_EVENTS.FETCH_MODULES)
-  handleFetchModules(@MessageBody() data: any) {
+  handleFetchModules(
+    @MessageBody()
+    data: {
+      userId?: string;
+      groupId?: number;
+      name: string;
+      infotype: string;
+    },
+  ) {
     return this.authService.handleFetchModules(data);
   }
 

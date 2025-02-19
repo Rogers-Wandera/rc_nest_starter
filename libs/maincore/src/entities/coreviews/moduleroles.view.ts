@@ -15,7 +15,7 @@ import { UserGroup } from '../core/usergroups.entity';
           .select(
             'lr.id as id, lr.expireDate as expireDate, lr.moduleLinkId as moduleLinkId',
           )
-          .addSelect('lr.userId as userId,lr.groupId as groupId')
+          .addSelect('lr.userId as userId, lr.groupId as groupId')
           .addSelect('lr.isActive as isActive, lr.createdBy as createdBy')
           .addSelect(
             'lr.creationDate as creationDate, lr.updatedBy as updatedBy',
@@ -24,7 +24,7 @@ import { UserGroup } from '../core/usergroups.entity';
           .addSelect('lr.deletedBy as deletedBy')
           .addSelect('ml.linkname as linkname, ml.route as route')
           .addSelect(
-            'ml.position as mlpos,ml.released as released, ml.icon as icon',
+            'ml.position as mlpos, ml.released as released, ml.icon as icon',
           )
           .addSelect('ml.render as render, ml.mpos as mpos, ml.name')
           .addSelect('CONCAT(u.firstname, " ", u.lastname) as userName')
@@ -38,13 +38,15 @@ import { UserGroup } from '../core/usergroups.entity';
               PARTITION BY u.id, lr.moduleLinkId 
               ORDER BY 
                 CASE 
-                  WHEN lr.groupId IS NOT NULL AND (CAST(lr.expireDate AS DATE) > CURDATE() OR lr.expireDate IS NULL) THEN 1
+                  WHEN lr.groupId IS NOT NULL THEN 1  -- Always prioritize group roles
                   ELSE 2 
                 END,
                 CASE 
-                  WHEN lr.groupId IS NULL THEN 1 
-                  ELSE 2 
-                END
+                  WHEN lr.groupId IS NULL 
+                       AND (CAST(lr.expireDate AS DATE) > CURDATE() OR lr.expireDate IS NULL) 
+                  THEN 1 ELSE 2 
+                END,
+                lr.expireDate DESC  -- Prefer latest expiration date
             ) AS rownumber`,
           )
           .from(LinkRole, 'lr')

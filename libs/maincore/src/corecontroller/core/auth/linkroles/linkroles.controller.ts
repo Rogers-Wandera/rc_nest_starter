@@ -74,7 +74,7 @@ export class LinkRoleController extends IController<LinkRoleService> {
     try {
       const body = req.body as LinkRoleDTO;
       const toassign = body.userId ? 'user' : 'group';
-      if (body.groupId) {
+      if (body?.groupId) {
         this.model.entity.group = req.entities['usergroup'] as UserGroup;
       } else {
         this.model.entity.User = req.entities['user'] as User;

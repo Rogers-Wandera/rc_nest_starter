@@ -9,6 +9,7 @@ import { UserDataView } from '@core/maincore/entities/coreviews/userdata.view';
 import { UserRolesView } from '@core/maincore/entities/coreviews/userroles.view';
 import { DataUtils } from '@core/maincore/databridge/databuilder/data.util';
 import { EventLogger } from '../../app/utils/event.logger';
+import { EventsGateway } from '../event.gateway';
 
 @Injectable()
 export class USER_JWT_EVENTS extends DataUtils {
@@ -18,6 +19,7 @@ export class USER_JWT_EVENTS extends DataUtils {
     private readonly jwtService: JwtService,
     @Inject(INJECTABLES.DATA_SOURCE) private readonly source: DataBridgeService,
     private readonly eventslogger: EventLogger,
+    private readonly events: EventsGateway,
   ) {
     super();
     this.refreshRepository = this.source.GetRepository(RefreshToken);
@@ -26,6 +28,7 @@ export class USER_JWT_EVENTS extends DataUtils {
 
   async HandleUpdateUserSession(data: {
     userId: string;
+    isUser?: boolean;
   }): Promise<WsResponse | undefined> {
     try {
       const refreshToken = await this.refreshRepository.findOneBy({
@@ -45,11 +48,27 @@ export class USER_JWT_EVENTS extends DataUtils {
       await this.jwtService.verifyAsync(refreshToken.token);
       const payload = this.jwtPayload(user, roles);
       const token = await this.jwtService.signAsync(payload);
-      this.eventslogger.logEvent(`User Session Updated`, 'user_events', {
-        userId: data.userId,
-        eventType: 'UPDATE_SESSION',
-      });
-      return { event: USER_EVENTS.UPDATE_SESSION, data: { token } };
+      if (data?.isUser) {
+        this.eventslogger.logEvent(`User Session Updated`, 'user_events', {
+          userId: data.userId,
+          eventType: 'UPDATE_SESSION',
+        });
+        return { event: USER_EVENTS.UPDATE_SESSION, data: { token } };
+      }
+      const socket = this.events.getClients().get(data.userId);
+      if (socket) {
+        socket.emit(USER_EVENTS.UPDATE_SESSION, {
+          token,
+          message:
+            'Your session has been updated because some configurations have been changed',
+        });
+        this.eventslogger.logEvent(`User Session Updated`, 'user_events', {
+          userId: data.userId,
+          eventType: 'UPDATE_SESSION',
+        });
+        return;
+      }
+      return null;
     } catch (error) {
       return null;
     }
