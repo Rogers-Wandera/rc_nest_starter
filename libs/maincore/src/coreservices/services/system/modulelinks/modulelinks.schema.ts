@@ -25,4 +25,8 @@ export const modulelinksschema = Joi.object<Modulelinksschematype>({
     'any.required': 'Render is required',
     'number.base': 'Render must be a number',
   }),
+  default: Joi.number().optional().messages({
+    'any.required': 'Default is required',
+    'number.base': 'Default must be a number',
+  }),
 });

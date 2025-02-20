@@ -25,6 +25,8 @@ export class ModuleLink extends BaseEntityClass {
   module: Module;
   @Column({ nullable: false })
   linkname: string;
+  @Column({ nullable: false, default: 0 })
+  default: number;
   @Column({ nullable: false })
   route: string;
   @Column({ nullable: false })

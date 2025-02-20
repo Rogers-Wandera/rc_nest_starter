@@ -47,14 +47,13 @@ export class UserAuthService {
   async handleFetchModules(data: {
     userId?: string;
     groupId?: number;
-    name: string;
-    infotype: string;
+    infotype?: string;
   }) {
     if (data?.userId) {
       const socket = this.events.getClients().get(data.userId);
       if (socket) {
         socket.emit(USER_EVENTS.FETCH_MODULES, {
-          message: `You now have access to the ${data.name} link`,
+          message: data?.infotype || 'Some configuration have been changed',
         });
       }
     } else if (data?.groupId) {
@@ -67,7 +66,7 @@ export class UserAuthService {
           const socket = this.events.getClients().get(id);
           if (socket) {
             socket.emit(USER_EVENTS.FETCH_MODULES, {
-              message: `The ${data.name} link has been ${data.infotype}`,
+              message: data?.infotype || 'Some configuration have been changed',
             });
           }
         });

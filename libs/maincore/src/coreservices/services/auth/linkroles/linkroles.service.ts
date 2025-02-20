@@ -158,6 +158,7 @@ export class LinkRoleService extends EntityModel<LinkRole> {
             expired: Number(item.expired),
             render: Number(item.render),
             icon: item.icon,
+            default: Number(item.default),
           });
           return acc;
         }, {});
@@ -204,7 +205,11 @@ export class LinkRoleService extends EntityModel<LinkRole> {
         type === 'user' ? this.entity.User.id : this.entity.group.id;
       const proptype =
         type === 'user' ? { value, type: 'user' } : { value, type: 'group' };
-      const data = await this.PaginateView(view, conditions);
+      const data = await this.PaginateView(view, {
+        ...conditions,
+        released: 1,
+        default: 0,
+      });
 
       let docsWithPermissions: UserServerRolesGroup[] = [];
 

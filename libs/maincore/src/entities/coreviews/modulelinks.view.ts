@@ -42,4 +42,6 @@ export class ModuleLinksView {
   mpos: number;
   @ViewColumn()
   icon: string;
+  @ViewColumn()
+  default: number;
 }

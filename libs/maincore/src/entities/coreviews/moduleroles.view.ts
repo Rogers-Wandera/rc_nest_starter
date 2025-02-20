@@ -26,6 +26,7 @@ import { UserGroup } from '../core/usergroups.entity';
           .addSelect(
             'ml.position as mlpos, ml.released as released, ml.icon as icon',
           )
+          .addSelect('ml.default', 'default')
           .addSelect('ml.render as render, ml.mpos as mpos, ml.name')
           .addSelect('CONCAT(u.firstname, " ", u.lastname) as userName')
           .addSelect(
@@ -106,4 +107,6 @@ export class ModuleRolesView {
   groupId: string | null;
   @ViewColumn()
   groupName: string | null;
+  @ViewColumn()
+  default: number;
 }

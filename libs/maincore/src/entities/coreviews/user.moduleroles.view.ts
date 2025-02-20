@@ -31,6 +31,7 @@ import { UserGroupMember } from '../core/usergroupmembers.entity';
             'ml.position as mlpos,ml.released as released, ml.icon as icon',
           )
           .addSelect('ml.render as render, ml.mpos as mpos, ml.name')
+          .addSelect('ml.default', 'default')
           .addSelect('CONCAT(u.firstname, " ", u.lastname) as userName')
           .addSelect(
             'CASE WHEN (CAST(lr.expireDate AS DATE) <= CURDATE()) THEN 1 ELSE 0 END AS expired',
@@ -120,4 +121,6 @@ export class UserModuleRolesView {
   groupName: string | null;
   @ViewColumn()
   memberId: string | null;
+  @ViewColumn()
+  default: number;
 }
