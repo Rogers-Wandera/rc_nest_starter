@@ -67,6 +67,7 @@ export class ClassValidatorInterceptor implements NestInterceptor {
       const entity: ObjectLiteral = this.parentClass.model.entity;
       if (request.user) {
         if (this.parentClass) {
+          request.validatorName = entity.constructor.name;
           this.parentClass.model.entity = { ...entity, ...data };
           if (request.user) {
             if (method != 'post') {

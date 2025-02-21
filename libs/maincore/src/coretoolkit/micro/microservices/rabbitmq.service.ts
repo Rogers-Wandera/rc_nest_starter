@@ -26,18 +26,22 @@ export class RabbitMQService {
     @Inject('NOTIFICATION_SERVICE')
     private readonly notificationClient: ClientProxy,
     @Inject('UPLOAD_SERVICE') private readonly uploadClient: ClientProxy,
+    @Inject('EVENTS_SERVICE') private readonly eventClient: ClientProxy,
   ) {
     this.clientMap = {
       notifications: this.notificationClient,
       uploads: this.uploadClient,
+      events: this.eventClient,
     };
   }
 
   private getClient(): ClientProxy {
-    if (this.queue.includes(RabbitMQQueues.NOTIFICATIONS))
+    if (this.queue === RabbitMQQueues.NOTIFICATIONS)
       return this.clientMap.notifications;
-    if (this.queue.includes(RabbitMQQueues.UPLOADS))
-      return this.clientMap.uploads;
+    if (this.queue === RabbitMQQueues.UPLOADS) return this.clientMap.uploads;
+    if (this.queue === RabbitMQQueues.EVENTS) {
+      return this.clientMap.events;
+    }
     throw new Error(`Unknown pattern: ${this.queue}`);
   }
 

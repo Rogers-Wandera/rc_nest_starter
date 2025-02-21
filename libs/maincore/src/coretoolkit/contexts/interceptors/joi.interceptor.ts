@@ -85,7 +85,9 @@ export class JoiPaginateValidation<T> implements NestInterceptor {
           .join('; ');
         throw new BadRequestException(errorMessage);
       }
+      const entity: ObjectLiteral = this.parentClass.model.entity;
       request.query = parsedValue;
+      request.validatorName = entity.constructor.name;
       this.parentClass.model.pagination = parsedValue as paginateprops<unknown>;
     }
     return next.handle();
@@ -154,6 +156,7 @@ export class JoiSchemaValidator implements NestInterceptor {
         throw new BadRequestException(errorMessage);
       }
       if (schemas.schemas.length === 1) {
+        request.validatorName = entity.constructor.name;
         if (request.user) {
           if (method != 'post') {
             entity['updatedBy'] = request.user.id;

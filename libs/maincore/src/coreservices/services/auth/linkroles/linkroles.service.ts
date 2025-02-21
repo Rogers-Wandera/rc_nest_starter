@@ -128,7 +128,6 @@ export class LinkRoleService extends EntityModel<LinkRole> {
 
   async UpdateLinkRole() {
     try {
-      console.log(this.entity);
       const response = await this.repository.FindOneAndUpdate(
         {
           id: this.entity.id,

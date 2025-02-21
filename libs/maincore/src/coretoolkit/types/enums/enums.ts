@@ -129,4 +129,5 @@ export enum UPLOADER_PATTERN {
 export enum RabbitMQQueues {
   NOTIFICATIONS = 'notifications',
   UPLOADS = 'uploads',
+  EVENTS = 'events',
 }

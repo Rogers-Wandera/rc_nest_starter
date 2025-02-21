@@ -6,6 +6,7 @@ declare global {
     interface Request {
       user: reqUser;
       entities: { [key: string]: EntityTarget };
+      validatorName?: string;
     }
   }
 }

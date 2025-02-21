@@ -14,6 +14,7 @@ import { NotificationSender } from '../contexts/interceptors/notification.interc
 import { MicroServiceRunningGuard } from '../contexts/guards/microservice.guard';
 import { ClassValidationPipe } from '../contexts/pipes/classvalidator.pipe';
 import { ClassValidatorInterceptor } from '../contexts/interceptors/classvalidator.interceptor';
+import { EventsInterceptor } from '../contexts/interceptors/events.interceptor';
 
 export const CoreAppProviders: Provider[] = [
   {
@@ -40,4 +41,5 @@ export const CoreAppProviders: Provider[] = [
   { provide: APP_INTERCEPTOR, useClass: JoiSchemaValidator },
   { provide: APP_INTERCEPTOR, useClass: ServiceValidator },
   { provide: APP_INTERCEPTOR, useClass: NotificationSender },
+  { provide: APP_INTERCEPTOR, useClass: EventsInterceptor },
 ];
