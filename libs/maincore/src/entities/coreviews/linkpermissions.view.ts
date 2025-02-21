@@ -12,6 +12,7 @@ import { METHODS } from '../../coretoolkit/types/enums/enums';
       .addSelect(
         'ml.linkname as linkname, ml.name as name, ml.route as route, ml.render as render',
       )
+      .addSelect('ml.default', 'default')
       .from(LinkPermission, 'lp')
       .innerJoin(ModuleLinksView, 'ml', 'ml.id = lp.moduleLinkId')
       .where('lp.isActive = 1'),
@@ -51,4 +52,6 @@ export class LinkPermissionView {
   route: string;
   @ViewColumn()
   render: string;
+  @ViewColumn()
+  default: number;
 }
