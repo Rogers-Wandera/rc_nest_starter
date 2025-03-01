@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import {
+  EVENTS_PATTERN,
   NOTIFICATION_PATTERN,
   RabbitMQQueues,
   UPLOADER_PATTERN,
@@ -56,10 +57,13 @@ export class RabbitMQService {
   /**
    * Sends a message to the RabbitMQ service with the specified pattern and data.
    *
-   * @param {NOTIFICATION_PATTERN | UPLOADER_PATTERN} pattern The pattern to match for the message.
+   * @param {NOTIFICATION_PATTERN | UPLOADER_PATTERN | EVENTS_PATTERN} pattern The pattern to match for the message.
    * @param {any} data The data to be sent with the message.
    */
-  public send(pattern: NOTIFICATION_PATTERN | UPLOADER_PATTERN, data: any) {
+  public send(
+    pattern: NOTIFICATION_PATTERN | UPLOADER_PATTERN | EVENTS_PATTERN,
+    data: any,
+  ) {
     const client = this.getClient();
     return client.send({ cmd: pattern }, data);
   }
@@ -67,10 +71,13 @@ export class RabbitMQService {
   /**
    * Emits a message to the RabbitMQ service with the specified pattern and data.
    *
-   * @param {NOTIFICATION_PATTERN | UPLOADER_PATTERN} pattern - The pattern to match for the message.
+   * @param {NOTIFICATION_PATTERN | UPLOADER_PATTERN | EVENTS_PATTERN} pattern - The pattern to match for the message.
    * @param {any} data - The data to be emitted with the message.
    */
-  public emit(pattern: NOTIFICATION_PATTERN | UPLOADER_PATTERN, data: any) {
+  public emit(
+    pattern: NOTIFICATION_PATTERN | UPLOADER_PATTERN | EVENTS_PATTERN,
+    data: any,
+  ) {
     const client = this.getClient();
     return client.emit({ cmd: pattern }, data);
   }

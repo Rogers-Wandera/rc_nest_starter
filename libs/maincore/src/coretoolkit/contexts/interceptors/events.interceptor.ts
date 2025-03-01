@@ -8,6 +8,9 @@ import {
 import { Reflector } from '@nestjs/core';
 import { EVENT_KEY, UserEvent } from '../../decorators/event.decorator';
 import { RabbitMQService } from '../../micro/microservices/rabbitmq.service';
+import { RabbitMQQueues } from '../../types/enums/enums';
+import { Observable, tap } from 'rxjs';
+import { Request } from 'express';
 
 @Injectable({ scope: Scope.REQUEST })
 export class EventsInterceptor implements NestInterceptor {
@@ -15,15 +18,56 @@ export class EventsInterceptor implements NestInterceptor {
     private reflector: Reflector,
     private rabbitMq: RabbitMQService,
   ) {}
-  intercept(context: ExecutionContext, next: CallHandler<any>) {
-    const request: Request = context.switchToHttp().getRequest();
+
+  intercept(
+    context: ExecutionContext,
+    next: CallHandler<any>,
+  ): Observable<any> {
+    const request = context.switchToHttp().getRequest() as Request;
+    const response = context.switchToHttp().getResponse();
     const method = request.method.toLowerCase();
-    const check = this.reflector.getAllAndOverride<UserEvent>(EVENT_KEY, [
+    const path = request.url;
+    const user = request.user || { id: 'anonymous' };
+
+    const eventConfig = this.reflector.getAllAndOverride<UserEvent>(EVENT_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
-    if (check) {
+
+    if (!eventConfig) return next.handle();
+
+    // Add dynamic metadata
+    const eventData: UserEvent = {
+      ...eventConfig,
+      timestamp: new Date(),
+      metadata: {
+        ...eventConfig?.metadata,
+        ip: request.ip,
+        headers: user,
+        method,
+        requestPath: path,
+      },
+    };
+
+    this.rabbitMq.setQueue(RabbitMQQueues.EVENTS);
+
+    if (eventConfig.requestType === 'before') {
+      if (eventConfig.notify?.length) {
+        this.rabbitMq.emit(eventConfig.event, eventData);
+      }
+      return next.handle();
+    } else {
+      return next.handle().pipe(
+        tap(() => {
+          if (eventConfig.notify?.length) {
+            const responseData = {
+              statusCode: response.statusCode,
+              eventData,
+            };
+            this.rabbitMq.emit(eventConfig.event, responseData);
+          }
+        }),
+      );
     }
-    return next.handle();
   }
 }
