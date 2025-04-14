@@ -128,7 +128,7 @@ export class JoiValidator<T> implements NestInterceptor {
  * @class JoiSchemaValidator
  * @implements {NestInterceptor}
  */
-@Injectable({ scope: Scope.REQUEST })
+@Injectable({ scope: Scope.TRANSIENT })
 export class JoiSchemaValidator implements NestInterceptor {
   constructor(
     private reflector: Reflector,

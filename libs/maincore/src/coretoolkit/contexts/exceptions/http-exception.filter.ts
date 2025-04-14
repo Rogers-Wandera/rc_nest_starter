@@ -56,6 +56,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     } else if (typeof exception === 'string') {
       errorMessage = exception;
     }
+    console.error(errorMessage);
 
     const errorResponse = {
       statusCode: httpStatus,

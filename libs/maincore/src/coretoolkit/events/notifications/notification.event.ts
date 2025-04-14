@@ -145,4 +145,10 @@ export class NotificationEvents {
       });
     }
   }
+
+  @SubscribeMessage('notification')
+  HandleNotification(@MessageBody() data: any) {
+    console.log('recieved', data);
+    return { status: 'received' };
+  }
 }

@@ -1,0 +1,12 @@
+config:
+  target: 'http://localhost:3600/api/v1' # Replace with your local server URL
+  phases:
+    - duration: 60 # Test duration in seconds
+      arrivalRate: 100 # Number of virtual users per ssecond (can adjust to higher numbers)
+scenarios:
+  - flow:
+      - post:
+          url: '/core/auth/users/login' # Replace with the API or endpoint you want to test
+          json:
+            email: 'rogerrisha@gmail.com'
+            password: 'forusall0701'

@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   HttpStatus,
-  Inject,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -59,7 +58,6 @@ import {
   GUARDS,
   RabbitMQQueues,
   ROLE,
-  UPLOADER_PATTERN,
   USER_EVENTS,
 } from '../../../../coretoolkit/types/enums/enums';
 import {
@@ -70,7 +68,6 @@ import { SkipGuards } from '../../../../authguards/decorators/skip.guard';
 import { UploadFile } from '../../../../coretoolkit/decorators/upload.decorator';
 import {
   File,
-  Files,
   Service,
 } from '../../../../coretoolkit/decorators/param.decorator';
 import { ValidateService } from '../../../../coretoolkit/decorators/servicevalidate.decorator';
@@ -82,7 +79,6 @@ import { ClassValidator } from '@core/maincore/coretoolkit/decorators/classvalid
 import { LockUserDTO } from './users.dto';
 import { ServerRouteRoleService } from '@core/maincore/coreservices/services/auth/serverrouteroles/serverrouteroles.service';
 import { RabbitMQService } from '@core/maincore/coretoolkit/micro/microservices/rabbitmq.service';
-import { UploadApiOptions } from 'cloudinary';
 
 @ApiTags('User Management')
 @Controller('/core/auth/users')

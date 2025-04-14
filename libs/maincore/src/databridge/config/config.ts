@@ -10,10 +10,10 @@ export const ConfigOptions = (): DataSourceOptions => ({
   database: process.env.DB_NAME,
   synchronize: true,
   logging: false,
-  entities: [
-    path.join(__dirname, '..', '..', '**', '*.entity.{ts,js}'),
-    path.join(__dirname, '..', '..', '**', '*.view.{ts,js}'),
-  ],
-  migrations: ['src/migration/**/*.ts'],
-  subscribers: [path.join(__dirname, '..', '..', '**', '*.subscriber.{ts,js}')],
+  // entities: [
+  //   path.join(__dirname, '..', '..', '**', '*.entity.{ts,js}'),
+  //   path.join(__dirname, '..', '..', '**', '*.view.{ts,js}'),
+  // ],
+  // migrations: ['src/migration/**/*.ts'],
+  // subscribers: [path.join(__dirname, '..', '..', '**', '*.subscriber.{ts,js}')],
 });

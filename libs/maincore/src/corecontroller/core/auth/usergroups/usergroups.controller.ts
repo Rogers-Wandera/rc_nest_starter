@@ -29,6 +29,7 @@ import { UserGroup } from '@core/maincore/entities/core/usergroups.entity';
 @Permissions({ module: 'User Management', moduleLink: 'User Groups' })
 @AuthGuard(ROLE.ADMIN)
 @ApiTags('User Groups')
+
 export class UserGroupController extends IController<UserGroupService> {
   constructor(model: UserGroupService) {
     super(model);

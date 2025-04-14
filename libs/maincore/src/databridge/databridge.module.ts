@@ -1,42 +1,65 @@
-import { Global, Module } from '@nestjs/common';
+import { DynamicModule, Global, Module, Provider } from '@nestjs/common';
+import { DataSourceOptions } from 'typeorm';
 import { DataBridgeService } from './databridge.service';
-import { ConfigService } from '@nestjs/config';
-import { FireBaseService } from './databuilder/firebase.setup';
 import { EntityDataSource } from './model/enity.data.model';
-import { EnvConfig } from '../coretoolkit/config/config';
-import { FirebaseOptions } from 'firebase/app';
-import { ServiceAccount } from 'firebase-admin';
 
+interface RDatabaseAsyncConfig {
+  imports?: any[];
+  useFactory: (
+    ...args: any[]
+  ) => Promise<DataSourceOptions> | DataSourceOptions;
+  inject?: any[];
+}
 @Global()
-@Module({
-  providers: [
-    {
-      provide: 'data_source',
-      useFactory: async () => {
-        const datasource = new DataBridgeService();
-        await datasource.initialize();
-        return datasource;
+@Module({})
+export class DataBridgeModule {
+  static register(config: DataSourceOptions): DynamicModule {
+    return {
+      module: DataBridgeModule,
+      providers: [
+        { provide: 'RDATABASE_CONFIG', useValue: config },
+        {
+          provide: 'data_source',
+          useFactory: async (config: DataSourceOptions) => {
+            const db = new DataBridgeService(config);
+            await db.initialize();
+            return db;
+          },
+          inject: ['RDATABASE_CONFIG'],
+        },
+        DataBridgeService,
+        EntityDataSource,
+      ],
+      exports: ['data_source', DataBridgeService, EntityDataSource],
+    };
+  }
+  static registerAsync(options: RDatabaseAsyncConfig): DynamicModule {
+    const provider: Provider = {
+      provide: 'RDATABASE_CONFIG',
+      useFactory: async (...args: any[]) => {
+        const configs = await options.useFactory(...args);
+        return configs;
       },
-    },
-    {
-      provide: 'FIREBASE_SERVICE',
-      useFactory: async (config: ConfigService<EnvConfig>) => {
-        const firebase = new FireBaseService(
-          config.get('firebase_web') as FirebaseOptions,
-          config.get('firebaseServiceAccount') as ServiceAccount,
-        );
-        return firebase;
-      },
-      inject: [ConfigService],
-    },
-    DataBridgeService,
-    EntityDataSource,
-  ],
-  exports: [
-    DataBridgeService,
-    'data_source',
-    'FIREBASE_SERVICE',
-    EntityDataSource,
-  ],
-})
-export class DataBridgeModule {}
+      inject: options.inject || [],
+    };
+    return {
+      module: DataBridgeModule,
+      imports: options.imports || [],
+      providers: [
+        provider,
+        {
+          provide: 'data_source',
+          useFactory: async (config: DataSourceOptions) => {
+            const db = new DataBridgeService(config);
+            await db.initialize();
+            return db;
+          },
+          inject: ['RDATABASE_CONFIG'],
+        },
+        DataBridgeService,
+        EntityDataSource,
+      ],
+      exports: ['data_source', DataBridgeService, EntityDataSource],
+    };
+  }
+}

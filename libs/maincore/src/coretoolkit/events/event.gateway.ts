@@ -132,6 +132,7 @@ export class EventsGateway
         message: 'Authentication errors: Token required or invalid',
       });
       client.disconnect(true);
+      client.removeAllListeners();
       return false;
     }
     return true;

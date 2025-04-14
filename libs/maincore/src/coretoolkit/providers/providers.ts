@@ -22,7 +22,7 @@ export const CoreAppProviders: Provider[] = [
     useValue: new AsyncLocalStorage(),
   },
   { provide: APP_GUARD, useClass: MicroServiceRunningGuard },
-  { provide: APP_GUARD, useClass: ThrottlerGuard },
+  // { provide: APP_GUARD, useClass: ThrottlerGuard },
   {
     provide: APP_FILTER,
     useClass: AllExceptionsFilter,

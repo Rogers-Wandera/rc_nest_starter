@@ -10,6 +10,7 @@ import {
   ServerLogger,
 } from '@core/maincore/coretoolkit/middlewares/logger.middleware';
 import { setupSwagger } from '@core/maincore/corecontroller/swagger/swagger';
+import { AuthenticatedSocketAdapter } from '@core/maincore/coretoolkit/contexts/guards/socket.guard';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -20,6 +21,9 @@ async function bootstrap() {
   app.setGlobalPrefix(app.get(ConfigService<EnvConfig>).get('baseapi'));
   app.use(new LoggingMiddleware().use);
   app.use(new ServerLogger().use);
+  app.useWebSocketAdapter(
+    new AuthenticatedSocketAdapter(app, app.get(ConfigService<EnvConfig>)),
+  );
   setupSwagger(app);
   await app.listen(app.get(ConfigService<EnvConfig>).get('port'), async () => {
     console.log('App running on ' + (await app.getUrl()));
