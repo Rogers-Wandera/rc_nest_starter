@@ -1,4 +1,4 @@
-import { entities, MaincoreModule, views } from '@core/maincore';
+import { entities, MaincoreModule, views, subscribers } from '@core/maincore';
 import {
   dbconfig,
   EnvConfig,
@@ -35,6 +35,8 @@ import * as path from 'path';
           password: options.password,
           database: options.name,
           entities: [...entities, ...views],
+          subscribers: [...subscribers],
+          migrations: [],
           synchronize: true,
           logging: false,
         };
