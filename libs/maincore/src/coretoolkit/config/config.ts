@@ -49,6 +49,10 @@ export const envconfig = () => ({
     privateKey: process.env.CLOUD_API_SECRET,
     folder: process.env.CLOUD_MAIN_FOLDER,
   },
+  redis: {
+    host: process.env.REDIS_HOST,
+    port: parseInt(process.env.REDIS_PORT),
+  },
 });
 
 // create the type from the config

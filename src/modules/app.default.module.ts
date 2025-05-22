@@ -1,4 +1,5 @@
 import { entities, MaincoreModule, views, subscribers } from '@core/maincore';
+import { RedisIoAdapter } from '@core/maincore/coretoolkit/adapters/redis.adapter';
 import {
   dbconfig,
   EnvConfig,
@@ -44,5 +45,7 @@ import * as path from 'path';
       inject: [ConfigService],
     }),
   ],
+  providers: [RedisIoAdapter],
+  exports: [RedisIoAdapter],
 })
 export class DefaultAppModule {}

@@ -11,6 +11,7 @@ import {
 } from '@core/maincore/coretoolkit/middlewares/logger.middleware';
 import { setupSwagger } from '@core/maincore/corecontroller/swagger/swagger';
 import { AuthenticatedSocketAdapter } from '@core/maincore/coretoolkit/contexts/guards/socket.guard';
+import { RedisIoAdapter } from '@core/maincore/coretoolkit/adapters/redis.adapter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -25,6 +26,8 @@ async function bootstrap() {
     new AuthenticatedSocketAdapter(app, app.get(ConfigService<EnvConfig>)),
   );
   setupSwagger(app);
+  const redisAdapter = app.get(RedisIoAdapter);
+  app.useWebSocketAdapter(redisAdapter);
   await app.listen(app.get(ConfigService<EnvConfig>).get('port'), async () => {
     console.log('App running on ' + (await app.getUrl()));
   });

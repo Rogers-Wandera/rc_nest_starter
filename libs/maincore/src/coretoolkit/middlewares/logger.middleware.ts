@@ -37,10 +37,10 @@ export class LoggingMiddleware implements NestMiddleware {
 export const logEvent = async (message: string, logFile: string) => {
   const date = `${format(new Date(), 'yyMMdd\tHH:mm:ss')}`;
   const logTime = `${date}\t${uuid()}\t${message}\n`;
-  const _dir = path.join(__dirname, '..', '..', '..', '..', '..', '..', 'logs');
+  const _dir = path.join(process.cwd(), 'logs');
   try {
     if (!existsSync(_dir)) {
-      await fspromises.mkdir(_dir);
+      await fspromises.mkdir(_dir, { recursive: true });
     }
     await fspromises.appendFile(path.join(_dir, `${logFile}.md`), logTime);
   } catch (error) {

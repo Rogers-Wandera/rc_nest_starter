@@ -7,7 +7,6 @@ import { CoreAppProviders } from './providers/providers';
 import { FileUploadsModule } from './micro/fileuploads/fileuploads.module';
 import { MessagingModule } from './messaging/messaging.module';
 import { MulterModule } from '@nestjs/platform-express';
-import { ThrottlerModule } from '@nestjs/throttler';
 import { AsyncLocalStorage } from 'async_hooks';
 import { MulterConfigs } from './config/multer.configs';
 import { EventLogger } from './app/utils/event.logger';
@@ -41,7 +40,20 @@ import { EventLogger } from './app/utils/event.logger';
     FileUploadsModule,
     MessagingModule,
   ],
-  providers: [CoreToolkitService, ...CoreAppProviders, EventLogger],
+  providers: [
+    CoreToolkitService,
+    ...CoreAppProviders,
+    EventLogger,
+    // {
+    //   provide: 'REDIS_CLIENT',
+    //   useFactory: () => {
+    //     return new Redis({
+    //       host: process.env.REDIS_HOST || 'localhost',
+    //       port: parseInt(process.env.REDIS_PORT) || 6379,
+    //     });
+    //   },
+    // },
+  ],
   exports: [
     CoreToolkitService,
     EventLogger,
@@ -51,6 +63,7 @@ import { EventLogger } from './app/utils/event.logger';
     MessagingModule,
     MulterModule,
     AsyncLocalStorage,
+    // 'REDIS_CLIENT',
   ],
 })
 export class CoreToolkitModule {}

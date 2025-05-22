@@ -6,7 +6,9 @@
     "deleteOutDir": true,
     "webpack": true,
     "typeCheck": true,
-    "builder": "swc"
+    "builder": "swc",
+    "assets": ["src/app/public/**/*"],
+    "watchAssets": true
   },
   "projects": {
     "maincore": {
