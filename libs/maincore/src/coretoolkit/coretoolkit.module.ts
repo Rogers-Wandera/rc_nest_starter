@@ -10,6 +10,9 @@ import { MulterModule } from '@nestjs/platform-express';
 import { AsyncLocalStorage } from 'async_hooks';
 import { MulterConfigs } from './config/multer.configs';
 import { EventLogger } from './app/utils/event.logger';
+import { ApplicationContext } from './contexts/app.context';
+import { UserPresenceService } from './services/online.user.service';
+import { UserSessionService } from './services/session.user.service';
 
 @Global()
 @Module({
@@ -44,15 +47,9 @@ import { EventLogger } from './app/utils/event.logger';
     CoreToolkitService,
     ...CoreAppProviders,
     EventLogger,
-    // {
-    //   provide: 'REDIS_CLIENT',
-    //   useFactory: () => {
-    //     return new Redis({
-    //       host: process.env.REDIS_HOST || 'localhost',
-    //       port: parseInt(process.env.REDIS_PORT) || 6379,
-    //     });
-    //   },
-    // },
+    ApplicationContext,
+    UserPresenceService,
+    UserSessionService,
   ],
   exports: [
     CoreToolkitService,
@@ -63,7 +60,9 @@ import { EventLogger } from './app/utils/event.logger';
     MessagingModule,
     MulterModule,
     AsyncLocalStorage,
-    // 'REDIS_CLIENT',
+    ApplicationContext,
+    UserPresenceService,
+    UserSessionService,
   ],
 })
 export class CoreToolkitModule {}

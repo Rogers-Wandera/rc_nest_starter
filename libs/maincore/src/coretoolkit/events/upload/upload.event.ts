@@ -34,41 +34,41 @@ export class UploadEvents {
     this.userprofile = this.source.GetRepository(UserProfileImage);
   }
 
-  handleUpload(data: UploadErrorType) {
-    if (!data?.meta?.userId) {
-      return;
-    }
-    const usersocket = this.events.getClients().get(data.meta.userId);
-    if (usersocket) {
-      usersocket.emit('upload_error', {
-        error: data.error,
-        filename: data.filename,
-      });
-      this.eventslogger.logEvent(`File Upload Error`, 'user_events', {
-        userId: data.meta.userId,
-        eventType: 'UPLOAD_ERROR',
-      });
-      return;
-    } else {
-      this.logger.error(`User with id ${data.meta.userId} not connected`);
-      this.logger.error(`Error: ${data.error} with filename: ${data.filename}`);
-    }
-  }
+  // handleUpload(data: UploadErrorType) {
+  //   if (!data?.meta?.userId) {
+  //     return;
+  //   }
+  //   const usersocket = this.events.getClients().get(data.meta.userId);
+  //   if (usersocket) {
+  //     usersocket.emit('upload_error', {
+  //       error: data.error,
+  //       filename: data.filename,
+  //     });
+  //     this.eventslogger.logEvent(`File Upload Error`, 'user_events', {
+  //       userId: data.meta.userId,
+  //       eventType: 'UPLOAD_ERROR',
+  //     });
+  //     return;
+  //   } else {
+  //     this.logger.error(`User with id ${data.meta.userId} not connected`);
+  //     this.logger.error(`Error: ${data.error} with filename: ${data.filename}`);
+  //   }
+  // }
 
-  handleUploadProgress(data: UploadProgressType) {
-    if (!data?.meta?.userId || !data?.filename) {
-      return;
-    }
-    const usersocket = this.events.getClients().get(data.meta.userId);
-    if (usersocket) {
-      usersocket.emit('upload_progress', data);
-    } else {
-      this.logger.error(`User with id ${data.meta.userId} not connected`);
-      this.logger.error(
-        `Upload Progress: ${data.progress} with filename: ${data.filename}`,
-      );
-    }
-  }
+  // handleUploadProgress(data: UploadProgressType) {
+  //   if (!data?.meta?.userId || !data?.filename) {
+  //     return;
+  //   }
+  //   const usersocket = this.events.getClients().get(data.meta.userId);
+  //   if (usersocket) {
+  //     usersocket.emit('upload_progress', data);
+  //   } else {
+  //     this.logger.error(`User with id ${data.meta.userId} not connected`);
+  //     this.logger.error(
+  //       `Upload Progress: ${data.progress} with filename: ${data.filename}`,
+  //     );
+  //   }
+  // }
 
   async HandleUploadProfilePicture(data: UploadReturn) {
     try {

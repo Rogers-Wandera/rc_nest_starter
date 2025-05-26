@@ -43,36 +43,36 @@ export class NotificationEvents {
    * @param {RTechSystemNotificationType} data - The notification data to be processed.
    * @returns {Promise<WsResponse | undefined>} - A promise that resolves to the WebSocket response or undefined.
    */
-  @SubscribeMessage(NOTIFICATION_PATTERN.SYSTEM_NOTIFICATION)
-  @UseInterceptors(RecipientsValidator)
-  async HandleSystemNotification(
-    @MessageBody() data: RTechSystemNotificationType,
-  ): Promise<WsResponse | undefined> {
-    const recipients = data.recipient;
-    const failed: { to: string; priority?: PRIORITY_TYPES }[] = [];
+  // @SubscribeMessage(NOTIFICATION_PATTERN.SYSTEM_NOTIFICATION)
+  // @UseInterceptors(RecipientsValidator)
+  // async HandleSystemNotification(
+  //   @MessageBody() data: RTechSystemNotificationType,
+  // ): Promise<WsResponse | undefined> {
+  //   const recipients = data.recipient;
+  //   const failed: { to: string; priority?: PRIORITY_TYPES }[] = [];
 
-    if (recipients.type === 'no broadcast') {
-      for (const recipient in recipients.recipients) {
-        const response = this.emitToClient(
-          recipients.recipients[recipient].to,
-          data,
-        );
-        if (response === false) {
-          failed.push(recipients.recipients[recipient]);
-        } else {
-          // this.rmqService.emit(NOTIFICATION_PATTERN.SYSTEM_NOTIFICATION);
-          this.logger.log(
-            `Notification sent to user ${recipients.recipients[recipient].to}`,
-          );
-        }
-      }
-      this.HandleFailed(failed, data);
-      return undefined;
-    }
+  //   if (recipients.type === 'no broadcast') {
+  //     for (const recipient in recipients.recipients) {
+  //       const response = this.emitToClient(
+  //         recipients.recipients[recipient].to,
+  //         data,
+  //       );
+  //       if (response === false) {
+  //         failed.push(recipients.recipients[recipient]);
+  //       } else {
+  //         // this.rmqService.emit(NOTIFICATION_PATTERN.SYSTEM_NOTIFICATION);
+  //         this.logger.log(
+  //           `Notification sent to user ${recipients.recipients[recipient].to}`,
+  //         );
+  //       }
+  //     }
+  //     this.HandleFailed(failed, data);
+  //     return undefined;
+  //   }
 
-    const pattern = data.pattern;
-    return { event: pattern, data };
-  }
+  //   const pattern = data.pattern;
+  //   return { event: pattern, data };
+  // }
 
   /**
    * Handles failed notifications by scheduling them for automatic resending.
@@ -100,39 +100,39 @@ export class NotificationEvents {
    * @param {string} userId - The ID of the user to notify.
    * @param {RTechSystemNotificationType} data - The notification data to be sent.
    */
-  emitToClient(userId: string, data: RTechSystemNotificationType) {
-    const client = this.events.getClients().get(userId);
-    if (client) {
-      client.emit(data.pattern, data);
-      if (data.resendId) {
-        this.rmqService.emit(NOTIFICATION_PATTERN.SYSTEM_NOTIFICATION, data);
-      } else {
-        this.rmqService.emit(
-          NOTIFICATION_PATTERN.SYSTEM_NOTIFICATION_SENT,
-          data,
-        );
-        this.rmqService.emit(NOTIFICATION_PATTERN.USER_NOTIFICATIONS, {
-          userId: userId,
-        });
-      }
-      return true;
-    } else {
-      this.logger.warn(`User id: ${userId} not logged in at the moment`);
-      this.logger.log(
-        `Automatic re-scheduling enabled for this user ${userId}`,
-      );
-      return false;
-    }
-  }
+  // emitToClient(userId: string, data: RTechSystemNotificationType) {
+  //   const client = this.events.getClients().get(userId);
+  //   if (client) {
+  //     client.emit(data.pattern, data);
+  //     if (data.resendId) {
+  //       this.rmqService.emit(NOTIFICATION_PATTERN.SYSTEM_NOTIFICATION, data);
+  //     } else {
+  //       this.rmqService.emit(
+  //         NOTIFICATION_PATTERN.SYSTEM_NOTIFICATION_SENT,
+  //         data,
+  //       );
+  //       this.rmqService.emit(NOTIFICATION_PATTERN.USER_NOTIFICATIONS, {
+  //         userId: userId,
+  //       });
+  //     }
+  //     return true;
+  //   } else {
+  //     this.logger.warn(`User id: ${userId} not logged in at the moment`);
+  //     this.logger.log(
+  //       `Automatic re-scheduling enabled for this user ${userId}`,
+  //     );
+  //     return false;
+  //   }
+  // }
 
   @SubscribeMessage(NOTIFICATION_PATTERN.USER_NOTIFICATIONS)
   async HandleUserNotification(
     @MessageBody() data: { userId: string; data: Record<string, any> },
   ) {
-    const client = this.events.getClients().get(data.userId);
-    if (client) {
-      client.emit(NOTIFICATION_PATTERN.USER_NOTIFICATIONS, data.data);
-    }
+    // const client = this.events.getClients().get(data.userId);
+    // if (client) {
+    //   client.emit(NOTIFICATION_PATTERN.USER_NOTIFICATIONS, data.data);
+    // }
   }
 
   @SubscribeMessage(NOTIFICATION_PATTERN.UPDATE_READ)

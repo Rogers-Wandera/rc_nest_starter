@@ -1,54 +1,61 @@
-import { Logger, OnModuleInit } from '@nestjs/common';
-import { IoAdapter } from '@nestjs/platform-socket.io';
-import { createAdapter } from '@socket.io/redis-adapter';
-import Redis from 'ioredis';
-import { Server, ServerOptions } from 'socket.io';
+import { Logger } from '@nestjs/common';
+import { createClient, RedisClientType } from 'redis';
 
-export class RedisIoAdapter extends IoAdapter implements OnModuleInit {
-  private readonly logger = new Logger(RedisIoAdapter.name);
-  private pubClient: Redis;
-  private subClient: Redis;
-  private isInitialized: boolean = false;
-  public redisClient: Redis;
-
-  async onModuleInit() {
-    if (!this.isInitialized) {
-      await this.connectToRedis();
-    }
-  }
+export class RedisConnection {
+  private readonly logger = new Logger(RedisConnection.name);
+  public isInitialized: boolean = false;
+  private redisClient: ReturnType<typeof createClient>;
+  private subClient: ReturnType<typeof createClient>;
 
   async connectToRedis() {
-    this.pubClient = new Redis({
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT) || 6379,
-      username: process.env.REDIS_USERNAME,
-      password: process.env.REDIS_PASSWORD,
-      retryStrategy: (times) => {
-        const delay = Math.min(times * 50, 2000);
-        this.logger.warn(`Retrying Redis connection in ${delay}ms`);
-        return delay;
-      },
-    });
+    try {
+      const pubClient = createClient({
+        username: process.env.REDIS_USERNAME,
+        password: process.env.REDIS_PASSWORD,
+        socket: {
+          host: process.env.REDIS_HOST,
+          port: parseInt(process.env.REDIS_PORT),
+          reconnectStrategy: (retries) => {
+            this.logger.warn(`Redis reconnection attempt ${retries}`);
+            return Math.min(retries * 100, 5000);
+          },
+        },
+      });
+      const subClient = pubClient.duplicate();
+      pubClient.on('error', (err) =>
+        this.logger.error('Redis Pub Client Error:', err),
+      );
+      subClient.on('error', (err) =>
+        this.logger.error('Redis Sub Client Error:', err),
+      );
 
-    this.subClient = this.pubClient.duplicate();
-    this.pubClient.on('error', (err) => {
-      this.logger.error('Redis PubClient error:', err);
-    });
+      await Promise.all([
+        pubClient.connect().then(() => this.logger.log('PubClient connected')),
+        subClient.connect().then(() => this.logger.log('SubClient connected')),
+      ]);
 
-    this.subClient.on('error', (err) => {
-      this.logger.error('Redis SubClient error:', err);
-    });
-    this.redisClient = this.pubClient;
-    await this.redisClient.ping();
-    this.isInitialized = true;
-    this.logger.log('Redis adapter initialized');
-  }
-  createIOServer(port: number, options?: ServerOptions) {
-    if (!this.isInitialized) {
-      throw new Error('Redis adapter not initialized');
+      this.redisClient = pubClient;
+      this.subClient = subClient;
+      this.isInitialized = true;
+
+      this.logger.log('Redis adapter initialized');
+    } catch (error) {
+      this.logger.error('Failed to initialize Redis adapter:', error);
+      throw error;
     }
-    const server = super.createIOServer(port, options) as Server;
-    server.adapter(createAdapter(this.pubClient, this.subClient));
-    return server;
+  }
+
+  getClient(): ReturnType<typeof createClient> {
+    if (!this.isInitialized) {
+      throw new Error('Redis not initialized');
+    }
+    return this.redisClient;
+  }
+
+  getSubClient(): ReturnType<typeof createClient> {
+    if (!this.isInitialized) {
+      throw new Error('Redis not initialized');
+    }
+    return this.subClient;
   }
 }

@@ -18,7 +18,7 @@ import { ControllerInterface } from '../../../corecontroller/controller.interfac
 import { BaseEntityClass } from '../../../entities/base.entity';
 import { EntityTarget } from 'typeorm';
 
-@Injectable({ scope: Scope.REQUEST })
+@Injectable({ scope: Scope.TRANSIENT })
 export class ServiceValidator implements NestInterceptor {
   constructor(
     private reflector: Reflector,

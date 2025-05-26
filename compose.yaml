@@ -7,9 +7,9 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV}
       DB_PORT: ${MYSQL_TCP_PORT}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
+      DB_USER: ${MYSQL_ROOT_USER}
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      DB_NAME: ${MYSQL_DATABASE}
       DB_HOST: ${DB_DOCKER_HOST}
       BASE_API: ${BASE_API}
       REDIS_HOST: ${DOCKER_REDIS_HOST}

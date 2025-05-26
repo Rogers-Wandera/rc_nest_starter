@@ -343,12 +343,12 @@ export class UserService extends EntityModel<User, string> {
             this.client.emit(NOTIFICATION_PATTERN.NOTIFY, mailoptions);
           },
         );
-        const socketThere = this.eventgateway.getClients().has(this.entity.id);
-        if (socketThere) {
-          this.eventgateway.deleteClient(this.entity.id);
-          const onlineUsers = Array.from(this.eventgateway.getClients().keys());
-          this.eventgateway.emit(USER_EVENTS.ONLINE_USERS, onlineUsers);
-        }
+        // const socketThere = this.eventgateway.getClients().has(this.entity.id);
+        // if (socketThere) {
+        //   this.eventgateway.deleteClient(this.entity.id);
+        //   const onlineUsers = Array.from(this.eventgateway.getClients().keys());
+        //   this.eventgateway.emit(USER_EVENTS.ONLINE_USERS, onlineUsers);
+        // }
         return true;
       }
 

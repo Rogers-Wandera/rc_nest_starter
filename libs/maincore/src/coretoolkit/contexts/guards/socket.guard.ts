@@ -12,7 +12,11 @@ export class AuthenticatedSocketAdapter extends IoAdapter {
   }
 
   createIOServer(port: number, options?: any): any {
-    const server: Server = super.createIOServer(port, options);
+    const server: Server = super.createIOServer(port, {
+      ...options,
+      pingInterval: 25000, // 25 seconds
+      pingTimeout: 60000, // 60 seconds
+    });
 
     server.use((socket: Socket, next) => {
       try {

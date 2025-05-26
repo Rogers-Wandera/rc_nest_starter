@@ -1,10 +1,11 @@
 import { entities, MaincoreModule, views, subscribers } from '@core/maincore';
-import { RedisIoAdapter } from '@core/maincore/coretoolkit/adapters/redis.adapter';
+import { RedisConnection } from '@core/maincore/coretoolkit/adapters/redis.adapter';
 import {
   dbconfig,
   EnvConfig,
   envconfig,
 } from '@core/maincore/coretoolkit/config/config';
+
 import { DataBridgeModule } from '@core/maincore/databridge/databridge.module';
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -45,7 +46,13 @@ import * as path from 'path';
       inject: [ConfigService],
     }),
   ],
-  providers: [RedisIoAdapter],
-  exports: [RedisIoAdapter],
+  providers: [
+    {
+      provide: RedisConnection,
+      useFactory: () => new RedisConnection(),
+      inject: [],
+    },
+  ],
+  exports: [RedisConnection],
 })
 export class DefaultAppModule {}

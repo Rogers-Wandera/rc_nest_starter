@@ -4,8 +4,9 @@ import {
   MessageBody,
   SubscribeMessage,
   WebSocketGateway,
+  WebSocketServer,
 } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { EventsGateway } from '../event.gateway';
 import { NOTIFICATION_PATTERN, USER_EVENTS } from '../../types/enums/enums';
 import { corsOptions } from '../../config/corsoptions';
@@ -17,6 +18,7 @@ import {
   UploadProgressType,
 } from '../upload/upload.event';
 import { UserAuthService } from './auth.eventservice';
+import { UserSessionService } from '../../services/session.user.service';
 
 @Injectable()
 @WebSocketGateway({
@@ -28,17 +30,11 @@ export class UserEventsService {
     private readonly jwtService: USER_JWT_EVENTS,
     private uploadservice: UploadEvents,
     private authService: UserAuthService,
+    private readonly userSession: UserSessionService,
   ) {}
 
-  @SubscribeMessage(USER_EVENTS.LOGOUT)
-  handleLogout(@MessageBody() data: { userId: string }) {
-    return this.authService.handleLogout(data);
-  }
-
-  @SubscribeMessage(USER_EVENTS.UPDATE_SESSION)
-  HandleUpdateUserSession(@MessageBody() data: { userId: string }) {
-    return this.jwtService.HandleUpdateUserSession(data);
-  }
+  @WebSocketServer()
+  server: Server;
 
   @SubscribeMessage(USER_EVENTS.FETCH_MODULES)
   handleFetchModules(
@@ -50,20 +46,25 @@ export class UserEventsService {
       infotype: string;
     },
   ) {
-    return this.authService.handleFetchModules(data);
+    // return this.authService.handleFetchModules(data);
   }
 
   @SubscribeMessage(USER_EVENTS.USER_OFFLINE)
   HandleUserOffline(@MessageBody() data: { userId: string; manual?: boolean }) {
-    return this.authService.HandleUserOffline(data);
+    // return this.authService.HandleUserOffline(data);
   }
 
-  @SubscribeMessage(NOTIFICATION_PATTERN.LOGIN)
-  HandleLogin(
-    @MessageBody() data: { userId: string },
+  @SubscribeMessage(USER_EVENTS.LOGIN)
+  async HandleLogin(
+    @MessageBody() data: { userId: string; token: string },
     @ConnectedSocket() client: Socket,
   ) {
-    return this.authService.HandleLogin(data, client);
+    const sessionId = await this.userSession.storeSession(
+      data.userId,
+      data.token,
+    );
+    await this.authService.HandleLogin({ userId: data.userId, sessionId });
+    return { sessionId };
   }
 
   @SubscribeMessage(USER_EVENTS.IS_LOGGED_IN)
@@ -71,14 +72,14 @@ export class UserEventsService {
     @MessageBody() data: { userId: string },
     @ConnectedSocket() client: Socket,
   ) {
-    return this.authService.HandleIsLoggedIn(data, client);
+    // return this.authService.HandleIsLoggedIn(data, client);
   }
 
-  @SubscribeMessage(USER_EVENTS.GET_ONLINE_USERS)
-  handleGetOnlineUsers(@ConnectedSocket() client: Socket) {
-    const onlineUsers = Array.from(this.events.getClients().keys());
-    client.emit(USER_EVENTS.ONLINE_USERS, onlineUsers);
-  }
+  // @SubscribeMessage(USER_EVENTS.GET_ONLINE_USERS)
+  // handleGetOnlineUsers(@ConnectedSocket() client: Socket) {
+  //   const onlineUsers = Array.from(this.events.getClients().keys());
+  //   client.emit(USER_EVENTS.ONLINE_USERS, onlineUsers);
+  // }
 
   @SubscribeMessage(USER_EVENTS.PROFILE_UPLOAD)
   async HandleUploadProfilePicture(@MessageBody() data: UploadReturn) {
@@ -87,10 +88,10 @@ export class UserEventsService {
 
   @SubscribeMessage('upload_error')
   handleUpload(@MessageBody() data: UploadErrorType) {
-    return this.uploadservice.handleUpload(data);
+    // return this.uploadservice.handleUpload(data);
   }
   @SubscribeMessage('upload_progress')
   handleUploadProgress(@MessageBody() data: UploadProgressType) {
-    return this.uploadservice.handleUploadProgress(data);
+    // return this.uploadservice.handleUploadProgress(data);
   }
 }
