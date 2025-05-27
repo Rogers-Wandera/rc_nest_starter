@@ -13,6 +13,7 @@ import { EventLogger } from './app/utils/event.logger';
 import { ApplicationContext } from './contexts/app.context';
 import { UserPresenceService } from './services/online.user.service';
 import { UserSessionService } from './services/session.user.service';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Global()
 @Module({
@@ -21,23 +22,27 @@ import { UserSessionService } from './services/session.user.service';
     MulterModule.register({
       ...MulterConfigs,
     }),
-    // ThrottlerModule.forRoot([
-    //   {
-    //     name: 'short',
-    //     ttl: 1000,
-    //     limit: 5,
-    //   },
-    //   {
-    //     name: 'medium',
-    //     ttl: 10000,
-    //     limit: 20,
-    //   },
-    //   {
-    //     name: 'long',
-    //     ttl: 60000,
-    //     limit: 30,
-    //   },
-    // ]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 30,
+      },
+      {
+        name: 'short',
+        ttl: 1000,
+        limit: 5,
+      },
+      {
+        name: 'medium',
+        ttl: 10000,
+        limit: 20,
+      },
+      {
+        name: 'long',
+        ttl: 60000,
+        limit: 30,
+      },
+    ]),
     EventsModule,
     RabbitMQModule,
     FileUploadsModule,

@@ -1,6 +1,5 @@
-import { Provider } from '@nestjs/common';
+import { Provider, Scope } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
-import { ThrottlerGuard } from '@nestjs/throttler';
 import { AsyncLocalStorage } from 'async_hooks';
 import { AllExceptionsFilter } from '../contexts/exceptions/http-exception.filter';
 import { DecryptData } from '../contexts/interceptors/decrypt.interceptor';
@@ -15,6 +14,7 @@ import { MicroServiceRunningGuard } from '../contexts/guards/microservice.guard'
 import { ClassValidationPipe } from '../contexts/pipes/classvalidator.pipe';
 import { ClassValidatorInterceptor } from '../contexts/interceptors/classvalidator.interceptor';
 import { EventsInterceptor } from '../contexts/interceptors/events.interceptor';
+import { CustomThrottlerGuard } from '../contexts/guards/rate.limiter.gaurd';
 
 export const CoreAppProviders: Provider[] = [
   {
@@ -22,7 +22,10 @@ export const CoreAppProviders: Provider[] = [
     useValue: new AsyncLocalStorage(),
   },
   { provide: APP_GUARD, useClass: MicroServiceRunningGuard },
-  // { provide: APP_GUARD, useClass: ThrottlerGuard },
+  {
+    provide: APP_GUARD,
+    useClass: CustomThrottlerGuard,
+  },
   {
     provide: APP_FILTER,
     useClass: AllExceptionsFilter,
@@ -30,16 +33,42 @@ export const CoreAppProviders: Provider[] = [
   {
     provide: APP_INTERCEPTOR,
     useClass: DecryptData,
+    scope: Scope.TRANSIENT,
   },
   {
     provide: APP_INTERCEPTOR,
     useClass: TransformPainateQuery,
+    scope: Scope.TRANSIENT,
   },
-  { provide: APP_PIPE, useClass: ClassValidationPipe },
-  { provide: APP_INTERCEPTOR, useClass: ClassValidatorInterceptor },
-  { provide: APP_INTERCEPTOR, useClass: JoiPaginateValidation },
-  { provide: APP_INTERCEPTOR, useClass: JoiSchemaValidator },
-  { provide: APP_INTERCEPTOR, useClass: ServiceValidator },
-  { provide: APP_INTERCEPTOR, useClass: NotificationSender },
-  { provide: APP_INTERCEPTOR, useClass: EventsInterceptor },
+  { provide: APP_PIPE, useClass: ClassValidationPipe, scope: Scope.TRANSIENT },
+  {
+    provide: APP_INTERCEPTOR,
+    useClass: ClassValidatorInterceptor,
+    scope: Scope.TRANSIENT,
+  },
+  {
+    provide: APP_INTERCEPTOR,
+    useClass: JoiPaginateValidation,
+    scope: Scope.TRANSIENT,
+  },
+  {
+    provide: APP_INTERCEPTOR,
+    useClass: JoiSchemaValidator,
+    scope: Scope.TRANSIENT,
+  },
+  {
+    provide: APP_INTERCEPTOR,
+    useClass: ServiceValidator,
+    scope: Scope.TRANSIENT,
+  },
+  {
+    provide: APP_INTERCEPTOR,
+    useClass: NotificationSender,
+    scope: Scope.TRANSIENT,
+  },
+  {
+    provide: APP_INTERCEPTOR,
+    useClass: EventsInterceptor,
+    scope: Scope.TRANSIENT,
+  },
 ];

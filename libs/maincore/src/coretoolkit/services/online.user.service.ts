@@ -2,10 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { createClient } from 'redis';
 import { RedisConnection } from '../adapters/redis.adapter';
 import { Server, Socket } from 'socket.io';
-import { JwtService } from '@nestjs/jwt';
+import { USER_EVENTS } from '../types/enums/enums';
 
 type ConnectionType = 'user' | 'micro';
-type ConnectionId = `${ConnectionType}:${string}`;
 
 @Injectable()
 export class UserPresenceService {
@@ -27,6 +26,19 @@ export class UserPresenceService {
         await this.handleSocketExpire(key);
       }
     });
+    await this.subClient.subscribe('connection_status', async (message) => {
+      const data = JSON.parse(message);
+      if (data.type === 'user') {
+        const olineusers = await this.getOnlineUsers();
+        this.server.emit(USER_EVENTS.ONLINE_USERS, olineusers);
+      } else if (data.type === 'micro') {
+        this.logger.log(
+          `Microservice ${data.connectionId} is now ${data.status}`,
+        );
+      }
+    });
+    // remove all connections on startup
+    await this.clearAllConnections();
   }
 
   private async HandleUserOnlineStatus(userId: string) {
@@ -167,7 +179,10 @@ export class UserPresenceService {
   }
 
   async getOnlineUsers() {
-    return await this.client.sMembers('users_online');
+    const usersOnline = (await this.client.sMembers(
+      'users_online',
+    )) as string[];
+    return usersOnline.map((user) => user.replace('user:', ''));
   }
 
   async getOnlineMicroservices() {

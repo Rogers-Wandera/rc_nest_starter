@@ -4,7 +4,6 @@ import {
   ExecutionContext,
   Injectable,
   NestInterceptor,
-  Scope,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
@@ -18,7 +17,7 @@ import { Paramstype } from '../../types/coretypes';
  * @implements {NestInterceptor}
  * @template T - The type of the request parameters.
  */
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class TransformJson<T> implements NestInterceptor {
   /**
    * Creates an instance of `TransformJson`.
@@ -67,7 +66,7 @@ export class TransformJson<T> implements NestInterceptor {
  * @class TransformPaginateQuery
  * @implements {NestInterceptor}
  */
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class TransformPainateQuery implements NestInterceptor {
   /**
    * Creates an instance of `TransformPaginateQuery`.

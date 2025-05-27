@@ -6,7 +6,6 @@ import {
   Inject,
   Injectable,
   NestInterceptor,
-  Scope,
 } from '@nestjs/common';
 import { INQUIRER, Reflector } from '@nestjs/core';
 import {
@@ -18,7 +17,7 @@ import { ControllerInterface } from '../../../corecontroller/controller.interfac
 import { BaseEntityClass } from '../../../entities/base.entity';
 import { EntityTarget } from 'typeorm';
 
-@Injectable({ scope: Scope.TRANSIENT })
+@Injectable()
 export class ServiceValidator implements NestInterceptor {
   constructor(
     private reflector: Reflector,

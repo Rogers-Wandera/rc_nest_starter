@@ -36,24 +36,6 @@ export class UserEventsService {
   @WebSocketServer()
   server: Server;
 
-  @SubscribeMessage(USER_EVENTS.FETCH_MODULES)
-  handleFetchModules(
-    @MessageBody()
-    data: {
-      userId?: string;
-      groupId?: number;
-      name: string;
-      infotype: string;
-    },
-  ) {
-    // return this.authService.handleFetchModules(data);
-  }
-
-  @SubscribeMessage(USER_EVENTS.USER_OFFLINE)
-  HandleUserOffline(@MessageBody() data: { userId: string; manual?: boolean }) {
-    // return this.authService.HandleUserOffline(data);
-  }
-
   @SubscribeMessage(USER_EVENTS.LOGIN)
   async HandleLogin(
     @MessageBody() data: { userId: string; token: string },
@@ -66,20 +48,6 @@ export class UserEventsService {
     await this.authService.HandleLogin({ userId: data.userId, sessionId });
     return { sessionId };
   }
-
-  @SubscribeMessage(USER_EVENTS.IS_LOGGED_IN)
-  async HandleIsLoggedIn(
-    @MessageBody() data: { userId: string },
-    @ConnectedSocket() client: Socket,
-  ) {
-    // return this.authService.HandleIsLoggedIn(data, client);
-  }
-
-  // @SubscribeMessage(USER_EVENTS.GET_ONLINE_USERS)
-  // handleGetOnlineUsers(@ConnectedSocket() client: Socket) {
-  //   const onlineUsers = Array.from(this.events.getClients().keys());
-  //   client.emit(USER_EVENTS.ONLINE_USERS, onlineUsers);
-  // }
 
   @SubscribeMessage(USER_EVENTS.PROFILE_UPLOAD)
   async HandleUploadProfilePicture(@MessageBody() data: UploadReturn) {

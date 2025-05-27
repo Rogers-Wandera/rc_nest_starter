@@ -4,6 +4,7 @@ import {
   OnApplicationShutdown,
 } from '@nestjs/common';
 import {
+  ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -44,7 +45,7 @@ export class UserGateWay
     private readonly jwtService: USER_JWT_EVENTS,
   ) {}
 
-  afterInit(server: Server) {
+  async afterInit(server: Server) {
     this.logger.log('User Gateway initialized');
     this.userPresence.server = server;
     this.userSession.server = server;
@@ -97,6 +98,9 @@ export class UserGateWay
         this.logger.log(
           `User Socket ${client.id} (${connectionId}) disconnected`,
         );
+        await this.authService.HandleUserOffline({
+          userId: connectionId.replace('user:', ''),
+        });
 
         // if (connectionId.startsWith('user:')) {
         //   this.rmqService.emit(NOTIFICATION_PATTERN.USER_LOGGED_OUT, {
@@ -169,5 +173,28 @@ export class UserGateWay
         }
       }
     }
+  }
+
+  @SubscribeMessage(USER_EVENTS.FETCH_MODULES)
+  handleFetchModules(
+    @MessageBody()
+    data: {
+      userId?: string;
+      groupId?: number;
+      name: string;
+      infotype: string;
+    },
+  ) {
+    return this.authService.handleFetchModules(data);
+  }
+
+  @SubscribeMessage(USER_EVENTS.IS_LOGGED_IN)
+  async HandleIsLoggedIn(@MessageBody() data: { userId: string }) {
+    return this.authService.HandleIsLoggedIn(data);
+  }
+
+  @SubscribeMessage(USER_EVENTS.USER_OFFLINE)
+  HandleUserOffline(@MessageBody() data: { userId: string; manual?: boolean }) {
+    return this.authService.HandleUserOffline(data);
   }
 }

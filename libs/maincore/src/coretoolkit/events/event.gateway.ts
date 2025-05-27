@@ -4,6 +4,9 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
   OnGatewayInit,
+  SubscribeMessage,
+  MessageBody,
+  ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import {
@@ -128,6 +131,7 @@ export class EventsGateway
       } else {
         this.logger.log(`Client ${client.id} connected as ${connectionId}`);
       }
+      client.emit('call_connection', { success: true });
     } catch (error) {
       this.logger.error(`Connection tracking failed for ${client.id}`, error);
       client.disconnect(true);
@@ -278,6 +282,17 @@ export class EventsGateway
         `Failed to emit to session ${sessionId}: ${error.message}`,
       );
       return false;
+    }
+  }
+
+  @SubscribeMessage('socket_session')
+  async handleSocketSession(
+    @MessageBody() data: { sessionId: string },
+    @ConnectedSocket() socket: Socket,
+  ) {
+    if (data?.sessionId) {
+      socket.join(data.sessionId);
+      this.logger.log(`Socket ${socket.id} joined session ${data.sessionId}`);
     }
   }
 }
