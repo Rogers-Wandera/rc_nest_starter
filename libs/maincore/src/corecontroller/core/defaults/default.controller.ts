@@ -11,23 +11,14 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { SystemPermissionsService } from '../../../coreservices/services/defaults/permissions/permissions.service';
 import { Request, Response } from 'express';
-import {
-  NOTIFICATION_PATTERN,
-  NotificationTypes,
-  PRIORITY_TYPES,
-  ROLE,
-} from '../../../coretoolkit/types/enums/enums';
-import { Notification } from '../../../coretoolkit/decorators/notification.decorator';
+import { ROLE } from '../../../coretoolkit/types/enums/enums';
 import { Permissions } from '../../../coretoolkit/decorators/permissions.decorator';
 import {
   AddPermissionsDoc,
   GetPermissionsDoc,
 } from '../../core/defaults/default.swagger';
 import { Roles } from '../../../authguards/decorators/roles.guard';
-import {
-  AuthGuard,
-  SkipAllGuards,
-} from '../../../authguards/guards/auth.guard';
+import { AuthGuard } from '../../../authguards/guards/auth.guard';
 import { Only } from '@core/maincore/authguards/decorators/only.guard';
 
 @Controller('/core/defaults')
@@ -73,51 +64,51 @@ export class DefaultController {
       throw error;
     }
   }
-  @Get('send-notification')
-  @SkipAllGuards()
-  @Notification({
-    context: 'before',
-    data: {
-      type: 'push',
-      payload: {
-        type: 'system',
-        payload: {
-          priority: PRIORITY_TYPES.HIGH,
-          pattern: NOTIFICATION_PATTERN.ANNOUNCEMENTS,
-          type: NotificationTypes.INFO,
-          recipient: {
-            type: 'no broadcast',
-            recipients: [
-              {
-                to: '2ff0bcbc-8527-49c2-96ba-af60e441df76',
-                priority: PRIORITY_TYPES.HIGH,
-              },
-              {
-                to: '6fdc2362-2033-489c-963e-ddf0a8e6cc57',
-                priority: PRIORITY_TYPES.LOW,
-              },
-            ],
-          },
-          data: {
-            title: 'Hello World',
-            message: 'This is an introduction to RTECH software systems',
-            timestamp: new Date(),
-            meta: { Urgent: true, 'Reply To': 'Rogers' },
-            mediaUrl: [
-              { imageUrl: 'https://test.com', type: 'image' },
-              { imageUrl: 'https://test2.com', type: 'audio' },
-            ],
-          },
-        },
-      },
-    },
-  })
-  sendNotification() {
-    try {
-      console.log('i have executed');
-      return 'yooo';
-    } catch (error) {
-      throw error;
-    }
-  }
+  // @Get('send-notification')
+  // @SkipAllGuards()
+  // @SendNotification({
+  //   context: 'before',
+  //   data: {
+  //     type: 'push',
+  //     payload: {
+  //       type: 'system',
+  //       payload: {
+  //         priority: PRIORITY_TYPES.HIGH,
+  //         pattern: NOTIFICATION_PATTERN.ANNOUNCEMENTS,
+  //         type: NotificationTypes.INFO,
+  //         recipient: {
+  //           type: 'no broadcast',
+  //           recipients: [
+  //             {
+  //               to: '2ff0bcbc-8527-49c2-96ba-af60e441df76',
+  //               priority: PRIORITY_TYPES.HIGH,
+  //             },
+  //             {
+  //               to: '6fdc2362-2033-489c-963e-ddf0a8e6cc57',
+  //               priority: PRIORITY_TYPES.LOW,
+  //             },
+  //           ],
+  //         },
+  //         data: {
+  //           title: 'Hello World',
+  //           message: 'This is an introduction to RTECH software systems',
+  //           timestamp: new Date(),
+  //           meta: { Urgent: true, 'Reply To': 'Rogers' },
+  //           mediaUrl: [
+  //             { imageUrl: 'https://test.com', type: 'image' },
+  //             { imageUrl: 'https://test2.com', type: 'audio' },
+  //           ],
+  //         },
+  //       },
+  //     },
+  //   },
+  // })
+  // sendNotification() {
+  //   try {
+  //     console.log('i have executed');
+  //     return 'yooo';
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
 }

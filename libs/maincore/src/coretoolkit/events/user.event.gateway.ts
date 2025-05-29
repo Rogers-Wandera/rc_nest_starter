@@ -197,4 +197,10 @@ export class UserGateWay
   HandleUserOffline(@MessageBody() data: { userId: string; manual?: boolean }) {
     return this.authService.HandleUserOffline(data);
   }
+
+  @SubscribeMessage(USER_EVENTS.GET_ONLINE_USERS)
+  async HanleGetOnlineUsers(@MessageBody() data: { userId: string }) {
+    const onlineUsers = await this.userPresence.getOnlineUsers();
+    return { event: USER_EVENTS.ONLINE_USERS, data: onlineUsers };
+  }
 }

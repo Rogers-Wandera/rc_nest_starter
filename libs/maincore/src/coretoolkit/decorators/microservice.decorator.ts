@@ -1,4 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
+import { RabbitMQQueues } from '../types/enums/enums';
 
 export const MICRO_SERVICE_KEY = 'MICRO_SERVICE_KEY';
 
@@ -13,4 +14,6 @@ export const MICRO_SERVICE_KEY = 'MICRO_SERVICE_KEY';
  * export class SomeClass {}
  * ```
  */
-export const CheckMicroService = () => SetMetadata(MICRO_SERVICE_KEY, 'check');
+export const CheckMicroService = (
+  queue: RabbitMQQueues = RabbitMQQueues.NOTIFICATIONS,
+) => SetMetadata(MICRO_SERVICE_KEY, queue);

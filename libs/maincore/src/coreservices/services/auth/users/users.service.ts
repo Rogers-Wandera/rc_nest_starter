@@ -25,13 +25,9 @@ import { UserRolesView } from '../../../../entities/coreviews/userroles.view';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
 import { RabbitMQService } from '../../../../coretoolkit/micro/microservices/rabbitmq.service';
-import { NotifyTypes } from '../../../../coretoolkit/types/notification/notify.types';
 import { CustomRepository } from '../../../../databridge/ormextender/customrepository';
 import {
-  EmailTemplates,
-  INJECTABLES,
   NOTIFICATION_PATTERN,
-  PRIORITY_TYPES,
   ROLE,
   TOKEN_TYPES,
   USER_EVENTS,
@@ -44,6 +40,11 @@ import { ConfigService } from '@nestjs/config';
 import { EnvConfig } from '../../../../coretoolkit/config/config';
 import { EventsGateway } from '@core/maincore/coretoolkit/events/event.gateway';
 import { LockUserDTO } from '@core/maincore/corecontroller/core/auth/users/users.dto';
+import {
+  EmailNotificationType,
+  Priority,
+} from '@core/maincore/coretoolkit/interfaces/notification.interface';
+import { TemplateType } from '@core/maincore/coretoolkit/interfaces/templates.interface';
 
 @Injectable()
 export class UserService extends EntityModel<User, string> {
@@ -141,7 +142,7 @@ export class UserService extends EntityModel<User, string> {
     const verify = `${this.configservice.get<string>('frontUrl')}/verifyaccount/${this.encryptUrl(user.id)}/${this.encryptUrl(token)}`;
     let additionaldata: string | string[] = '';
     if (data.adminCreated == 1) {
-      additionaldata = [`Please login using this password ${data.password}`];
+      additionaldata = `Please login using this password ${data.password}`;
     }
     this.sendVerificationEmail(user, verify, additionaldata);
     return `An email with verification link has been sent, please note it may take 1-2 minutes for the email to reach`;
@@ -313,42 +314,34 @@ export class UserService extends EntityModel<User, string> {
       });
       if (response.affected === 1) {
         this.eventgateway.emitToClient(
-          this.entity.id,
+          `user:${this.entity.id}`,
           USER_EVENTS.LOG_USER_OUT,
           {
             message: `Your account has been deleted, contact admin`,
           },
           () => {
-            const emailData = {
-              recipientName: user.firstname + ' ' + user.lastname,
-              senderName: 'RC-TECH',
+            const mailoptions: EmailNotificationType = {
+              channel: 'email',
+              to: user.email,
+              provider: 'nodemailer',
+              subject: 'Account Deleted',
               body: `Hello ${user.firstname + ' ' + user.lastname}, We would like to inform you that your account has been deleted due to unkwown reason, 
                If you believe this was a mistake or need further assistance, please contact admin`,
-            };
-            const mailoptions: NotifyTypes = {
-              type: 'email',
-              payload: {
-                to: [{ to: user.email, priority: PRIORITY_TYPES.HIGH }],
-                subject: 'Account Deleted',
-                template: EmailTemplates.MAILER_2,
+              from: this.request.user.id,
+              template: {
+                type: TemplateType.DEFAULT,
                 context: {
-                  ...emailData,
                   title: 'Your account is deleted',
-                  cta: true,
-                  btntext: 'Contact Admin',
-                  url: '#',
+                  callToAction: {
+                    text: 'Contact Admin',
+                    url: '#',
+                  },
                 },
               },
             };
             this.client.emit(NOTIFICATION_PATTERN.NOTIFY, mailoptions);
           },
         );
-        // const socketThere = this.eventgateway.getClients().has(this.entity.id);
-        // if (socketThere) {
-        //   this.eventgateway.deleteClient(this.entity.id);
-        //   const onlineUsers = Array.from(this.eventgateway.getClients().keys());
-        //   this.eventgateway.emit(USER_EVENTS.ONLINE_USERS, onlineUsers);
-        // }
         return true;
       }
 
@@ -441,25 +434,38 @@ export class UserService extends EntityModel<User, string> {
   private sendVerificationEmail(
     user: User,
     link: string,
-    additionalhtml: string | string[] = '',
+    additionalhtml: string = '',
   ): string {
-    const emailData = {
-      recipientName: user.firstname + ' ' + user.lastname,
-      serverData: 'Please confirm registration',
-      senderName: 'RC-TECH',
-      body: link,
-      moredata: [...additionalhtml],
-    };
-    const mailoptions: NotifyTypes = {
-      type: 'email',
-      payload: {
-        to: [{ to: user.email, priority: PRIORITY_TYPES.HIGH }],
-        subject: 'Welcome to RC-TECH please confirm your email',
-        template: EmailTemplates.VERIFY_EMAIL,
-        context: emailData,
+    const body = `<p>Please confirm registration</p> <p>
+        Thank you for registering! Please click the button below to verify your
+        email address
+      </p>
+      <p>
+        If you did not register an account, you can safely ignore this email.
+      </p>`;
+    const recipientName = user.firstname + ' ' + user.lastname;
+
+    const data: EmailNotificationType = {
+      channel: 'email',
+      provider: 'nodemailer',
+      to: user.email,
+      body,
+      subject: `Please confirm registration`,
+      from: user.id,
+      priority: Priority.HIGH,
+      template: {
+        type: TemplateType.DEFAULT,
+        context: {
+          title: `Hello ${recipientName}, Verify Your Email`,
+          additionalHtml: additionalhtml,
+          callToAction: {
+            text: 'Click here',
+            url: link,
+          },
+        },
       },
     };
-    this.client.emit(NOTIFICATION_PATTERN.NOTIFY, mailoptions);
+    this.client.emit(NOTIFICATION_PATTERN.NOTIFY, data);
     return 'Email sent';
   }
 
@@ -473,32 +479,31 @@ export class UserService extends EntityModel<User, string> {
       );
       if (data.isLocked == 1) {
         this.eventgateway.emitToClient(
-          this.entity.id,
+          `user:${this.entity.id}`,
           USER_EVENTS.LOG_USER_OUT,
           {
             message: `Your account is locked, contact admin ${data?.reason?.length > 0 ? ', Reason: ' + data.reason : ''}`,
           },
           () => {
-            const emailData = {
-              recipientName: this.entity.firstname + ' ' + this.entity.lastname,
-              serverData: 'Please confirm registration',
-              senderName: 'RC-TECH',
-              body: `Hello ${this.entity.firstname + ' ' + this.entity.lastname}, We would like to inform you 
+            const body = `Hello ${this.entity.firstname + ' ' + this.entity.lastname}, We would like to inform you 
             that your account has been locked due to ${data?.reason?.length > 0 ? data.reason : 'unkwown reason'}, 
-            If you believe this was a mistake or need further assistance, please contact admin`,
-            };
-            const mailoptions: NotifyTypes = {
-              type: 'email',
-              payload: {
-                to: [{ to: this.entity.email, priority: PRIORITY_TYPES.HIGH }],
-                subject: 'Account Locked',
-                template: EmailTemplates.MAILER_2,
+            If you believe this was a mistake or need further assistance, please contact admin`;
+            const mailoptions: EmailNotificationType = {
+              channel: 'email',
+              provider: 'nodemailer',
+              from: this.request.user.id,
+              body,
+              to: this.entity.email,
+              priority: Priority.HIGH,
+              subject: 'Account Locked',
+              template: {
+                type: TemplateType.DEFAULT,
                 context: {
-                  ...emailData,
                   title: 'Your account is locked',
-                  cta: true,
-                  btntext: 'Contact Admin',
-                  url: '#',
+                  callToAction: {
+                    text: 'Contact Admin',
+                    url: '#',
+                  },
                 },
               },
             };

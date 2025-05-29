@@ -40,7 +40,7 @@ export const CoreAppProviders: Provider[] = [
     useClass: TransformPainateQuery,
     scope: Scope.TRANSIENT,
   },
-  { provide: APP_PIPE, useClass: ClassValidationPipe, scope: Scope.TRANSIENT },
+  // { provide: APP_PIPE, useClass: ClassValidationPipe, scope: Scope.TRANSIENT },
   {
     provide: APP_INTERCEPTOR,
     useClass: ClassValidatorInterceptor,

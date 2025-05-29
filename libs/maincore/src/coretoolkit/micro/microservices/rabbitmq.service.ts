@@ -89,11 +89,14 @@ export class RabbitMQService {
    */
   async ServiceCheck(): Promise<boolean> {
     try {
+      const client = this.getClient();
       const response = await lastValueFrom(
-        this.notificationClient.send({ cmd: 'HEALTHY_CHECK' }, 'Service').pipe(
-          timeout(3000),
-          catchError(() => of(false)),
-        ),
+        client
+          .send({ cmd: NOTIFICATION_PATTERN.HEALTHY_CHECK }, 'Service')
+          .pipe(
+            timeout(3000),
+            catchError(() => of(false)),
+          ),
       );
       return !!response;
     } catch {

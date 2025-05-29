@@ -1,12 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { Socket } from 'socket.io';
-import { EventsGateway } from '../event.gateway';
-import {
-  INJECTABLES,
-  NOTIFICATION_PATTERN,
-  RabbitMQQueues,
-  USER_EVENTS,
-} from '../../types/enums/enums';
+import { INJECTABLES, USER_EVENTS } from '../../types/enums/enums';
 import { CustomRepository } from '@core/maincore/databridge/ormextender/customrepository';
 import { User } from '@core/maincore/entities/core/users.entity';
 import { DataBridgeService } from '@core/maincore/databridge/databridge.service';
@@ -22,7 +15,6 @@ export class UserAuthService {
   private memberrepository: CustomRepository<UserGroupMember>;
 
   constructor(
-    private readonly events: EventsGateway,
     @Inject(INJECTABLES.DATA_SOURCE) private readonly source: DataBridgeService,
     private readonly rmqService: RabbitMQService,
     private readonly eventlogger: EventLogger,

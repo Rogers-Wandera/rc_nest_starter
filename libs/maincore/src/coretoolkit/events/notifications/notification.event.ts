@@ -1,19 +1,12 @@
-import { Injectable, Logger, UseInterceptors } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   MessageBody,
   SubscribeMessage,
   WebSocketGateway,
-  WsResponse,
 } from '@nestjs/websockets';
 import { corsOptions } from '../../config/corsoptions';
 import { EventsGateway } from '../event.gateway';
-import {
-  NOTIFICATION_PATTERN,
-  PRIORITY_TYPES,
-  RabbitMQQueues,
-} from '../../types/enums/enums';
-import { RTechSystemNotificationType } from '../../types/notification/notify.types';
-import { RecipientsValidator } from '../../contexts/interceptors/recipients.interceptor';
+import { NOTIFICATION_PATTERN, RabbitMQQueues } from '../../types/enums/enums';
 import { RabbitMQService } from '../../micro/microservices/rabbitmq.service';
 import { EventLogger } from '../../app/utils/event.logger';
 
@@ -74,26 +67,26 @@ export class NotificationEvents {
   //   return { event: pattern, data };
   // }
 
-  /**
-   * Handles failed notifications by scheduling them for automatic resending.
-   *
-   * @param {Array<{ to: string; priority?: PRIORITY_TYPES }>} recipients - List of recipients that failed to receive the notification.
-   * @param {RTechSystemNotificationType} data - The notification data to be resent.
-   */
-  private HandleFailed(
-    recipients: { to: string; priority?: PRIORITY_TYPES }[],
-    data: RTechSystemNotificationType,
-  ) {
-    if (recipients.length <= 0) {
-      return;
-    }
-    const resenddata = {
-      ...data,
-      recipient: { type: 'no broadcast', recipients: recipients },
-    };
-    this.rmqService.emit(NOTIFICATION_PATTERN.RESEND, resenddata);
-    this.logger.log(`Resend automatically scheduled`);
-  }
+  // /**
+  //  * Handles failed notifications by scheduling them for automatic resending.
+  //  *
+  //  * @param {Array<{ to: string; priority?: PRIORITY_TYPES }>} recipients - List of recipients that failed to receive the notification.
+  //  * @param {RTechSystemNotificationType} data - The notification data to be resent.
+  //  */
+  // private HandleFailed(
+  //   recipients: { to: string; priority?: PRIORITY_TYPES }[],
+  //   data: RTechSystemNotificationType,
+  // ) {
+  //   if (recipients.length <= 0) {
+  //     return;
+  //   }
+  //   const resenddata = {
+  //     ...data,
+  //     recipient: { type: 'no broadcast', recipients: recipients },
+  //   };
+  //   this.rmqService.emit(NOTIFICATION_PATTERN.RESEND, resenddata);
+  //   this.logger.log(`Resend automatically scheduled`);
+  // }
   /**
    * Emits a notification to a specific client and schedules a re-send if the client is not connected.
    *

@@ -28,6 +28,7 @@ import { EnvConfig } from '../config/config';
 import { RedisConnection } from '../adapters/redis.adapter';
 import { UserPresenceService } from '../services/online.user.service';
 import { UserSessionService } from '../services/session.user.service';
+import { UserAuthService } from './user_events/auth.eventservice';
 
 /**
  * WebSocket gateway for managing client connections and handling system notifications.
@@ -69,6 +70,7 @@ export class EventsGateway
     private readonly redisClient: RedisConnection,
     private userPresence: UserPresenceService,
     private readonly userSession: UserSessionService,
+    private authService: UserAuthService,
   ) {}
 
   /**
@@ -294,5 +296,13 @@ export class EventsGateway
       socket.join(data.sessionId);
       this.logger.log(`Socket ${socket.id} joined session ${data.sessionId}`);
     }
+  }
+
+  @SubscribeMessage(USER_EVENTS.LOGOUT)
+  async handleLogout(
+    @MessageBody() data: { userId: string; sessionId: string },
+  ) {
+    await this.userSession.removeSession(data.userId, data.sessionId);
+    return this.authService.handleLogout(data);
   }
 }

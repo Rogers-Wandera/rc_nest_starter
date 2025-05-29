@@ -1,11 +1,11 @@
 import { SetMetadata } from '@nestjs/common';
-import { NotifyTypes } from '../types/notification/notify.types';
+import { Notification } from '../interfaces/notification.interface';
 
 export const NOTIFICATION_KEY = 'NOTIFICATION_KEY';
 
 export type NotificationTypes = {
   context: 'before' | 'after';
-  data: NotifyTypes;
+  data: Notification;
 };
 
 /**
@@ -14,19 +14,7 @@ export type NotificationTypes = {
  *
  * @param data - An object that includes the notification context (`'before'` or `'after'`) and the data to be sent as the notification.
  *
- * @example
- * ```typescript
- * @Notification({
- *   context: 'before',
- *   data: {
- *     message: 'Notification message',
- *     type: 'email',
- *   },
- * })
- * export class SomeClass {}
- * ```
- *
- * @see {@link NotifyTypes} for the structure of the notification data.
+ * @see {@link Notification} for the structure of the notification data.
  */
-export const Notification = (data: NotificationTypes) =>
+export const SendNotification = (data: NotificationTypes) =>
   SetMetadata(NOTIFICATION_KEY, data);
