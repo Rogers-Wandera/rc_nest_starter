@@ -5,8 +5,10 @@ import {
   HttpException,
   HttpStatus,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { RpcException } from '@nestjs/microservices';
+import e, { Request, Response } from 'express';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -55,6 +57,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
       stackTrace = exception.stack || '';
     } else if (typeof exception === 'string') {
       errorMessage = exception;
+    } else if (exception instanceof RpcException) {
+      errorMessage = exception.message;
+      stackTrace = exception.stack || '';
+    } else if (typeof exception === 'object') {
+      errorMessage =
+        exception['message'] || exception['error'] || 'Internal Server Error';
+      stackTrace = exception['stack'] || '';
+      httpStatus = exception['statusCode'] || HttpStatus.INTERNAL_SERVER_ERROR;
     }
     console.error(errorMessage);
 
@@ -64,6 +74,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
       message: errorMessage,
       stack: stackTrace,
+      original: exception,
     };
 
     response.status(httpStatus).json(errorResponse);

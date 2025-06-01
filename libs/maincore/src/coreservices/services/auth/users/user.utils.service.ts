@@ -76,7 +76,6 @@ export class UserUtilsService extends EntityModel<User, string> {
             text: 'Reset Password',
             url,
           },
-          additionalHtml: `<p> If you did not request a password reset, please ignore this email.</p>`,
         },
       });
 
@@ -100,7 +99,7 @@ export class UserUtilsService extends EntityModel<User, string> {
       to: user.email,
       subject: data.subject,
       body: data.body,
-      from: user.id,
+      from: 'RTECH_SYSTEM',
       channel: 'email',
       priority: Priority.HIGH,
       provider: 'nodemailer',
@@ -257,7 +256,7 @@ export class UserUtilsService extends EntityModel<User, string> {
       to: user.email,
       body,
       subject: `Please confirm registration`,
-      from: user.id,
+      from: 'RTECH_SYSTEM',
       priority: Priority.HIGH,
       template: {
         type: TemplateType.DEFAULT,

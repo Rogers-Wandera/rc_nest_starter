@@ -7,6 +7,7 @@ declare global {
       user: reqUser;
       entities: { [key: string]: EntityTarget };
       validatorName?: string;
+      parsedQuery?: Record<string, any>;
     }
   }
 }

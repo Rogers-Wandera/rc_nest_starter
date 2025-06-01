@@ -75,7 +75,7 @@ export class JoiPaginateValidation<T> implements NestInterceptor {
     ]);
     if (paginate) {
       const request: Request = context.switchToHttp().getRequest();
-      const query = request.query;
+      const query = request.parsedQuery || request.query;
       const schema = PaginationSchema<T>(query);
       const { error, value: parsedValue } = schema.validate(query);
       if (error) {
@@ -85,7 +85,7 @@ export class JoiPaginateValidation<T> implements NestInterceptor {
         throw new BadRequestException(errorMessage);
       }
       const entity: ObjectLiteral = this.parentClass.model.entity;
-      request.query = parsedValue;
+      request.parsedQuery = parsedValue;
       request.validatorName = entity.constructor.name;
       this.parentClass.model.pagination = parsedValue as paginateprops<unknown>;
     }

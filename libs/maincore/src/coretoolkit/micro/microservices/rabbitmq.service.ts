@@ -82,6 +82,14 @@ export class RabbitMQService {
     return client.emit({ cmd: pattern }, data);
   }
 
+  public emitWithAck(
+    pattern: NOTIFICATION_PATTERN | UPLOADER_PATTERN | EVENTS_PATTERN,
+    data: any,
+  ) {
+    const client = this.getClient();
+    return lastValueFrom(client.send({ cmd: pattern }, data));
+  }
+
   /**
    * Checks if the RabbitMQ service is available by performing a health check.
    *

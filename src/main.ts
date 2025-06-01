@@ -12,6 +12,7 @@ import {
 import { setupSwagger } from '@core/maincore/corecontroller/swagger/swagger';
 import { AuthenticatedSocketAdapter } from '@core/maincore/coretoolkit/contexts/guards/socket.guard';
 import { ApplicationContext } from '@core/maincore/coretoolkit/contexts/app.context';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -22,6 +23,13 @@ async function bootstrap() {
   app.setGlobalPrefix(app.get(ConfigService<EnvConfig>).get('baseapi'));
   app.use(new LoggingMiddleware().use);
   app.use(new ServerLogger().use);
+  app.useGlobalPipes(
+    new ValidationPipe({
+      enableDebugMessages: true,
+      skipUndefinedProperties: true,
+      stopAtFirstError: true,
+    }),
+  );
   app.useWebSocketAdapter(
     new AuthenticatedSocketAdapter(app, app.get(ConfigService<EnvConfig>)),
   );

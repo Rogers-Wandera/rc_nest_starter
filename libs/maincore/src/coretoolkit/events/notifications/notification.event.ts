@@ -128,16 +128,16 @@ export class NotificationEvents {
     // }
   }
 
-  @SubscribeMessage(NOTIFICATION_PATTERN.UPDATE_READ)
-  HandleUpdateRead(@MessageBody() data: { id: string; userId: string }) {
-    if (data?.id && data?.userId) {
-      this.rmqService.emit(NOTIFICATION_PATTERN.UPDATE_READ, data);
-      this.eventslogger.logEvent(`User Read a notification`, 'user_events', {
-        userId: data.userId,
-        eventType: 'UPDATE_READ',
-      });
-    }
-  }
+  // @SubscribeMessage(NOTIFICATION_PATTERN.UPDATE_READ)
+  // HandleUpdateRead(@MessageBody() data: { id: string; userId: string }) {
+  //   if (data?.id && data?.userId) {
+  //     this.rmqService.emit(NOTIFICATION_PATTERN.UPDATE_READ, data);
+  //     this.eventslogger.logEvent(`User Read a notification`, 'user_events', {
+  //       userId: data.userId,
+  //       eventType: 'UPDATE_READ',
+  //     });
+  //   }
+  // }
 
   @SubscribeMessage('notification')
   HandleNotification(@MessageBody() data: any) {

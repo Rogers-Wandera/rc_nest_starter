@@ -6,6 +6,7 @@ import {
   Inject,
   Injectable,
   NestInterceptor,
+  Scope,
 } from '@nestjs/common';
 import { INQUIRER, Reflector } from '@nestjs/core';
 import {

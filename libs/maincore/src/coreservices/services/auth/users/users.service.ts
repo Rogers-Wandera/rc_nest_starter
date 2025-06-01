@@ -327,7 +327,12 @@ export class UserService extends EntityModel<User, string> {
               subject: 'Account Deleted',
               body: `Hello ${user.firstname + ' ' + user.lastname}, We would like to inform you that your account has been deleted due to unkwown reason, 
                If you believe this was a mistake or need further assistance, please contact admin`,
-              from: this.request.user.id,
+              from: 'RTECH_SYSTEM',
+              metadata: {
+                userId: this.entity.id,
+                eventType: 'lockuser',
+                deltedBy: this.request.user.id,
+              },
               template: {
                 type: TemplateType.DEFAULT,
                 context: {
@@ -451,7 +456,7 @@ export class UserService extends EntityModel<User, string> {
       to: user.email,
       body,
       subject: `Please confirm registration`,
-      from: user.id,
+      from: 'RTECH_SYSTEM',
       priority: Priority.HIGH,
       template: {
         type: TemplateType.DEFAULT,
@@ -491,11 +496,16 @@ export class UserService extends EntityModel<User, string> {
             const mailoptions: EmailNotificationType = {
               channel: 'email',
               provider: 'nodemailer',
-              from: this.request.user.id,
+              from: 'RTECH_SYSTEM',
               body,
               to: this.entity.email,
               priority: Priority.HIGH,
               subject: 'Account Locked',
+              metadata: {
+                userId: this.entity.id,
+                eventType: 'lockuser',
+                lockedBy: this.request.user.id,
+              },
               template: {
                 type: TemplateType.DEFAULT,
                 context: {
