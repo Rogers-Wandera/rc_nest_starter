@@ -144,4 +144,16 @@ export class NotificationEvents {
     console.log('recieved', data);
     return { status: 'received' };
   }
+
+  @SubscribeMessage('annoucement')
+  HandleAnnoucement(@MessageBody() data: any) {
+    console.log('recieved', data);
+    return { status: 'received' };
+  }
+
+  @SubscribeMessage('system')
+  HandleMessage(@MessageBody() data: any) {
+    console.log('recieved', data);
+    return { status: 'received' };
+  }
 }

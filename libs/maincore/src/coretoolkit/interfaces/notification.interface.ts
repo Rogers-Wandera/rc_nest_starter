@@ -1,11 +1,39 @@
 import { MailerOptions } from '@nestjs-modules/mailer';
-import { EmailTemplates } from './templates.interface';
 import {
   AndroidConfig,
   ApnsConfig,
   ApnsPayload,
   WebpushConfig,
 } from 'firebase-admin/lib/messaging/messaging-api';
+import { EmailTemplates, PushTemplates } from './templates.interface';
+
+export type AttachmentType =
+  | 'image'
+  | 'video'
+  | 'pdf'
+  | 'docx'
+  | 'xlsx'
+  | 'pptx'
+  | 'audio'
+  | 'text'
+  | 'other';
+
+export type Attachment = {
+  id: string;
+  name: string;
+  type: AttachmentType;
+  url: string;
+  size: number;
+  mimeType: string;
+  downloadable: boolean;
+  uploadedAt: Date;
+  uploadedBy?: {
+    id: string;
+    name: string;
+    avatarUrl?: string;
+  };
+  meta?: Record<string, any>;
+};
 
 export type EmailNotification = {
   channel: 'email';
@@ -15,7 +43,22 @@ export type EmailNotification = {
     MailerOptions,
     'template' | 'from' | 'subject' | 'html' | 'context' | 'body' | 'to'
   >;
+  attachments?: Attachment[];
 };
+
+export enum EmailProviders {
+  NODEMAILER = 'nodemailer',
+}
+
+export enum SmsProviders {
+  TWILIO = 'twilio',
+  PAHAPPA = 'pahappa',
+}
+
+export enum PushProviders {
+  FIREBASE = 'firebase',
+  SOCKET = 'socket',
+}
 
 export type FirebaseNotification = {
   provider: 'firebase';
@@ -39,6 +82,9 @@ export type FirebaseNotification = {
 export type SocketNotification = {
   provider: 'socket';
   options?: { event?: string; [key: string]: any };
+  template?: PushTemplates;
+  attachments?: Attachment[];
+  coverImage?: string;
 };
 
 export type PushNotification = {
@@ -58,13 +104,36 @@ export enum Priority {
   NORMAL = 'normal',
 }
 
+export enum Channel {
+  EMAIL = 'email',
+  PUSH = 'push',
+  SMS = 'sms',
+}
+
+export enum AlertType {
+  SYSTEM = 'system',
+  ERROR = 'error',
+  WARNING = 'warning',
+  SECURITY = 'security',
+  NETWORK = 'network',
+  PERFORMANCE = 'performance',
+  MAINTENANCE = 'maintenance',
+  CUSTOM = 'custom',
+  ANNOUCEMENT = 'announcement',
+}
+
 export type Notification = {
   id?: string;
   to: string | string[];
   from: string;
   subject: string;
   body: string;
+  avatar?: {
+    name: string;
+    avatar?: string;
+  };
   data?: Record<string, any>;
+  alertType?: AlertType;
   priority?: Priority;
   scheduledAt?: Date;
   metadata?: {
@@ -117,7 +186,7 @@ export interface ProgressEvent {
 
 export type NotificationEvent = SuccessEvent | ProgressEvent;
 
-type ExtractNotificationByChannel<
+export type ExtractNotificationByChannel<
   T extends { [K in D]: string },
   D extends keyof T,
   V extends T[D],
