@@ -96,6 +96,12 @@ export class TransformPainateQuery implements NestInterceptor {
             parsedQuery['conditions'] as string,
           );
         }
+
+        if (parsedQuery['dateFilter']) {
+          parsedQuery['dateFilter'] = JSON.parse(
+            parsedQuery['dateFilter'] as string,
+          );
+        }
       }
       request.parsedQuery = parsedQuery;
     }

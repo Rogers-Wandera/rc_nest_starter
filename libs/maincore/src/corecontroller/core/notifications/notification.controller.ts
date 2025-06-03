@@ -45,14 +45,14 @@ export class NotificationController extends IController<UserService> {
     }
   }
 
-  @Get('/main/data')
+  @Get('/main/data/:userId')
   @Paginate()
   async getSentNotifications(@Req() req: Request) {
     try {
       this.rabbitClient.setQueue(RabbitMQQueues.NOTIFICATIONS);
       const respone = await this.rabbitClient.emitWithAck(
         NOTIFICATION_PATTERN.NOTIFICATIONS,
-        { query: req.parsedQuery },
+        { query: req.parsedQuery, userId: req.params.userId },
       );
       return respone;
     } catch (error) {
