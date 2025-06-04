@@ -6,6 +6,7 @@ import {
   OneToMany,
   PrimaryColumn,
   ManyToOne,
+  Index,
 } from 'typeorm';
 import { Position } from './positions.entity';
 import { Role } from './roles.entity';
@@ -22,18 +23,23 @@ export class User extends BaseEntityClass<string> {
   @PrimaryColumn({ nullable: false, type: 'varchar', length: 100 })
   id: string;
   @Column({ nullable: false })
+  @Index()
   firstname: string;
   @Column({ nullable: false })
+  @Index()
   lastname: string;
   @Column({ nullable: false })
+  @Index()
   email: string;
   @Column({ nullable: false })
   password: string;
   @Column({ nullable: false })
+  @Index()
   verified: number;
   @Column({ nullable: true, type: 'datetime' })
   lastloginDate: Date;
   @Column({ nullable: false, default: 0 })
+  @Index()
   isLocked: number;
   @Column({ nullable: false, default: 0 })
   adminCreated: number;

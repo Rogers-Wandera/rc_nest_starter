@@ -31,6 +31,11 @@ export const CoreAppProviders: Provider[] = [
   },
   {
     provide: APP_INTERCEPTOR,
+    useClass: ServiceValidator,
+    scope: Scope.TRANSIENT,
+  },
+  {
+    provide: APP_INTERCEPTOR,
     useClass: DecryptData,
     scope: Scope.TRANSIENT,
   },
@@ -52,11 +57,6 @@ export const CoreAppProviders: Provider[] = [
   {
     provide: APP_INTERCEPTOR,
     useClass: JoiSchemaValidator,
-    scope: Scope.TRANSIENT,
-  },
-  {
-    provide: APP_INTERCEPTOR,
-    useClass: ServiceValidator,
     scope: Scope.TRANSIENT,
   },
   {

@@ -16,9 +16,11 @@ import { Paginate } from '@core/maincore/coretoolkit/decorators/pagination.decor
 import { Request } from 'express';
 import { EventLogger } from '@core/maincore/coretoolkit/app/utils/event.logger';
 import { Notification } from '@core/maincore/coretoolkit/interfaces/notification.interface';
+import { Permissions } from '@core/maincore/coretoolkit/decorators/permissions.decorator';
+import { Roles } from '@core/maincore/authguards/decorators/roles.guard';
 
 @Controller('/core/notifications')
-@AuthGuard(ROLE.USER)
+@AuthGuard(ROLE.ADMIN)
 @ApiTags('Notifications')
 export class NotificationController extends IController<UserService> {
   constructor(
@@ -32,6 +34,7 @@ export class NotificationController extends IController<UserService> {
   @Get('/:userId')
   @ValidateService({ entity: User })
   @Paginate()
+  @Roles(ROLE.USER)
   async getNotifications(@Service('user') user: User, @Req() req: Request) {
     try {
       this.rabbitClient.setQueue(RabbitMQQueues.NOTIFICATIONS);
@@ -47,7 +50,8 @@ export class NotificationController extends IController<UserService> {
 
   @Get('/main/data/:userId')
   @Paginate()
-  async getSentNotifications(@Req() req: Request) {
+  @Permissions({ module: 'Notifications', moduleLink: 'Manage Notifications' })
+  async getMainNotifications(@Req() req: Request) {
     try {
       this.rabbitClient.setQueue(RabbitMQQueues.NOTIFICATIONS);
       const respone = await this.rabbitClient.emitWithAck(
@@ -61,6 +65,7 @@ export class NotificationController extends IController<UserService> {
   }
 
   @Patch('/:recipientId')
+  @Roles(ROLE.USER)
   async updateNotification(@Req() req: Request) {
     try {
       this.rabbitClient.setQueue(RabbitMQQueues.NOTIFICATIONS);
@@ -84,6 +89,7 @@ export class NotificationController extends IController<UserService> {
 
   @Post('/:userId')
   @ValidateService({ entity: User })
+  @Permissions({ module: 'Notifications', moduleLink: 'Manage Notifications' })
   async sendNotification(
     @Body() body: Notification,
     @Service('user') user: User,
