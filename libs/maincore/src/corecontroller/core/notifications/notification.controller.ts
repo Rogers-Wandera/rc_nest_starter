@@ -64,24 +64,25 @@ export class NotificationController extends IController<UserService> {
     }
   }
 
-  @Patch('/:recipientId')
+  @Patch('/:userId')
+  @ValidateService({ entity: User })
   @Roles(ROLE.USER)
-  async updateNotification(@Req() req: Request) {
+  updateNotification(
+    @Body() data: { readItems: string[] },
+    @Req() req: Request,
+  ) {
     try {
       this.rabbitClient.setQueue(RabbitMQQueues.NOTIFICATIONS);
-      const respone = await this.rabbitClient.emitWithAck(
-        NOTIFICATION_PATTERN.UPDATE_READ,
-        {
-          recipientId: req.params.recipientId,
-          readBy: req.user.displayName,
-          userId: req.user.id,
-        },
-      );
+      this.rabbitClient.emit(NOTIFICATION_PATTERN.UPDATE_READ, {
+        readItems: data.readItems,
+        readBy: req.user.displayName,
+        userId: req.user.id,
+      });
       this.eventslogger.logEvent(`User Read a notification`, 'user_events', {
         userId: req.user.id,
         eventType: 'UPDATE_READ',
       });
-      return respone;
+      return { msg: 'Notifications Update Is being processed' };
     } catch (error) {
       throw error;
     }

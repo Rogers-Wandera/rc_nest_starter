@@ -7,6 +7,7 @@ export enum NOTIFICATION_PATTERN {
   UPDATE_READ = 'update_read',
   NOTIFICATIONS = 'notifications',
   VALIDATE_NOTIFICATION = 'validate_notification',
+  GET_NOTIFICATIONS = 'get_notifications',
 }
 
 export enum NOTIFICATION_TYPE {

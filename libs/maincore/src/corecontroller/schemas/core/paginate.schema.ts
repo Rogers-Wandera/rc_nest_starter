@@ -91,10 +91,10 @@ export const PaginationSchema = <T>(itemSchema: {
       'string.base': `"globalFilter" should be a type of 'text'`,
     }),
     dateFilter: Joi.object({
-      from: Joi.date().optional().messages({
+      from: Joi.date().allow(null, '').optional().messages({
         'date.base': `"dateFilter.from" should be a type of 'date'`,
       }),
-      to: Joi.date().optional().messages({
+      to: Joi.date().allow(null, '').optional().messages({
         'date.base': `"dateFilter.to" should be a type of 'date'`,
       }),
     }).optional(),
