@@ -6,7 +6,8 @@ import { INJECTABLES, USER_EVENTS } from '../../types/enums/enums';
 import { CustomRepository } from '@core/maincore/databridge/ormextender/customrepository';
 import { UserProfileImage } from '@core/maincore/entities/core/userprofileimages.entity';
 import { User } from '@core/maincore/entities/core/users.entity';
-import { DataBridgeService } from '@core/maincore/databridge/databridge.service';
+import { EntityDataSource } from '@core/maincore/databridge/model/enity.data.model';
+import { ModelService } from '@core/maincore/databridge/model/model.service';
 
 export type UploadErrorType = {
   error: string;
@@ -28,10 +29,10 @@ export class UploadEvents {
   constructor(
     private readonly events: EventsGateway,
     private readonly eventslogger: EventLogger,
-    @Inject(INJECTABLES.DATA_SOURCE) private readonly source: DataBridgeService,
+    private readonly source: ModelService,
   ) {
-    this.userservice = this.source.GetRepository(User);
-    this.userprofile = this.source.GetRepository(UserProfileImage);
+    this.userservice = this.source.getRepository(User);
+    this.userprofile = this.source.getRepository(UserProfileImage);
   }
 
   // handleUpload(data: UploadErrorType) {

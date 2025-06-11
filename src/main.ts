@@ -1,4 +1,4 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
@@ -13,6 +13,7 @@ import { setupSwagger } from '@core/maincore/corecontroller/swagger/swagger';
 import { AuthenticatedSocketAdapter } from '@core/maincore/coretoolkit/contexts/guards/socket.guard';
 import { ApplicationContext } from '@core/maincore/coretoolkit/contexts/app.context';
 import { ValidationPipe } from '@nestjs/common';
+import { TimeoutInterceptor } from '@core/maincore/coretoolkit/contexts/interceptors/timeout.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -21,6 +22,8 @@ async function bootstrap() {
   app.use(credentials);
   app.enableCors(corsOptions);
   app.setGlobalPrefix(app.get(ConfigService<EnvConfig>).get('baseapi'));
+  const reflector = app.get(Reflector);
+  app.useGlobalInterceptors(new TimeoutInterceptor(reflector));
   app.use(new LoggingMiddleware().use);
   app.use(new ServerLogger().use);
   app.useGlobalPipes(

@@ -1,13 +1,12 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { INJECTABLES } from '../../types/enums/enums';
-import { DataBridgeService } from '@core/maincore/databridge/databridge.service';
 import { CustomRepository } from '@core/maincore/databridge/ormextender/customrepository';
 import { RefreshToken } from '@core/maincore/entities/core/refreshtokens.entity';
 import { UserDataView } from '@core/maincore/entities/coreviews/userdata.view';
 import { UserRolesView } from '@core/maincore/entities/coreviews/userroles.view';
 import { DataUtils } from '@core/maincore/databridge/databuilder/data.util';
 import { EventLogger } from '../../app/utils/event.logger';
+import { ModelService } from '@core/maincore/databridge/model/model.service';
 
 @Injectable()
 export class USER_JWT_EVENTS extends DataUtils {
@@ -15,12 +14,12 @@ export class USER_JWT_EVENTS extends DataUtils {
   private userRepository: CustomRepository<UserDataView>;
   constructor(
     private readonly jwtService: JwtService,
-    @Inject(INJECTABLES.DATA_SOURCE) private readonly source: DataBridgeService,
     private readonly eventslogger: EventLogger,
+    private readonly source: ModelService,
   ) {
     super();
-    this.refreshRepository = this.source.GetRepository(RefreshToken);
-    this.userRepository = this.source.GetRepository(UserDataView);
+    this.refreshRepository = this.source.getRepository(RefreshToken);
+    this.userRepository = this.source.getRepository(UserDataView);
   }
 
   async HandleUpdateUserSession(data: { userId: string }) {

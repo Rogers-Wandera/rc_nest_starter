@@ -4,16 +4,16 @@ import { ModelClass } from '../decorators/model.decorator';
 import { EntityDataSource } from './enity.data.model';
 import { BadGatewayException } from '@nestjs/common';
 import { DataUtils } from '../databuilder/data.util';
-import { Model } from './model';
 import { paginateprops } from '../../coretoolkit/types/coretypes';
 import { BaseEntityClass } from '../../entities/base.entity';
+import { MainDBBuilder } from '../ormextender/mainbuilder';
 
 @ModelClass()
 export class EntityModel<
   T extends BaseEntityClass<R>,
   R extends string | number = number,
 > extends DataUtils {
-  protected model: Model;
+  protected model: MainDBBuilder;
   protected repository: CustomRepository<T>;
   public pagination: paginateprops<T>;
   public entity: T;
@@ -22,7 +22,7 @@ export class EntityModel<
     private readonly datasource: EntityDataSource,
   ) {
     super();
-    this.model = this.datasource.model.getModel(this);
+    this.model = this.datasource.getModel(this);
     this.model.setRequest(this.datasource.request);
     this.entity = this.entityInstance(entity);
     this.repository = this.model.getRepository(entity);

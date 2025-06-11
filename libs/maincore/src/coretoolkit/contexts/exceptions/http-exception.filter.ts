@@ -6,8 +6,10 @@ import {
   HttpStatus,
   NotFoundException,
   BadRequestException,
+  RequestTimeoutException,
 } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
+import { AxiosError } from 'axios';
 import e, { Request, Response } from 'express';
 
 @Catch(HttpException)
@@ -48,6 +50,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
       }
       httpStatus = exception.getStatus();
       stackTrace = exception.stack;
+    } else if (exception instanceof AxiosError) {
+      errorMessage = exception.response.data.message || exception.message;
+      stackTrace = exception?.response?.data.stack || exception.stack || '';
+      httpStatus =
+        exception.response?.data?.statusCode ||
+        exception.response?.status ||
+        HttpStatus.INTERNAL_SERVER_ERROR;
     } else if (exception instanceof HttpException) {
       httpStatus = exception.getStatus();
       errorMessage = exception.message;
@@ -65,7 +74,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
         exception['message'] || exception['error'] || 'Internal Server Error';
       stackTrace = exception['stack'] || '';
       httpStatus = exception['statusCode'] || HttpStatus.INTERNAL_SERVER_ERROR;
+    } else if (exception instanceof RequestTimeoutException) {
+      errorMessage = 'Request Timeout, please try again later.';
+      httpStatus = HttpStatus.REQUEST_TIMEOUT;
     }
+
     console.error(errorMessage);
 
     const errorResponse = {

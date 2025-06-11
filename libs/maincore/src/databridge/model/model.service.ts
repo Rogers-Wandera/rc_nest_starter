@@ -1,10 +1,13 @@
 import { BadRequestException } from '@nestjs/common';
 import { MODEL_CLASS_KEY } from '../decorators/model.decorator';
 import { EntityModel } from './entity.model';
-import { Model } from './model';
+import { MainDBBuilder } from '../ormextender/mainbuilder';
+import { DataSource } from 'typeorm';
 
-export class ModelService {
-  constructor(protected modelInstance: Model) {}
+export class ModelService extends MainDBBuilder {
+  constructor(dataSource: DataSource) {
+    super(dataSource);
+  }
   protected getCallerInfo<T>(caller: T) {
     const EntityModelPrototype = EntityModel.prototype;
     let isEntityModelPrototype = false;
@@ -19,17 +22,14 @@ export class ModelService {
     };
   }
 
-  public async initialize(): Promise<void> {
-    await this.modelInstance.initialize();
-  }
-  public getModel<T>(caller: T | 'pass'): Model {
+  public getModel<T>(caller: T | 'pass'): MainDBBuilder {
     try {
       if (caller === 'pass') {
-        return this.modelInstance;
+        return this;
       }
       const data = this.getCallerInfo(caller);
       if (data.isEntityModel && data.metadata) {
-        return this.modelInstance;
+        return this;
       }
       throw new BadRequestException(
         `Direct calls to the model are not allowed, only call model in the entity class, check class ${data.className}`,
@@ -37,9 +37,5 @@ export class ModelService {
     } catch (error) {
       throw new BadRequestException(error);
     }
-  }
-
-  public async close() {
-    await this.modelInstance.destroy();
   }
 }

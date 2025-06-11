@@ -8,6 +8,8 @@ export const envconfig = () => ({
   rabbitmqurl: process.env.RMQ_URL,
   socketurl: process.env.SOCKET_URL,
   sockettoken: process.env.SOCKET_TOKEN,
+  baseNotificationUrl: process.env.BASE_NOTIFICATION_URL,
+
   database: {
     host: process.env.DB_HOST,
     port: parseInt(process.env.DB_PORT),

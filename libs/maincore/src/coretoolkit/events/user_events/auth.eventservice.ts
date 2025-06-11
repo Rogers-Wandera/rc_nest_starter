@@ -1,12 +1,13 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { INJECTABLES, USER_EVENTS } from '../../types/enums/enums';
+import { Injectable, Logger } from '@nestjs/common';
+import { USER_EVENTS } from '../../types/enums/enums';
 import { CustomRepository } from '@core/maincore/databridge/ormextender/customrepository';
 import { User } from '@core/maincore/entities/core/users.entity';
-import { DataBridgeService } from '@core/maincore/databridge/databridge.service';
 import { RabbitMQService } from '../../micro/microservices/rabbitmq.service';
 import { EventLogger } from '../../app/utils/event.logger';
 import { UserGroupMember } from '@core/maincore/entities/core/usergroupmembers.entity';
 import { UserPresenceService } from '../../services/online.user.service';
+import { EntityDataSource } from '@core/maincore/databridge/model/enity.data.model';
+import { ModelService } from '@core/maincore/databridge/model/model.service';
 
 @Injectable()
 export class UserAuthService {
@@ -15,13 +16,13 @@ export class UserAuthService {
   private memberrepository: CustomRepository<UserGroupMember>;
 
   constructor(
-    @Inject(INJECTABLES.DATA_SOURCE) private readonly source: DataBridgeService,
+    private readonly source: ModelService,
     private readonly rmqService: RabbitMQService,
     private readonly eventlogger: EventLogger,
     private readonly userPresence: UserPresenceService,
   ) {
-    this.userservice = this.source.GetRepository(User);
-    this.memberrepository = this.source.GetRepository(UserGroupMember);
+    this.userservice = this.source.getRepository(User);
+    this.memberrepository = this.source.getRepository(UserGroupMember);
   }
 
   async handleLogout(data: { userId: string }) {

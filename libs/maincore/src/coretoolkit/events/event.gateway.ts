@@ -311,7 +311,6 @@ export class EventsGateway
     @MessageBody() data: { userId: string },
     @ConnectedSocket() client: Socket,
   ) {
-    console.log(data);
     client.broadcast.emit(NOTIFICATION_PATTERN.GET_NOTIFICATIONS, data);
   }
 }

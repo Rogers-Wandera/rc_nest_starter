@@ -1,15 +1,14 @@
-import { DataBridgeService } from '../../../databridge/databridge.service';
 import { User } from '../../../entities/core/users.entity';
 import {
   CallHandler,
   ExecutionContext,
-  Inject,
   Injectable,
   Logger,
   NestInterceptor,
 } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 import { Notification } from '../../interfaces/notification.interface';
+import { EntityDataSource } from '@core/maincore/databridge/model/enity.data.model';
 
 /**
  * Interceptor that validates the recipients of a WebSocket notification.
@@ -23,9 +22,7 @@ export class SocketRecipientsValidator implements NestInterceptor {
    * Creates an instance of RecipientsValidator.
    * @param service - DataBridgeService instance used to access the data repository.
    */
-  constructor(
-    @Inject('data_source') private readonly service: DataBridgeService,
-  ) {}
+  constructor(private readonly service: EntityDataSource) {}
 
   /**
    * Intercepts the request, validates recipients, and modifies the notification data.

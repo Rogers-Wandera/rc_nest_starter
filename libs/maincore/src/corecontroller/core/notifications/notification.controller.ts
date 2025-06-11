@@ -18,31 +18,43 @@ import { EventLogger } from '@core/maincore/coretoolkit/app/utils/event.logger';
 import { Notification } from '@core/maincore/coretoolkit/interfaces/notification.interface';
 import { Permissions } from '@core/maincore/coretoolkit/decorators/permissions.decorator';
 import { Roles } from '@core/maincore/authguards/decorators/roles.guard';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
+import { EnvConfig } from '@core/maincore/coretoolkit/config/config';
+import { catchError, lastValueFrom } from 'rxjs';
+import { Timeout } from '@core/maincore/coretoolkit/decorators/timeout.decorator';
 
 @Controller('/core/notifications')
 @AuthGuard(ROLE.ADMIN)
 @ApiTags('Notifications')
 export class NotificationController extends IController<UserService> {
+  private baseUrl: string;
   constructor(
     private readonly rabbitClient: RabbitMQService,
     model: UserService,
     private readonly eventslogger: EventLogger,
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService<EnvConfig>,
   ) {
     super(model);
+    this.baseUrl = this.configService.get('baseNotificationUrl');
   }
 
   @Get('/:userId')
   @ValidateService({ entity: User })
   @Paginate()
   @Roles(ROLE.USER)
+  @Timeout(30000)
   async getNotifications(@Service('user') user: User, @Req() req: Request) {
     try {
-      this.rabbitClient.setQueue(RabbitMQQueues.NOTIFICATIONS);
-      const respone = await this.rabbitClient.emitWithAck(
-        NOTIFICATION_PATTERN.USER_NOTIFICATIONS,
-        { userId: user.id, query: req.parsedQuery },
-      );
-      return respone;
+      const url = `${this.baseUrl}/recipient`;
+      const response = await this.httpService.axiosRef.get(url, {
+        params: {
+          ...req.parsedQuery,
+          userId: user.id,
+        },
+      });
+      return response.data;
     } catch (error) {
       throw error;
     }
@@ -50,15 +62,18 @@ export class NotificationController extends IController<UserService> {
 
   @Get('/main/data/:userId')
   @Paginate()
+  @ValidateService({ entity: User })
   @Permissions({ module: 'Notifications', moduleLink: 'Manage Notifications' })
-  async getMainNotifications(@Req() req: Request) {
+  async getMainNotifications(@Req() req: Request, @Service('user') user: User) {
     try {
-      this.rabbitClient.setQueue(RabbitMQQueues.NOTIFICATIONS);
-      const respone = await this.rabbitClient.emitWithAck(
-        NOTIFICATION_PATTERN.NOTIFICATIONS,
-        { query: req.parsedQuery, userId: req.params.userId },
-      );
-      return respone;
+      const url = `${this.baseUrl}/recipient/main`;
+      const response = await this.httpService.axiosRef.get(url, {
+        params: {
+          ...req.parsedQuery,
+          userId: user.id,
+        },
+      });
+      return response.data;
     } catch (error) {
       throw error;
     }

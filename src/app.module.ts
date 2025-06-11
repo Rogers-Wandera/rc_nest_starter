@@ -9,10 +9,16 @@ import { DefaultAppModule } from './modules/app.default.module';
 import { RedisConnection } from '@core/maincore/coretoolkit/adapters/redis.adapter';
 import { UserPresenceService } from '@core/maincore/coretoolkit/services/online.user.service';
 import { UserSessionService } from '@core/maincore/coretoolkit/services/session.user.service';
+import { HttpModule } from '@nestjs/axios';
 
 @Global()
 @Module({
-  imports: [DefaultAppModule],
+  imports: [
+    DefaultAppModule,
+    HttpModule.register({
+      global: true,
+    }),
+  ],
   exports: [DefaultAppModule],
 })
 export class AppModule implements OnModuleInit, OnModuleDestroy {

@@ -1,65 +1,67 @@
 import { DynamicModule, Global, Module, Provider } from '@nestjs/common';
-import { DataSourceOptions } from 'typeorm';
-import { DataBridgeService } from './databridge.service';
+import { DataSource, DataSourceOptions } from 'typeorm';
 import { EntityDataSource } from './model/enity.data.model';
+import {
+  TypeOrmModule,
+  TypeOrmModuleAsyncOptions,
+  TypeOrmModuleOptions,
+} from '@nestjs/typeorm';
+import { ModelService } from './model/model.service';
 
 interface RDatabaseAsyncConfig {
   imports?: any[];
   useFactory: (
     ...args: any[]
-  ) => Promise<DataSourceOptions> | DataSourceOptions;
+  ) => TypeOrmModuleOptions | Promise<TypeOrmModuleOptions>;
   inject?: any[];
 }
 @Global()
 @Module({})
 export class DataBridgeModule {
-  static register(config: DataSourceOptions): DynamicModule {
+  static register(config: TypeOrmModuleOptions): DynamicModule {
     return {
       module: DataBridgeModule,
+      imports: [TypeOrmModule.forRoot(config)],
       providers: [
         { provide: 'RDATABASE_CONFIG', useValue: config },
         {
-          provide: 'data_source',
-          useFactory: async (config: DataSourceOptions) => {
-            const db = new DataBridgeService(config);
-            await db.initialize();
-            return db;
+          provide: ModelService,
+          useFactory: (source: DataSource) => {
+            return new ModelService(source);
           },
-          inject: ['RDATABASE_CONFIG'],
+          inject: [DataSource],
         },
-        DataBridgeService,
         EntityDataSource,
       ],
-      exports: ['data_source', DataBridgeService, EntityDataSource],
+      exports: [TypeOrmModule, ModelService, EntityDataSource],
     };
   }
   static registerAsync(options: RDatabaseAsyncConfig): DynamicModule {
-    const provider: Provider = {
+    const configProvider: Provider = {
       provide: 'RDATABASE_CONFIG',
-      useFactory: async (...args: any[]) => {
-        const configs = await options.useFactory(...args);
-        return configs;
-      },
+      useFactory: options.useFactory,
+      inject: options.inject || [],
+    };
+    const typeOrmAsyncOptions: TypeOrmModuleAsyncOptions = {
+      imports: options.imports || [],
+      useFactory: options.useFactory,
       inject: options.inject || [],
     };
     return {
       module: DataBridgeModule,
-      imports: options.imports || [],
+      imports: [TypeOrmModule.forRootAsync(typeOrmAsyncOptions)],
       providers: [
-        provider,
+        configProvider,
         {
-          provide: 'data_source',
-          useFactory: async (config: DataSourceOptions) => {
-            const db = new DataBridgeService(config);
-            await db.initialize();
-            return db;
+          provide: ModelService,
+          useFactory: (source: DataSource) => {
+            return new ModelService(source);
           },
-          inject: ['RDATABASE_CONFIG'],
+          inject: [DataSource],
         },
-        DataBridgeService,
         EntityDataSource,
       ],
-      exports: ['data_source', DataBridgeService, EntityDataSource],
+      exports: [TypeOrmModule, ModelService, EntityDataSource],
     };
   }
 }

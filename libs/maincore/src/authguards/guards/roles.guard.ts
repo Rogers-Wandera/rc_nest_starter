@@ -149,7 +149,7 @@ export class RolesGuard implements CanActivate {
   }
 
   private async GetServerRoles(user: reqUser): Promise<ServerRolesType[]> {
-    const serveraccess = await this.source.getRepository(ServerRolesView).find({
+    const serveraccess = await this.source.GetRepository(ServerRolesView).find({
       where: { userId: user.id, expired: 0, isActive: 1, srrActive: 1 },
     });
     if (serveraccess.length > 0) {
