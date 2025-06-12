@@ -250,8 +250,7 @@ export class EventsGateway
     );
 
     if (wasEmitted) {
-      this.rmqService.setQueue(RabbitMQQueues.NOTIFICATIONS);
-      this.rmqService.emit(NOTIFICATION_PATTERN.USER_NOTIFICATIONS, {
+      this.server.emit(NOTIFICATION_PATTERN.USER_NOTIFICATIONS, {
         userId: data.meta.userId,
       });
     }
@@ -311,6 +310,6 @@ export class EventsGateway
     @MessageBody() data: { userId: string },
     @ConnectedSocket() client: Socket,
   ) {
-    client.broadcast.emit(NOTIFICATION_PATTERN.GET_NOTIFICATIONS, data);
+    this.server.emit(NOTIFICATION_PATTERN.USER_NOTIFICATIONS, data);
   }
 }
