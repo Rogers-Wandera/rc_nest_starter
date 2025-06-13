@@ -54,7 +54,7 @@ export class NotificationController extends IController<UserService> {
           userId: user.id,
         },
       });
-      return response.data;
+      return response?.data || [];
     } catch (error) {
       throw error;
     }
@@ -73,7 +73,7 @@ export class NotificationController extends IController<UserService> {
           userId: user.id,
         },
       });
-      return response.data;
+      return response?.data || [];
     } catch (error) {
       throw error;
     }
