@@ -304,12 +304,4 @@ export class EventsGateway
     await this.userSession.removeSession(data.userId, data.sessionId);
     return this.authService.handleLogout(data);
   }
-
-  @SubscribeMessage(NOTIFICATION_PATTERN.GET_NOTIFICATIONS)
-  HandleGetNotifications(
-    @MessageBody() data: { userId: string },
-    @ConnectedSocket() client: Socket,
-  ) {
-    this.server.emit(NOTIFICATION_PATTERN.USER_NOTIFICATIONS, data);
-  }
 }
