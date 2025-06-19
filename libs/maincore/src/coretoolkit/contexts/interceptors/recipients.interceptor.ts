@@ -1,32 +1,28 @@
-import { DataBridgeService } from '../../../databridge/databridge.service';
 import { User } from '../../../entities/core/users.entity';
 import {
   CallHandler,
   ExecutionContext,
-  Inject,
   Injectable,
   Logger,
   NestInterceptor,
 } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
-import { PRIORITY_TYPES } from '../../types/enums/enums';
-import { RTechSystemNotificationType } from '../../types/notification/notify.types';
+import { Notification } from '../../interfaces/notification.interface';
+import { EntityDataSource } from '@core/maincore/databridge/model/enity.data.model';
 
 /**
  * Interceptor that validates the recipients of a WebSocket notification.
  * It checks if recipients exist in the database and filters the list accordingly.
  */
 @Injectable()
-export class RecipientsValidator implements NestInterceptor {
-  private logger = new Logger(RecipientsValidator.name);
+export class SocketRecipientsValidator implements NestInterceptor {
+  private logger = new Logger(SocketRecipientsValidator.name);
 
   /**
    * Creates an instance of RecipientsValidator.
    * @param service - DataBridgeService instance used to access the data repository.
    */
-  constructor(
-    @Inject('data_source') private readonly service: DataBridgeService,
-  ) {}
+  constructor(private readonly service: EntityDataSource) {}
 
   /**
    * Intercepts the request, validates recipients, and modifies the notification data.
@@ -38,37 +34,34 @@ export class RecipientsValidator implements NestInterceptor {
   async intercept(context: ExecutionContext, next: CallHandler<any>) {
     const repository = this.service.GetRepository(User);
     const websocket = context.switchToWs();
-    const data: RTechSystemNotificationType = websocket.getData();
+    const data: Notification = websocket.getData();
 
-    if (data.recipient.type === 'broadcast') {
+    if (data.channel !== 'push') {
+      return next.handle();
+    }
+    if (data.channel === 'push' && data.provider === 'firebase') {
       return next.handle();
     }
 
-    const recipients = data.recipient.recipients;
-    const newrecipients: {
-      to: string;
-      priority?: PRIORITY_TYPES;
-    }[] = [];
+    const recipients = typeof data.to == 'string' ? [data.to] : data.to;
+    const newrecipients: string[] = [];
 
     for (const recipient in recipients) {
       const user = await repository.findOne({
-        where: { id: recipients[recipient].to },
+        where: { id: recipient },
       });
       if (user) {
-        newrecipients.push({
-          to: user.id,
-          priority: recipients[recipient].priority,
-        });
+        newrecipients.push(user.id);
       } else {
         this.logger.warn(
-          `User with recipient id of ${recipients[recipient].to} does not exist`,
+          `User with recipient id of ${recipient} does not exist`,
         );
       }
     }
 
-    data.recipient.recipients = newrecipients;
+    data.to = newrecipients;
 
-    if (data.recipient.recipients.length <= 0) {
+    if (data.to.length <= 0) {
       this.logger.error(
         `Notification not sent, Reason: [Recipients array empty]`,
       );

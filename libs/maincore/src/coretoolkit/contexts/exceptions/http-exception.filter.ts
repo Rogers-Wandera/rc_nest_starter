@@ -5,8 +5,12 @@ import {
   HttpException,
   HttpStatus,
   NotFoundException,
+  BadRequestException,
+  RequestTimeoutException,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { RpcException } from '@nestjs/microservices';
+import { AxiosError } from 'axios';
+import e, { Request, Response } from 'express';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -46,6 +50,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
       }
       httpStatus = exception.getStatus();
       stackTrace = exception.stack;
+    } else if (exception instanceof AxiosError) {
+      errorMessage = exception.response.data.message || exception.message;
+      stackTrace = exception?.response?.data.stack || exception.stack || '';
+      httpStatus =
+        exception.response?.data?.statusCode ||
+        exception.response?.status ||
+        HttpStatus.INTERNAL_SERVER_ERROR;
     } else if (exception instanceof HttpException) {
       httpStatus = exception.getStatus();
       errorMessage = exception.message;
@@ -55,7 +66,19 @@ export class AllExceptionsFilter implements ExceptionFilter {
       stackTrace = exception.stack || '';
     } else if (typeof exception === 'string') {
       errorMessage = exception;
+    } else if (exception instanceof RpcException) {
+      errorMessage = exception.message;
+      stackTrace = exception.stack || '';
+    } else if (typeof exception === 'object') {
+      errorMessage =
+        exception['message'] || exception['error'] || 'Internal Server Error';
+      stackTrace = exception['stack'] || '';
+      httpStatus = exception['statusCode'] || HttpStatus.INTERNAL_SERVER_ERROR;
+    } else if (exception instanceof RequestTimeoutException) {
+      errorMessage = 'Request Timeout, please try again later.';
+      httpStatus = HttpStatus.REQUEST_TIMEOUT;
     }
+
     console.error(errorMessage);
 
     const errorResponse = {
@@ -64,6 +87,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
       message: errorMessage,
       stack: stackTrace,
+      original: exception,
     };
 
     response.status(httpStatus).json(errorResponse);

@@ -7,6 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { MICRO_SERVICE_KEY } from '../../decorators/microservice.decorator';
 import { RabbitMQService } from '../../micro/microservices/rabbitmq.service';
+import { RabbitMQQueues } from '../../types/enums/enums';
 
 /**
  * Guard that checks whether a microservice is running before allowing the request to proceed.
@@ -36,17 +37,18 @@ export class MicroServiceRunningGuard implements CanActivate {
    * @throws {ServiceUnavailableException} - If the microservice is not running, an exception is thrown.
    */
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const microservice = this.reflector.getAllAndOverride<string>(
+    const microservice = this.reflector.getAllAndOverride<RabbitMQQueues>(
       MICRO_SERVICE_KEY,
       [context.getHandler(), context.getClass()],
     );
     if (!microservice) {
       return true;
     }
+    this.service.setQueue(microservice);
     const isRunning = await this.service.ServiceCheck();
     if (!isRunning) {
       throw new ServiceUnavailableException(
-        'The service is currently unavailable, please try again later.',
+        `The ${microservice} service is currently unavailable, please try again later.`,
       );
     }
     return true;

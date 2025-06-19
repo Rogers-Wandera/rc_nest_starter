@@ -1,6 +1,7 @@
 import {
   Column,
   Entity,
+  Index,
   JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -18,5 +19,6 @@ export class UserProfileImage extends BaseEntityClass {
   @JoinColumn({ name: 'userId' })
   user: User;
   @Column({ nullable: false })
+  @Index()
   public_id: string;
 }

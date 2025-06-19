@@ -4,9 +4,18 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
   OnGatewayInit,
+  SubscribeMessage,
+  MessageBody,
+  ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Injectable, Logger, Scope } from '@nestjs/common';
+import {
+  BeforeApplicationShutdown,
+  Injectable,
+  Logger,
+  OnApplicationShutdown,
+  Scope,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { corsOptions } from '../config/corsoptions';
 import {
@@ -16,8 +25,10 @@ import {
 } from '../types/enums/enums';
 import { RabbitMQService } from '../micro/microservices/rabbitmq.service';
 import { EnvConfig } from '../config/config';
-
-const sockets: Map<string, Socket> = new Map();
+import { RedisConnection } from '../adapters/redis.adapter';
+import { UserPresenceService } from '../services/online.user.service';
+import { UserSessionService } from '../services/session.user.service';
+import { UserAuthService } from './user_events/auth.eventservice';
 
 /**
  * WebSocket gateway for managing client connections and handling system notifications.
@@ -35,7 +46,12 @@ const sockets: Map<string, Socket> = new Map();
   cors: corsOptions,
 })
 export class EventsGateway
-  implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
+  implements
+    OnGatewayConnection,
+    OnGatewayDisconnect,
+    OnGatewayInit,
+    BeforeApplicationShutdown,
+    OnApplicationShutdown
 {
   @WebSocketServer()
   server: Server;
@@ -51,6 +67,10 @@ export class EventsGateway
   constructor(
     private readonly config: ConfigService<EnvConfig>,
     private readonly rmqService: RabbitMQService,
+    private readonly redisClient: RedisConnection,
+    private userPresence: UserPresenceService,
+    private readonly userSession: UserSessionService,
+    private authService: UserAuthService,
   ) {}
 
   /**
@@ -60,19 +80,32 @@ export class EventsGateway
    * @param {Server} server - The WebSocket server instance.
    */
   afterInit(server: Server) {
-    this.logger.log('Initialized');
+    this.logger.log('Main Gateway initialized');
+    this.userSession.mainServer = server;
+    this.userPresence.mainServer = server;
   }
 
-  getClients() {
-    return sockets;
+  async beforeApplicationShutdown(signal?: string) {
+    this.logger.log('Server shutting down - cleaning up all connections');
   }
 
-  setClients(userId: string, client: Socket) {
-    sockets.set(userId, client);
+  async onApplicationShutdown(signal?: string) {
+    // Final cleanup if needed
+    this.logger.log(`Application shutdown complete (signal: ${signal})`);
   }
 
-  deleteClient(userId: string) {
-    sockets.delete(userId);
+  async getClients(connectionId: string) {
+    try {
+      const socketIds = (await this.userPresence.getConnectionSockets(
+        connectionId,
+      )) as string[];
+      return socketIds
+        .map((socketId) => this.server.sockets.sockets.get(socketId))
+        .filter((socket) => socket !== undefined) as Socket[];
+    } catch (error) {
+      this.logger.error(`Failed to get clients for ${connectionId}`, error);
+      return [];
+    }
   }
 
   /**
@@ -81,21 +114,30 @@ export class EventsGateway
    *
    * @param {Socket} client - The connected client socket.
    */
-  handleConnection(client: Socket) {
-    const { sockets } = this.server.sockets;
+  async handleConnection(client: Socket) {
     const token = client.handshake.auth.token as string;
-    const status = this.HandleAuthorizationClient(token, client);
-    if (status) {
-      this.logger.warn(`Client id: ${client.id} connected`);
-      this.emitOnlineUsersToAdmin();
-    } else {
-      this.logger.log(
-        `Client id: ${client.id} tried to connect but was denied `,
-      );
-      return;
+    const connectionId = client.handshake.auth.connectionId as string;
+    const sessionId = client.handshake.auth?.sessionId as string;
+    const isAuthorized = this.HandleAuthorizationClient(
+      token,
+      connectionId,
+      client,
+    );
+    if (!isAuthorized) return;
+    try {
+      if (sessionId) {
+        client.join(sessionId);
+        this.logger.log(
+          `Client ${client.id} connected as ${connectionId} with session ${sessionId}`,
+        );
+      } else {
+        this.logger.log(`Client ${client.id} connected as ${connectionId}`);
+      }
+      client.emit('call_connection', { success: true });
+    } catch (error) {
+      this.logger.error(`Connection tracking failed for ${client.id}`, error);
+      client.disconnect(true);
     }
-    client.removeAllListeners('disconnect');
-    this.logger.log(`Number of connected clients: ${sockets.size}`);
   }
 
   /**
@@ -104,18 +146,15 @@ export class EventsGateway
    *
    * @param {Socket} client - The disconnected client socket.
    */
-  handleDisconnect(client: Socket) {
-    sockets.forEach((value, key) => {
-      if (value.id === client.id) {
-        sockets.delete(key);
-        this.rmqService.emit(NOTIFICATION_PATTERN.USER_LOGGED_OUT, {
-          userId: key,
-        });
-      }
-    });
-    this.emitOnlineUsersToAdmin();
-    client.removeAllListeners();
-    this.logger.log(`Client id: ${client.id} disconnected`);
+  async handleDisconnect(client: Socket) {
+    try {
+      this.logger.log(`Client ${client.id} disconnected`);
+    } catch (error) {
+      this.logger.error(
+        `Disconnection tracking failed for ${client.id}`,
+        error,
+      );
+    }
   }
 
   /**
@@ -125,84 +164,144 @@ export class EventsGateway
    * @param {string} token - The token provided by the client.
    * @param {Socket} client - The client socket to be authorized.
    */
-  private HandleAuthorizationClient(token: string, client: Socket) {
-    const accesstoken = this.config.get<string>('sockettoken');
-    if (!token || token !== accesstoken) {
+  private HandleAuthorizationClient(
+    token: string,
+    connectionId: string,
+    client: Socket,
+  ) {
+    const accessToken = this.config.get<string>('sockettoken');
+    if (!token || token !== accessToken || !connectionId) {
       client.emit('AuthError', {
-        message: 'Authentication errors: Token required or invalid',
+        message: 'Authentication error: Token required or invalid',
       });
       client.disconnect(true);
-      client.removeAllListeners();
       return false;
     }
+    if (connectionId.startsWith('micro:') || connectionId.startsWith('main:')) {
+      return true;
+    }
+    client.emit('AuthError', {
+      message: 'Invalid connection ID format',
+    });
+    client.disconnect(true);
     return true;
   }
 
   /**
    * Emits a notification to a specific client and schedules a re-send if the client is not connected.
    *
-   * @param {string} userId - The ID of the user to notify.
+   * @param {string} connectionId - The ID of the user to notify.
    * @param {string} pattern - The pattern to use for the notification.
    * @param {any} data - The notification data to be sent.
    */
   async emitToClient(
-    userId: string,
+    connectionId: string,
     pattern: string,
     data: any,
     offlineCallBack: () => void = undefined,
   ) {
-    const client = sockets.get(userId);
-    if (client) {
-      client.emit(pattern, data);
+    const sockets = (await this.userPresence.getConnectionSockets(
+      connectionId,
+    )) as string[];
+    if (sockets?.length > 0) {
+      sockets.forEach((socketId) => {
+        const socket = this.server.sockets.sockets.get(socketId);
+        if (socket) {
+          socket.emit(pattern, data);
+        }
+      });
       return true;
-    } else {
-      if (offlineCallBack) {
-        offlineCallBack();
-      }
-      this.logger.warn(
-        `Emit to User id: ${userId} not logged in at the moment`,
-      );
-      return false;
     }
+    if (offlineCallBack) {
+      offlineCallBack();
+    }
+    this.logger.warn(`No active sockets found for ${connectionId}`);
+    return false;
   }
 
-  emitOnlineUsersToAdmin() {
-    const onlineUsers = Array.from(sockets.keys());
-    this.server.emit(USER_EVENTS.ONLINE_USERS, onlineUsers);
+  async emitOnlineUsersToAdmin() {
+    const users = await this.userPresence.getOnlineUsers();
+    this.server.emit(USER_EVENTS.ONLINE_USERS, users);
   }
 
   emit(event: string, data: unknown) {
     this.server.emit(event, data);
   }
 
-  uploadComplete(data: {
+  async uploadComplete(data: {
     progress: number;
     filename: string;
     meta: { userId: string; type?: string; [key: string]: any };
   }) {
-    if (!data || !data?.meta?.userId) {
-      return;
-    }
-    const client = sockets.get(data.meta.userId);
-    if (client) {
-      client.emit('upload_complete', {
+    if (!data?.meta?.userId) return false;
+
+    const connectionId = `user:${data.meta.userId}`;
+    const wasEmitted = await this.emitToClient(
+      connectionId,
+      'upload_complete',
+      {
         ...data,
         completed: true,
         failed: false,
         date: new Date(),
         title: data?.meta?.type || 'File Upload',
         message: `Your upload of file: ${data.filename} is complete`,
-      });
-      this.rmqService.setQueue(RabbitMQQueues.NOTIFICATIONS);
-      this.rmqService.emit(NOTIFICATION_PATTERN.USER_NOTIFICATIONS, {
+      },
+    );
+
+    if (wasEmitted) {
+      this.server.emit(NOTIFICATION_PATTERN.USER_NOTIFICATIONS, {
         userId: data.meta.userId,
       });
+    }
+
+    return wasEmitted;
+  }
+
+  async emitToSession(sessionId: string, pattern: string, data: any) {
+    if (!sessionId) {
+      this.logger.warn('Session ID is required to emit to session');
+      return false;
+    }
+    if (this.server.sockets.sockets.size === 0) {
+      this.logger.warn('No active sockets found to emit to session');
+      return false;
+    }
+    try {
+      // Check if any sockets are in the room (optional optimization)
+      const room = this.server.sockets.adapter.rooms.get(sessionId);
+      if (!room || room.size === 0) {
+        this.logger.warn(`No active sockets found for session ${sessionId}`);
+        return false;
+      }
+      // Emit to the room (all sockets in the room will receive it)
+      this.server.to(sessionId).emit(pattern, data);
+      this.logger.log(`Emitted "${pattern}" to session ${sessionId}`);
       return true;
-    } else {
-      this.logger.warn(
-        `Emit to User id: ${data.meta.userId} not logged in at the moment`,
+    } catch (error) {
+      this.logger.error(
+        `Failed to emit to session ${sessionId}: ${error.message}`,
       );
       return false;
     }
+  }
+
+  @SubscribeMessage('socket_session')
+  async handleSocketSession(
+    @MessageBody() data: { sessionId: string },
+    @ConnectedSocket() socket: Socket,
+  ) {
+    if (data?.sessionId) {
+      socket.join(data.sessionId);
+      this.logger.log(`Socket ${socket.id} joined session ${data.sessionId}`);
+    }
+  }
+
+  @SubscribeMessage(USER_EVENTS.LOGOUT)
+  async handleLogout(
+    @MessageBody() data: { userId: string; sessionId: string },
+  ) {
+    await this.userSession.removeSession(data.userId, data.sessionId);
+    return this.authService.handleLogout(data);
   }
 }

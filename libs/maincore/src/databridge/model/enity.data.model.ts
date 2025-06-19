@@ -2,20 +2,26 @@ import { Inject, Injectable } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
 import { EntityTarget, ObjectLiteral } from 'typeorm';
-import { DataBridgeService } from '../databridge.service';
+import { ModelService } from './model.service';
+import { CustomRepository } from '../ormextender/customrepository';
 
 @Injectable()
 export class EntityDataSource {
-  public model: DataBridgeService;
   public request: Request;
   constructor(
-    @Inject('data_source') model: DataBridgeService,
+    private model: ModelService,
     @Inject(REQUEST) request: Request,
   ) {
     this.request = request;
-    this.model = model;
   }
-  public getRepository<T extends ObjectLiteral>(entity: EntityTarget<T>) {
-    return this.model.GetRepository(entity);
+
+  public getModel<T>(caller: T) {
+    return this.model.getModel(caller);
+  }
+
+  public GetRepository<T extends ObjectLiteral>(
+    entity: EntityTarget<T>,
+  ): CustomRepository<T> {
+    return this.getModel('pass').getRepository(entity);
   }
 }

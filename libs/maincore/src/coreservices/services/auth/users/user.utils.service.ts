@@ -10,15 +10,20 @@ import { MessagingService } from '../../../../coretoolkit/messaging/messaging.se
 import { UserProfileImageService } from '../userprofileimages/userprofileimages.service';
 import { QueryFailedError } from 'typeorm';
 import { RabbitMQService } from '../../../../coretoolkit/micro/microservices/rabbitmq.service';
-import { NotifyTypes } from '../../../../coretoolkit/types/notification/notify.types';
 import { EnvConfig } from '../../../../coretoolkit/config/config';
 import {
-  EmailTemplates,
   NOTIFICATION_PATTERN,
-  PRIORITY_TYPES,
   TOKEN_TYPES,
 } from '../../../../coretoolkit/types/enums/enums';
 import { UserService } from './users.service';
+import {
+  EmailNotificationType,
+  Priority,
+} from '@core/maincore/coretoolkit/interfaces/notification.interface';
+import {
+  EmailTemplateDefault,
+  TemplateType,
+} from '@core/maincore/coretoolkit/interfaces/templates.interface';
 
 @Injectable()
 export class UserUtilsService extends EntityModel<User, string> {
@@ -62,18 +67,19 @@ export class UserUtilsService extends EntityModel<User, string> {
       this.tokens.entity.expire = expireDate;
       this.tokens.entity.createdBy = this.entity.id;
       this.tokens.entity.token = token;
-      const emailData = {
-        email: [{ to: this.entity.email, priority: PRIORITY_TYPES.HIGH }],
+      const data = this.buildEmailData(this.entity, {
+        body: info,
         subject: 'Reset Password',
         context: {
-          body: info,
           title: `Hello ${this.entity.firstname}, Reset your password`,
-          cta: true,
-          btntext: 'Reset Password',
-          url,
+          callToAction: {
+            text: 'Reset Password',
+            url,
+          },
         },
-      };
-      const response = this.messagingService.SendWithMailer2(emailData);
+      });
+
+      const response = this.messagingService.SendEmailNoAck(data);
       if (!response) {
         return false;
       }
@@ -83,6 +89,26 @@ export class UserUtilsService extends EntityModel<User, string> {
     } catch (error) {
       throw error;
     }
+  }
+
+  private buildEmailData(
+    user: User,
+    data: { body: string; subject: string; context: EmailTemplateDefault },
+  ): EmailNotificationType {
+    return {
+      to: user.email,
+      subject: data.subject,
+      body: data.body,
+      from: 'RTECH_SYSTEM',
+      channel: 'email',
+      priority: Priority.HIGH,
+      provider: 'nodemailer',
+      metadata: { userId: user.id, eventType: 'resetpassword', maxRetries: 2 },
+      template: {
+        type: TemplateType.DEFAULT,
+        context: data.context,
+      },
+    };
   }
 
   ResetMessage(user: User, id?: string) {
@@ -213,25 +239,38 @@ export class UserUtilsService extends EntityModel<User, string> {
   private sendVerificationEmail(
     user: User,
     link: string,
-    additionalhtml: string | string[] = '',
+    additionalhtml: string = '',
   ): string {
-    const emailData = {
-      recipientName: user.firstname + ' ' + user.lastname,
-      serverData: 'Please confirm registration',
-      senderName: 'RC-TECH',
-      body: link,
-      moredata: [...additionalhtml],
-    };
-    const mailoptions: NotifyTypes = {
-      type: 'email',
-      payload: {
-        to: [{ to: user.email, priority: PRIORITY_TYPES.HIGH }],
-        subject: 'Welcome to RC-TECH please confirm your email',
-        template: EmailTemplates.VERIFY_EMAIL,
-        context: emailData,
+    const body = `<p>Please confirm registration</p> <p>
+        Thank you for registering! Please click the button below to verify your
+        email address
+      </p>
+      <p>
+        If you did not register an account, you can safely ignore this email.
+      </p>`;
+    const recipientName = user.firstname + ' ' + user.lastname;
+
+    const data: EmailNotificationType = {
+      channel: 'email',
+      provider: 'nodemailer',
+      to: user.email,
+      body,
+      subject: `Please confirm registration`,
+      from: 'RTECH_SYSTEM',
+      priority: Priority.HIGH,
+      template: {
+        type: TemplateType.DEFAULT,
+        context: {
+          title: `Hello ${recipientName}, Verify Your Email`,
+          additionalHtml: additionalhtml,
+          callToAction: {
+            text: 'Click here',
+            url: link,
+          },
+        },
       },
     };
-    this.client.emit(NOTIFICATION_PATTERN.NOTIFY, mailoptions);
-    return 'Email sent successfully';
+    this.client.emit(NOTIFICATION_PATTERN.NOTIFY, data);
+    return 'Email sent';
   }
 }

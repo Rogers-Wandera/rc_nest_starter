@@ -4,7 +4,6 @@ import {
   ExecutionContext,
   Injectable,
   NestInterceptor,
-  Scope,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
@@ -18,7 +17,7 @@ import { Paramstype } from '../../types/coretypes';
  * @implements {NestInterceptor}
  * @template T - The type of the request parameters.
  */
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class TransformJson<T> implements NestInterceptor {
   /**
    * Creates an instance of `TransformJson`.
@@ -67,7 +66,7 @@ export class TransformJson<T> implements NestInterceptor {
  * @class TransformPaginateQuery
  * @implements {NestInterceptor}
  */
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class TransformPainateQuery implements NestInterceptor {
   /**
    * Creates an instance of `TransformPaginateQuery`.
@@ -75,38 +74,38 @@ export class TransformPainateQuery implements NestInterceptor {
    * @param {Reflector} reflector - The Reflector instance for retrieving metadata.
    */
   constructor(private reflector: Reflector) {}
-  /**
-   * Intercepts the request and transforms pagination query parameters from JSON strings.
-   *
-   * @param {ExecutionContext} context - The context of the current request.
-   * @returns {Observable<any>} - The result of the handler.
-   */
+
   intercept(context: ExecutionContext, next: CallHandler) {
     const paginate = this.reflector.getAllAndOverride<string>(PAGINATE_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
+    const request: Request = context.switchToHttp().getRequest();
     if (paginate) {
-      const request: Request = context.switchToHttp().getRequest();
-      if (request.query) {
-        if (request.query['sortBy']) {
-          request.query['sortBy'] = JSON.parse(
-            request.query['sortBy'] as string,
-          );
+      const parsedQuery = { ...request.query };
+      if (parsedQuery) {
+        if (parsedQuery['sortBy']) {
+          parsedQuery['sortBy'] = JSON.parse(parsedQuery['sortBy'] as string);
         }
-        if (request.query['filters']) {
-          request.query['filters'] = JSON.parse(
-            request.query['filters'] as string,
+        if (parsedQuery['filters']) {
+          parsedQuery['filters'] = JSON.parse(parsedQuery['filters'] as string);
+        }
+
+        if (parsedQuery['conditions']) {
+          parsedQuery['conditions'] = JSON.parse(
+            parsedQuery['conditions'] as string,
           );
         }
 
-        if (request.query['conditions']) {
-          request.query['conditions'] = JSON.parse(
-            request.query['conditions'] as string,
+        if (parsedQuery['dateFilter']) {
+          parsedQuery['dateFilter'] = JSON.parse(
+            parsedQuery['dateFilter'] as string,
           );
         }
       }
+      request.parsedQuery = parsedQuery;
     }
+
     return next.handle();
   }
 }

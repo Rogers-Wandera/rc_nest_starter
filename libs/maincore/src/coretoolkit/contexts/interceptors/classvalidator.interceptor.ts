@@ -6,7 +6,6 @@ import {
   Inject,
   Injectable,
   NestInterceptor,
-  Scope,
 } from '@nestjs/common';
 import { INQUIRER, Reflector } from '@nestjs/core';
 import { CLASS_VALIDATOR_KEY } from '../../decorators/classvalidator.decorator';
@@ -23,7 +22,7 @@ import { ObjectLiteral } from 'typeorm';
  * @class ClassValidatorInterceptor
  * @implements {NestInterceptor}
  */
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class ClassValidatorInterceptor implements NestInterceptor {
   /**
    * Creates an instance of `ClassValidatorInterceptor`.

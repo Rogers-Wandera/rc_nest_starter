@@ -6,7 +6,6 @@ import {
   Inject,
   Injectable,
   NestInterceptor,
-  Scope,
 } from '@nestjs/common';
 import { INQUIRER, Reflector } from '@nestjs/core';
 import {
@@ -18,7 +17,7 @@ import { ControllerInterface } from '../../../corecontroller/controller.interfac
 import { BaseEntityClass } from '../../../entities/base.entity';
 import { EntityTarget } from 'typeorm';
 
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class ServiceValidator implements NestInterceptor {
   constructor(
     private reflector: Reflector,
@@ -90,7 +89,7 @@ export class ServiceValidator implements NestInterceptor {
     const entitytarget = this.isEntityFunction(service.entity)
       ? service.entity(context)
       : service.entity;
-    const repository = this.source.getRepository(entitytarget);
+    const repository = this.source.GetRepository(entitytarget);
     const classname = repository.metadata.name;
     const name = service.name || classname.toLowerCase();
     const exists = await repository.findOne({

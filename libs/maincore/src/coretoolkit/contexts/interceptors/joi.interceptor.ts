@@ -6,7 +6,6 @@ import {
   Injectable,
   NestInterceptor,
   PipeTransform,
-  Scope,
 } from '@nestjs/common';
 import Joi, { ObjectSchema } from 'joi';
 import { Request } from 'express';
@@ -49,7 +48,7 @@ export class JoiValidationPipe<T> implements PipeTransform {
  * @template T - The type of the pagination parameters.
  */
 
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class JoiPaginateValidation<T> implements NestInterceptor {
   /**
    * Creates an instance of `JoiPaginateValidation`.
@@ -76,7 +75,7 @@ export class JoiPaginateValidation<T> implements NestInterceptor {
     ]);
     if (paginate) {
       const request: Request = context.switchToHttp().getRequest();
-      const query = request.query;
+      const query = request.parsedQuery || request.query;
       const schema = PaginationSchema<T>(query);
       const { error, value: parsedValue } = schema.validate(query);
       if (error) {
@@ -86,7 +85,7 @@ export class JoiPaginateValidation<T> implements NestInterceptor {
         throw new BadRequestException(errorMessage);
       }
       const entity: ObjectLiteral = this.parentClass.model.entity;
-      request.query = parsedValue;
+      request.parsedQuery = parsedValue;
       request.validatorName = entity.constructor.name;
       this.parentClass.model.pagination = parsedValue as paginateprops<unknown>;
     }
@@ -101,7 +100,7 @@ export class JoiPaginateValidation<T> implements NestInterceptor {
  * @implements {NestInterceptor}
  * @template T - The type of the request data.
  */
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class JoiValidator<T> implements NestInterceptor {
   constructor(
     private schema: schema<T>,
@@ -128,7 +127,7 @@ export class JoiValidator<T> implements NestInterceptor {
  * @class JoiSchemaValidator
  * @implements {NestInterceptor}
  */
-@Injectable({ scope: Scope.TRANSIENT })
+@Injectable()
 export class JoiSchemaValidator implements NestInterceptor {
   constructor(
     private reflector: Reflector,

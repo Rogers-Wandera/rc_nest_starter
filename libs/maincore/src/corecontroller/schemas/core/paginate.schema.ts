@@ -1,3 +1,4 @@
+import { from } from 'rxjs';
 import { paginateprops } from '../../../coretoolkit/types/coretypes';
 import * as Joi from 'joi';
 
@@ -27,11 +28,18 @@ export const generateDynamicConditionsSchema = (itemSchema: {
   return Joi.object(schema).unknown(true); // Allow other properties as well
 };
 
+type paginatePropsWithDateFilter<T> = paginateprops<T> & {
+  dateFilter: {
+    from?: Date;
+    to?: Date;
+  };
+};
+
 export const PaginationSchema = <T>(itemSchema: {
   [key: string]: any;
-}): Joi.ObjectSchema<paginateprops<T>> => {
+}): Joi.ObjectSchema<paginatePropsWithDateFilter<T>> => {
   const conditionsSchema = generateDynamicConditionsSchema(itemSchema);
-  return Joi.object<paginateprops<T>>({
+  return Joi.object<paginatePropsWithDateFilter<T>>({
     limit: Joi.number().integer().required().messages({
       'number.base': `limit should be a type of 'number'`,
       'number.integer': `limit should be an integer`,
@@ -82,6 +90,14 @@ export const PaginationSchema = <T>(itemSchema: {
     globalFilter: Joi.string().allow(null, '').optional().messages({
       'string.base': `"globalFilter" should be a type of 'text'`,
     }),
+    dateFilter: Joi.object({
+      from: Joi.date().allow(null, '').optional().messages({
+        'date.base': `"dateFilter.from" should be a type of 'date'`,
+      }),
+      to: Joi.date().allow(null, '').optional().messages({
+        'date.base': `"dateFilter.to" should be a type of 'date'`,
+      }),
+    }).optional(),
   });
 };
 

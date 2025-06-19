@@ -30,7 +30,7 @@ import { UserGroupSupervisorModule } from './usergroupsupervisor/usergroupsuperv
         useFactory: (configService: ConfigService<EnvConfig>) => ({
           global: true,
           secret: configService.get<jwtconfig>('jwt').secret,
-          signOptions: { expiresIn: '3h' },
+          signOptions: { expiresIn: '5h' },
         }),
         inject: [ConfigService],
       }),

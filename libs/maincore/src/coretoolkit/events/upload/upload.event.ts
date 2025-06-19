@@ -1,12 +1,12 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { EventsGateway } from '../event.gateway';
 import { EventLogger } from '../../app/utils/event.logger';
 import { UploadReturn } from '../../micro/fileuploads/upload.type';
-import { INJECTABLES, USER_EVENTS } from '../../types/enums/enums';
+import { USER_EVENTS } from '../../types/enums/enums';
 import { CustomRepository } from '@core/maincore/databridge/ormextender/customrepository';
 import { UserProfileImage } from '@core/maincore/entities/core/userprofileimages.entity';
 import { User } from '@core/maincore/entities/core/users.entity';
-import { DataBridgeService } from '@core/maincore/databridge/databridge.service';
+import { ModelService } from '@core/maincore/databridge/model/model.service';
 
 export type UploadErrorType = {
   error: string;
@@ -28,47 +28,47 @@ export class UploadEvents {
   constructor(
     private readonly events: EventsGateway,
     private readonly eventslogger: EventLogger,
-    @Inject(INJECTABLES.DATA_SOURCE) private readonly source: DataBridgeService,
+    private readonly source: ModelService,
   ) {
-    this.userservice = this.source.GetRepository(User);
-    this.userprofile = this.source.GetRepository(UserProfileImage);
+    this.userservice = this.source.getRepository(User);
+    this.userprofile = this.source.getRepository(UserProfileImage);
   }
 
-  handleUpload(data: UploadErrorType) {
-    if (!data?.meta?.userId) {
-      return;
-    }
-    const usersocket = this.events.getClients().get(data.meta.userId);
-    if (usersocket) {
-      usersocket.emit('upload_error', {
-        error: data.error,
-        filename: data.filename,
-      });
-      this.eventslogger.logEvent(`File Upload Error`, 'user_events', {
-        userId: data.meta.userId,
-        eventType: 'UPLOAD_ERROR',
-      });
-      return;
-    } else {
-      this.logger.error(`User with id ${data.meta.userId} not connected`);
-      this.logger.error(`Error: ${data.error} with filename: ${data.filename}`);
-    }
-  }
+  // handleUpload(data: UploadErrorType) {
+  //   if (!data?.meta?.userId) {
+  //     return;
+  //   }
+  //   const usersocket = this.events.getClients().get(data.meta.userId);
+  //   if (usersocket) {
+  //     usersocket.emit('upload_error', {
+  //       error: data.error,
+  //       filename: data.filename,
+  //     });
+  //     this.eventslogger.logEvent(`File Upload Error`, 'user_events', {
+  //       userId: data.meta.userId,
+  //       eventType: 'UPLOAD_ERROR',
+  //     });
+  //     return;
+  //   } else {
+  //     this.logger.error(`User with id ${data.meta.userId} not connected`);
+  //     this.logger.error(`Error: ${data.error} with filename: ${data.filename}`);
+  //   }
+  // }
 
-  handleUploadProgress(data: UploadProgressType) {
-    if (!data?.meta?.userId || !data?.filename) {
-      return;
-    }
-    const usersocket = this.events.getClients().get(data.meta.userId);
-    if (usersocket) {
-      usersocket.emit('upload_progress', data);
-    } else {
-      this.logger.error(`User with id ${data.meta.userId} not connected`);
-      this.logger.error(
-        `Upload Progress: ${data.progress} with filename: ${data.filename}`,
-      );
-    }
-  }
+  // handleUploadProgress(data: UploadProgressType) {
+  //   if (!data?.meta?.userId || !data?.filename) {
+  //     return;
+  //   }
+  //   const usersocket = this.events.getClients().get(data.meta.userId);
+  //   if (usersocket) {
+  //     usersocket.emit('upload_progress', data);
+  //   } else {
+  //     this.logger.error(`User with id ${data.meta.userId} not connected`);
+  //     this.logger.error(
+  //       `Upload Progress: ${data.progress} with filename: ${data.filename}`,
+  //     );
+  //   }
+  // }
 
   async HandleUploadProfilePicture(data: UploadReturn) {
     try {

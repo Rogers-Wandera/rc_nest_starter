@@ -7,10 +7,12 @@ import { NotificationEvents } from './notifications/notification.event';
 import { UploadEvents } from './upload/upload.event';
 import { USER_JWT_EVENTS } from './user_events/jwt.eventsservice';
 import { UserAuthService } from './user_events/auth.eventservice';
+import { UserGateWay } from './user.event.gateway';
 
 @Module({
   providers: [
     EventsGateway,
+    UserGateWay,
     DataBridgeModule,
     EventsGateWayService,
     UserEventsService,
@@ -21,6 +23,7 @@ import { UserAuthService } from './user_events/auth.eventservice';
   ],
   exports: [
     EventsGateway,
+    UserGateWay,
     EventsGateWayService,
     UserEventsService,
     NotificationEvents,

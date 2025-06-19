@@ -8,6 +8,8 @@ export const envconfig = () => ({
   rabbitmqurl: process.env.RMQ_URL,
   socketurl: process.env.SOCKET_URL,
   sockettoken: process.env.SOCKET_TOKEN,
+  baseNotificationUrl: process.env.BASE_NOTIFICATION_URL,
+
   database: {
     host: process.env.DB_HOST,
     port: parseInt(process.env.DB_PORT),
@@ -53,6 +55,13 @@ export const envconfig = () => ({
     host: process.env.REDIS_HOST,
     port: parseInt(process.env.REDIS_PORT),
   },
+  rabbitmq: {
+    url: process.env.RMQ_URL,
+    username: process.env.RMQ_NOT_USER,
+    password: process.env.RMQ_NOT_PASS,
+    hostname: process.env.RMQ_HOST,
+    port: process.env.RMQ_PORT,
+  },
 });
 
 // create the type from the config
@@ -62,3 +71,4 @@ export type cloudinaryconfig = EnvConfig['cloudinary'];
 export type jwtconfig = EnvConfig['jwt'];
 export type firebase_web_config = EnvConfig['firebase_web'];
 export type firebase_account = EnvConfig['firebaseServiceAccount'];
+export type rabbitmq = EnvConfig['rabbitmq'];

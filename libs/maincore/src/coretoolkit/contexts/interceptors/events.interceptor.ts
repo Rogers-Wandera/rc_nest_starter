@@ -3,7 +3,6 @@ import {
   ExecutionContext,
   Injectable,
   NestInterceptor,
-  Scope,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { EVENT_KEY, UserEvent } from '../../decorators/event.decorator';
@@ -12,7 +11,7 @@ import { RabbitMQQueues } from '../../types/enums/enums';
 import { Observable, tap } from 'rxjs';
 import { Request } from 'express';
 
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class EventsInterceptor implements NestInterceptor {
   constructor(
     private reflector: Reflector,
