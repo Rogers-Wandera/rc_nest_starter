@@ -159,7 +159,7 @@ export class UserSessionService {
       ...sessionAlertKeys,
       ...userSessionsKeys,
       ...sessionMetaKeys,
-    ];
+    ] as string[];
 
     if (allKeys.length > 0) {
       const batchSize = 100; // Process 100 keys at a time
@@ -189,7 +189,7 @@ export class UserSessionService {
         this.logger.warn(`No active sockets found for session ${sessionId}`);
         return false;
       }
-      // Emit to the room (all sockets in the room will receive it)
+
       this.mainServer.to(sessionId).emit(pattern, data);
       this.logger.log(`Emitted "${pattern}" to session ${sessionId}`);
       return true;
